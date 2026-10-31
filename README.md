@@ -31,9 +31,11 @@ photos + voice
    └─ "Đổi nền" on the preview → Muse Image paints a room Spark described for this product
 ```
 
-Measured on the live API (Oct 31, 2026, five OCOP food products, `python -m app.batch`): 17.6 s and
-$0.025 per listing on average; price 5/5, stock 4/4, category 5/5 correct; both label/speech weight
-mismatches flagged.
+Measured on the live API (Oct 31, 2026, five OCOP food products in `samples/products`, `python -m app.batch`
+run three times, 15 listings): price 15/15, stock 12/12, category 15/15 correct; 17.8 s per listing on
+average (slowest 27.0 s), $0.025 each; the one product whose spoken weight (150 g) disagrees with its label
+(120 g) was flagged on every run; no run failed. A prescription-drug test item was blocked and could not be
+published.
 
 Design choices that matter:
 
