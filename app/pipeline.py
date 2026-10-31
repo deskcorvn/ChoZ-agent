@@ -216,13 +216,31 @@ class Agent:
         segment = self._step(run, "segment", f"Cut out “{listing.product_phrase_en}”",
                              self.client.segment(photos[0], listing.product_phrase_en),
                              f"photo-1 + “{listing.product_phrase_en}”")
-        verified, segmented, painted = await asyncio.gather(verify, segment, background, return_exceptions=True)
-
-        if isinstance(verified, BaseException):
-            raise verified
+        segment_task = asyncio.create_task(segment)
+        try:
+            verified = await verify
+        except Exception:
+            segment_task.cancel()
+            await asyncio.gather(segment_task, return_exceptions=True)
+            raise
         verification = Verification.model_validate(verified[0])
         run.verification = verification.model_dump()
         verified[1].output["verification"] = run.verification
+
+        if verification.verdict == "block":
+            # A blocked item never gets a studio photo: stop paying for the cut-out and the room.
+            # (Judges of the demo video noticed the agent kept spending after a block.)
+            for task in (segment_task, background):
+                task.cancel()
+            await asyncio.gather(segment_task, background, return_exceptions=True)
+            for step in run.steps:
+                if step.key in ("segment", "background") and step.status == "running":
+                    step.status, step.error = "skipped", "cancelled: the check blocked this item"
+            self._local(run, "compose", "Compose studio photo (local)", "", {"reason": "blocked"}, status="skipped")
+            self._decide(run, listing, verification)
+            return
+
+        segmented, painted = await asyncio.gather(segment_task, background, return_exceptions=True)
 
         # 4. Compose: real product pixels on the painted room. Without a cutout, show the photo as taken.
         if isinstance(segmented, BaseException) or not segmented[0]:

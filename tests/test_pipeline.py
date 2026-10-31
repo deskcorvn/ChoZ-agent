@@ -172,3 +172,27 @@ def test_restyle_needs_a_cut_out_product(settings):
     process(agent, run)
     with pytest.raises(ValueError, match="nothing to restyle"):
         asyncio.run(agent.restyle(run))
+
+
+class SlowBlockingClient(BlockingClient):
+    """Verification blocks quickly while the image steps would take long: the agent must not wait for them."""
+
+    async def segment(self, jpeg, phrase):
+        await asyncio.sleep(5)
+        return await super().segment(jpeg, phrase)
+
+    async def generate_image(self, prompt, size="1024x1024"):
+        await asyncio.sleep(5)
+        return await super().generate_image(prompt, size)
+
+
+def test_a_block_cancels_the_image_steps_instead_of_waiting_for_them(settings):
+    agent = agent_for(settings, SlowBlockingClient(settings))
+    run = agent.create([product_photo()], None, "Thuốc kháng sinh, giá 80 nghìn, còn 30 hộp")
+    started = time.monotonic()
+    process(agent, run)
+    assert run.status == "blocked"
+    assert time.monotonic() - started < 3                   # did not sit out the 5 s image calls
+    by_key = {s.key: s.status for s in run.steps}
+    assert by_key["segment"] == "skipped" and by_key["background"] == "skipped" and by_key["compose"] == "skipped"
+    assert run.studio_image is None
