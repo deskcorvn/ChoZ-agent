@@ -38,3 +38,9 @@ def test_bad_requests_get_clear_errors(settings):
         no_words = client.post("/api/runs", files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))])
         assert no_words.status_code == 422
         assert client.get("/api/runs/nope").status_code == 404
+
+
+def test_ui_files_are_revalidated_so_updates_show_up(settings):
+    with TestClient(create_app(settings)) as client:
+        for path in ("/", "/web/app.js", "/web/style.css"):
+            assert client.get(path).headers["cache-control"] == "no-cache", path

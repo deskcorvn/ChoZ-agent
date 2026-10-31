@@ -18,6 +18,16 @@ MAX_PHOTO_BYTES = 15 * 1024 * 1024
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 
 
+class RevalidatedFiles(StaticFiles):
+    """The UI's own files: always ask the server (cheap with ETag), so an update is never hidden by
+    the browser cache. Found 31/10/2026: a reload kept running the previous app.js."""
+
+    def file_response(self, *args, **kwargs):
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     settings = settings or config.load()
     client = client or make_client(settings)
@@ -106,10 +116,10 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     app.mount("/files/runs", StaticFiles(directory=runs_dir), name="run-files")
     catalog.images.mkdir(parents=True, exist_ok=True)
     app.mount("/files/catalog", StaticFiles(directory=catalog.images), name="catalog-files")
-    app.mount("/web", StaticFiles(directory=ROOT / "web"), name="web")
+    app.mount("/web", RevalidatedFiles(directory=ROOT / "web"), name="web")
 
     @app.get("/")
     def index():
-        return FileResponse(ROOT / "web" / "index.html")
+        return FileResponse(ROOT / "web" / "index.html", headers={"Cache-Control": "no-cache"})
 
     return app
