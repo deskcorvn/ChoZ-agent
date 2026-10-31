@@ -10,7 +10,8 @@ speech model (it may contain recognition mistakes; fix obvious ones from context
 
 Rules:
 - Write `title` and `description` in natural, friendly Vietnamese a market seller would use. No emoji,
-  no exaggerated claims, no claims you cannot see or the seller did not say.
+  no exaggerated claims, no claims you cannot see or the seller did not say. Do not call the item new,
+  genuine, imported, handmade or best quality unless the seller said so.
 - Price, stock, sizes, colours for sale, origin, and material come ONLY from the seller's words, or
   from text clearly printed on the product. Never guess a price or a stock count from the photos.
 - If the seller did not give the price, set `price_vnd` to null and add "price_vnd" to `missing`.

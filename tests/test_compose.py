@@ -47,3 +47,17 @@ def test_cutout_refuses_a_mask_of_the_wrong_size_or_an_empty_one():
         compose.cutout(photo, np.ones((10, 10), bool))
     with pytest.raises(ValueError, match="empty"):
         compose.cutout(photo, np.zeros((80, 100), bool))
+
+
+def test_contact_shadow_follows_a_slanted_bottom_edge():
+    # A parallelogram whose bottom edge drops from left to right, as in a photo taken at an angle.
+    size = (100, 80)
+    alpha = np.zeros((80, 100), np.uint8)
+    for x in range(100):
+        alpha[: 40 + x // 4, x] = 255
+    item = Image.new("RGBA", size, (10, 20, 30, 0))
+    item.putalpha(Image.fromarray(alpha))
+    shadow = np.asarray(compose.contact_shadow(item, pad=20))
+    left_col, right_col = 20 + 5, 20 + 95
+    assert shadow[:, left_col].argmax() < shadow[:, right_col].argmax()     # it slants with the edge
+    assert shadow[20 + 5, left_col] < shadow.max() * 0.05                     # next to nothing at the top

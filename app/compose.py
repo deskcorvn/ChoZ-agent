@@ -12,8 +12,8 @@ from PIL import Image, ImageFilter, ImageOps
 
 MAX_UPLOAD_SIDE = 1280
 STUDIO_SIDE = 1024
-PRODUCT_FILL = 0.72      # product fits inside this share of the studio frame
-FLOOR_LINE = 0.84        # product's bottom edge sits at this height
+PRODUCT_FILL = 0.66      # product fits inside this share of the studio frame
+FLOOR_LINE = 0.86        # product's bottom edge sits at this height
 
 
 def normalise_photo(raw: bytes) -> bytes:
@@ -50,17 +50,30 @@ def studio(background: Image.Image, product: Image.Image, side: int = STUDIO_SID
     left = (side - item.width) // 2
     top = round(side * FLOOR_LINE) - item.height
 
-    # A soft contact shadow: the product's own silhouette, squashed onto the floor and blurred.
-    shadow_h = max(4, item.height // 12)
-    silhouette = item.getchannel("A").resize((item.width, shadow_h))
-    shadow = Image.new("L", (item.width + 80, shadow_h + 80), 0)
-    shadow.paste(silhouette.point(lambda v: v * 0.45), (40, 40))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(18))
-    dark = Image.new("RGB", shadow.size, (40, 40, 40))
-    canvas.paste(dark, (left - 40, top + item.height - shadow_h // 2 - 40), shadow)
-
+    shadow = contact_shadow(item)
+    pad = (shadow.width - item.width) // 2
+    canvas.paste(Image.new("RGB", shadow.size, (30, 28, 26)), (left - pad, top - pad), shadow)
     canvas.paste(item, (left, top), item)
     return canvas
+
+
+def contact_shadow(item: Image.Image, pad: int = 48) -> Image.Image:
+    """An alpha mask, `pad` px larger than `item` on each side, that darkens just under the product's
+    lowest edge, column by column. Phone photos are taken at an angle, so that edge is often a slant;
+    a flat shadow under a slanted edge makes the product look like it floats."""
+    solid = np.asarray(item.getchannel("A")) > 128
+    h, w = solid.shape
+    columns = solid.any(axis=0)
+    lowest = h - 1 - np.argmax(solid[::-1], axis=0)                 # lowest opaque row per column
+    rows = np.arange(h + 2 * pad)[:, None]
+    edge = (lowest + pad)[None, :]
+    band = h // 40 + 3
+    near = ((rows >= edge - 2) & (rows <= edge + band) & columns[None, :]).astype(np.uint8) * 255
+    mask = np.zeros((h + 2 * pad, w + 2 * pad), np.uint8)
+    mask[:, pad:pad + w] = near
+    tight = Image.fromarray(mask).filter(ImageFilter.GaussianBlur(4)).point(lambda v: round(v * 0.7))
+    wide = Image.fromarray(mask).filter(ImageFilter.GaussianBlur(22)).point(lambda v: round(v * 0.45))
+    return Image.fromarray(np.maximum(np.asarray(tight), np.asarray(wide)))
 
 
 def jpeg(image: Image.Image, quality: int = 90) -> bytes:

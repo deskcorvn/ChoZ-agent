@@ -32,6 +32,10 @@ class Settings:
     language_bias: str  # "" to let Voice Transcribe detect the language
     data_dir: Path
     timeout_s: float
+    # Spark cannot switch reasoning off. Extraction and checking do not need depth. Measured 31/10/2026 on
+    # the same two products: default effort 1,400-2,000 reasoning tokens, 34.7 s and $0.037 per listing;
+    # "low" 26.4 s, $0.027; "minimal" ~200 tokens, 19.6 s, $0.023, with the same fields and verdicts.
+    reasoning_effort: str = "minimal"
 
 
 def load() -> Settings:
@@ -54,4 +58,5 @@ def load() -> Settings:
         language_bias=os.environ.get("LISTING_LANGUAGE_BIAS", "Vietnamese").strip(),
         data_dir=Path(os.environ.get("LISTING_DATA_DIR", str(ROOT / "data"))),
         timeout_s=float(os.environ.get("LISTING_TIMEOUT_S", "90")),
+        reasoning_effort=os.environ.get("LISTING_REASONING_EFFORT", "minimal").strip(),
     )

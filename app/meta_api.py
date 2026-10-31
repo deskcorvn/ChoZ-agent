@@ -138,12 +138,15 @@ class MetaClient:
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}],
             "response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema}},
         }
+        if self.s.reasoning_effort:
+            payload["reasoning_effort"] = self.s.reasoning_effort
         body = await self._post("/chat/completions", json=payload)
         message = body["choices"][0]["message"]["content"]
         if isinstance(message, list):
             message = "".join(part.get("text", "") for part in message if isinstance(part, dict))
         usage = body.get("usage") or {}
-        meta = {"endpoint": "POST /v1/chat/completions", "model": self.s.text_model, "usage": usage,
+        meta = {"endpoint": "POST /v1/chat/completions", "model": self.s.text_model,
+                "usage": {**usage, "reasoning_effort": self.s.reasoning_effort or "default"},
                 "cost_usd": prices.text_cost(self.s.text_model, usage)}
         return json.loads(message), meta
 
@@ -156,16 +159,19 @@ class MetaClient:
                      "audio": ("speech.wav", wav, "audio/wav")}
             return await self._post("/asr/transcribe", files=files, headers={"Accept": "application/json"})
 
+        bias = self.s.language_bias
         try:
-            body = await call(self.s.language_bias)
+            body = await call(bias)
         except MetaAPIError as exc:
             # languageBias is documented for the realtime handshake; if the file endpoint rejects it, go without.
-            if exc.status != 400 or not self.s.language_bias:
+            if exc.status != 400 or not bias:
                 raise
-            body = await call("")
+            bias = ""
+            body = await call(bias)
         seconds = wav_seconds(wav)
         meta = {"endpoint": "POST /v1/asr/transcribe", "model": self.s.asr_model,
-                "usage": {"audio_seconds": round(seconds, 2)}, "cost_usd": prices.asr_cost(seconds),
+                "usage": {"audio_seconds": round(seconds, 2), "language_bias": bias or "auto"},
+                "cost_usd": prices.asr_cost(seconds),
                 "raw": json.dumps(body, ensure_ascii=False)[:600]}
         return transcript_text(body), meta
 

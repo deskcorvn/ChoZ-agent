@@ -47,7 +47,7 @@ def test_chat_json_sends_images_as_data_urls_and_a_json_schema(settings):
     assert seen["path"] == "/v1/chat/completions"
     assert seen["auth"] == "Bearer test-key"
     body = seen["body"]
-    assert body["model"] == "muse-spark-1.3"
+    assert body["model"] == "muse-spark-1.3" and body["reasoning_effort"] == "minimal"
     assert body["response_format"] == {"type": "json_schema", "json_schema": {"name": "Thing", "schema": {"type": "object"}}}
     image = body["messages"][1]["content"][1]
     assert image["type"] == "image_url" and image["image_url"]["url"].startswith("data:image/jpeg;base64,")
@@ -81,7 +81,7 @@ def test_transcribe_sends_multipart_and_falls_back_without_language_bias(setting
     assert len(requests) == 2 and '"languageBias"' not in requests[1]
     assert 'name="request"' in requests[1] and '"audioEncoding": "WAV"' in requests[1]
     assert 'name="audio"' in requests[1]
-    assert meta["usage"]["audio_seconds"] == 10.0
+    assert meta["usage"] == {"audio_seconds": 10.0, "language_bias": "auto"}
     assert meta["cost_usd"] == pytest.approx(10 / 3600 * 0.18)
 
 

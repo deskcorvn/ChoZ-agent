@@ -223,7 +223,9 @@ class Agent:
                 room, source = Image.open(io.BytesIO(painted[0])), "Muse Image"
                 (folder / "background.png").write_bytes(painted[0])
             t0 = time.perf_counter()
-            final = compose.studio(room, compose.cutout(photo, best.mask))
+            piece = compose.cutout(photo, best.mask)
+            piece.save(folder / "cutout.png")
+            final = compose.studio(room, piece)
             (folder / "studio.jpg").write_bytes(compose.jpeg(final))
             run.studio_image = "studio.jpg"
             step = self._local(run, "compose", "Compose studio photo (local)", f"cutout + {source} background",

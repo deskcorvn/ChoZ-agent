@@ -27,8 +27,8 @@ CHECKED = ("price_vnd", "stock", "category")
 def load_product(folder: Path) -> tuple[list[bytes], bytes | None, str, dict]:
     photos = [p.read_bytes() for p in sorted(folder.glob("photo-*")) if p.suffix.lower() in PHOTO_SUFFIXES][:3]
     audio = (folder / "speech.wav").read_bytes() if (folder / "speech.wav").is_file() else None
-    note = (folder / "note.txt").read_text(encoding="utf-8").strip() if (folder / "note.txt").is_file() else ""
-    expected = json.loads((folder / "expected.json").read_text(encoding="utf-8")) if (folder / "expected.json").is_file() else {}
+    note = (folder / "note.txt").read_text(encoding="utf-8-sig").strip() if (folder / "note.txt").is_file() else ""
+    expected = json.loads((folder / "expected.json").read_text(encoding="utf-8-sig")) if (folder / "expected.json").is_file() else {}
     return photos, audio, note, expected
 
 
