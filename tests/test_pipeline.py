@@ -76,6 +76,7 @@ def test_an_answer_that_settles_nothing_still_ends_the_questions(settings):
 class BlockingClient(MockMetaClient):
     async def chat_json(self, system, text, images, name, schema):
         if name == "Verification":
+            await asyncio.sleep(0)          # a real call always yields; a coroutine that never does is not one
             return ({"verdict": "block", "prohibited": True, "prohibited_reason": "replica weapon",
                      "checks": [], "summary_vi": "Không được đăng."}, self._meta("x", "m", {}))
         return await super().chat_json(system, text, images, name, schema)

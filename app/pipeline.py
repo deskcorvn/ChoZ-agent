@@ -236,6 +236,8 @@ class Agent:
             for step in run.steps:
                 if step.key in ("segment", "background") and step.status == "running":
                     step.status, step.error = "skipped", "cancelled: the check blocked this item"
+            if not any(s.key == "segment" for s in run.steps):       # cancelled before it even started
+                self._local(run, "segment", "Cut out product", "", {"reason": "blocked"}, status="skipped")
             self._local(run, "compose", "Compose studio photo (local)", "", {"reason": "blocked"}, status="skipped")
             self._decide(run, listing, verification)
             return
