@@ -14,21 +14,26 @@ stock and a clean studio photo — in seconds instead of 10–15 minutes of typi
 ```
 photos + voice
    │
+   ├────────────────────────── Muse Image: paint an EMPTY studio        (POST /v1/images/generations)
+   │                            (slowest call, so it starts first and runs alongside everything)
    ├─ Muse Voice Transcribe ── Vietnamese speech → text                (POST /v1/asr/transcribe)
    │
    ├─ Muse Spark 1.3 ────────── photos + text → listing JSON            (chat completions, json_schema)
-   │                             price/stock only from the seller's words, never guessed
+   │                             price/stock only from the seller's words; printed label beats speech
    │
-   ├─┬─ Muse Spark 1.3 ──────── verify: every claim vs the photos,      (json_schema)
-   │ │                           prohibited goods → block
-   │ ├─ SAM 3.1 ─────────────── cut the real product out of photo 1     (POST /v1/responses, stream)
-   │ └─ Muse Image ──────────── paint an EMPTY studio, no product/text  (POST /v1/images/generations)
-   │        (these three run in parallel)
+   ├─┬─ Muse Spark 1.3 ──────── verify every claim AND the seller's words against the photos
+   │ │                           ("you said 150 g, the label says 120 g" → warn; prohibited → block)
+   │ └─ SAM 3.1 ─────────────── cut the real product out of photo 1     (POST /v1/responses, stream)
    │
-   ├─ compose (local) ───────── real product pixels on the painted room
+   ├─ compose (local) ───────── real product pixels on the painted room, shadow along its edge
    │
-   └─ missing price or stock? → ask exactly one question → preview → publish
+   ├─ missing price or stock? → ask exactly one question → preview → publish
+   └─ "Đổi nền" on the preview → Muse Image paints a room Spark described for this product
 ```
+
+Measured on the live API (Oct 31, 2026, five OCOP food products, `python -m app.batch`): 17.6 s and
+$0.025 per listing on average; price 5/5, stock 4/4, category 5/5 correct; both label/speech weight
+mismatches flagged.
 
 Design choices that matter:
 

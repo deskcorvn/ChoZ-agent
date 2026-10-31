@@ -182,9 +182,26 @@ function fillPreview(run) {
   const v = run.verification || { verdict: 'warn', summary_vi: 'Chưa kiểm tra.' };
   $('verdict').className = `verdict ${v.verdict}`;
   $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + v.summary_vi;
+  $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   $('publish').disabled = run.status === 'blocked';
   $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';
 }
+
+$('restyle').addEventListener('click', async () => {
+  const button = $('restyle');
+  button.disabled = true;
+  button.textContent = 'Đang vẽ nền mới…';
+  $('preview-error').textContent = '';
+  try {
+    const run = await api(`/api/runs/${state.run.id}/restyle`, { method: 'POST' });
+    state.run = run;
+    renderLog(run);
+    $('studio').src = `/files/runs/${run.id}/${run.studio_image}`;
+    if (run.error) $('preview-error').textContent = 'Chưa đổi được nền: ' + run.error;
+  } catch (err) { $('preview-error').textContent = err.message; }
+  button.disabled = false;
+  button.textContent = 'Đổi nền hợp với sản phẩm';
+});
 
 $('publish').addEventListener('click', async () => {
   $('preview-error').textContent = '';

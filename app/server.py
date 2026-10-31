@@ -81,6 +81,15 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
             raise HTTPException(409, str(exc)) from exc
         return run.public()
 
+    @app.post("/api/runs/{run_id}/restyle")
+    async def restyle(run_id: str):
+        run = get_run(run_id)
+        try:
+            await agent.restyle(run)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return run.public()
+
     @app.post("/api/runs/{run_id}/publish")
     def publish(run_id: str, edits: dict | None = None):
         run = get_run(run_id)

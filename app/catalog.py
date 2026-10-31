@@ -9,7 +9,7 @@ from pathlib import Path
 from app.pipeline import Run
 from app.schema import Listing
 
-EDITABLE = ("title", "description", "price_vnd", "stock", "category")
+EDITABLE = ("title", "description", "price_vnd", "stock", "category_id")
 
 
 class Catalog:

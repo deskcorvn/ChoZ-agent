@@ -8,11 +8,15 @@ from __future__ import annotations
 import json
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.config import ROOT
 
-CATEGORIES: list[str] = json.loads((ROOT / "samples" / "categories.json").read_text(encoding="utf-8"))
+# The model picks an ASCII id; the seller sees the Vietnamese name. Measured 31/10/2026: with the
+# Vietnamese names themselves as the enum, 2 of 5 food products came back as the first two entries
+# ("Thời trang nam", "Thời trang nữ").
+CATEGORIES: list[dict] = json.loads((ROOT / "samples" / "categories.json").read_text(encoding="utf-8-sig"))
+CATEGORY_NAMES: dict[str, str] = {c["id"]: c["name"] for c in CATEGORIES}
 
 REQUIRED_FOR_SALE = ("price_vnd", "stock")
 
@@ -25,7 +29,8 @@ class Attribute(BaseModel):
 class Listing(BaseModel):
     title: str = Field(min_length=3, max_length=120)
     description: str
-    category: str
+    category_id: str
+    category: str = ""                   # the Vietnamese name, filled in from category_id
     attributes: list[Attribute] = []
     variants: list[str] = []
     price_vnd: int | None = Field(default=None, ge=0)
@@ -34,6 +39,18 @@ class Listing(BaseModel):
     missing: list[str] = []
     product_phrase_en: str = Field(min_length=2, max_length=60)
     background_prompt_en: str
+
+    @field_validator("category_id")
+    @classmethod
+    def _known_category(cls, value: str) -> str:
+        if value not in CATEGORY_NAMES:
+            raise ValueError(f"unknown category id {value!r}")
+        return value
+
+    @model_validator(mode="after")
+    def _category_name(self) -> Listing:
+        self.category = CATEGORY_NAMES[self.category_id]
+        return self
 
     def missing_for_sale(self) -> list[str]:
         return [name for name in REQUIRED_FOR_SALE if getattr(self, name) is None]
@@ -66,7 +83,7 @@ LISTING_SCHEMA = {
     "properties": {
         "title": {"type": "string", "description": "Vietnamese product title, at most 120 characters"},
         "description": {"type": "string", "description": "Vietnamese sales description, 2-5 short sentences"},
-        "category": {"type": "string", "enum": CATEGORIES},
+        "category_id": {"type": "string", "enum": list(CATEGORY_NAMES)},
         "attributes": {
             "type": "array",
             "items": {"type": "object",
@@ -85,7 +102,7 @@ LISTING_SCHEMA = {
         "background_prompt_en": {"type": "string",
                                  "description": "An empty studio scene for this product: no product, people, text or logos"},
     },
-    "required": ["title", "description", "category", "attributes", "variants", "price_vnd", "stock",
+    "required": ["title", "description", "category_id", "attributes", "variants", "price_vnd", "stock",
                  "unit", "missing", "product_phrase_en", "background_prompt_en"],
 }
 

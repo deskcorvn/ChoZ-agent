@@ -160,6 +160,23 @@ class Agent:
         return run
 
     async def _process(self, run: Run) -> None:
+        # Muse Image is the slowest call (10-26 s measured) and its neutral room needs nothing from the
+        # other steps, so it starts first and runs alongside all of them.
+        painting = self.client.generate_image(prompts.STUDIO_BACKGROUND.format(scene=prompts.NEUTRAL_SCENE))
+        background = asyncio.create_task(self._step(
+            run, "background", "Paint empty studio (no product, no text)", painting, "neutral studio, started first"))
+        try:
+            await self._listing_and_photo(run, background)
+        finally:
+            if not background.done():          # an earlier step failed: stop painting a room nobody will see
+                background.cancel()
+                await asyncio.gather(background, return_exceptions=True)
+                painting.close()               # no-op if it ran; otherwise it was never awaited
+                for step in run.steps:
+                    if step.key == "background" and step.status == "running":
+                        step.status, step.error = "skipped", "cancelled: an earlier step failed"
+
+    async def _listing_and_photo(self, run: Run, background: asyncio.Task) -> None:
         folder = self._dir(run)
         photos = self._photos(run)
 
@@ -186,19 +203,19 @@ class Agent:
         run.listing = listing.model_dump()
         step.output["listing"] = run.listing
 
-        # 3. In parallel: verify against the photos, cut the product out, paint an empty studio.
+        # 3. In parallel (with the background already painting): verify against the photos and the
+        #    seller's words, and cut the product out.
+        listing_for_check = {k: v for k, v in run.listing.items() if k not in ("product_phrase_en", "background_prompt_en")}
         verify = self._step(
             run, "verify", "Check listing against photos",
-            self.client.chat_json(prompts.VERIFY, "Listing to check:\n" + json.dumps(run.listing, ensure_ascii=False),
+            self.client.chat_json(prompts.VERIFY,
+                                  f"Seller said: {seller_words}\n\nListing to check:\n"
+                                  + json.dumps(listing_for_check, ensure_ascii=False),
                                   photos, "Verification", VERIFICATION_SCHEMA),
-            "listing + photos")
+            "listing + seller's words + photos")
         segment = self._step(run, "segment", f"Cut out “{listing.product_phrase_en}”",
                              self.client.segment(photos[0], listing.product_phrase_en),
                              f"photo-1 + “{listing.product_phrase_en}”")
-        background = self._step(
-            run, "background", "Paint empty studio (no product, no text)",
-            self.client.generate_image(prompts.STUDIO_BACKGROUND.format(scene=listing.background_prompt_en)),
-            listing.background_prompt_en)
         verified, segmented, painted = await asyncio.gather(verify, segment, background, return_exceptions=True)
 
         if isinstance(verified, BaseException):
@@ -233,6 +250,31 @@ class Agent:
             step.ms = round((time.perf_counter() - t0) * 1000)
 
         self._decide(run, listing, verification)
+
+    async def restyle(self, run: Run) -> Run:
+        """On request: a second Muse Image room, this time described by Spark for this product."""
+        folder = self._dir(run)
+        if run.status != "ready" or not (folder / "cutout.png").is_file():
+            raise ValueError(f"run is {run.status} without a cut-out product; nothing to restyle")
+        listing = Listing.model_validate(run.listing)
+        run.start_work()
+        try:
+            image, _ = await self._step(
+                run, "restyle", "Paint a studio for this product",
+                self.client.generate_image(prompts.STUDIO_BACKGROUND.format(scene=listing.background_prompt_en)),
+                listing.background_prompt_en)
+            n = sum(1 for s in run.steps if s.key == "restyle")
+            (folder / f"background-{n}.png").write_bytes(image)
+            final = compose.studio(Image.open(io.BytesIO(image)), Image.open(folder / "cutout.png"))
+            (folder / f"studio-{n}.jpg").write_bytes(compose.jpeg(final))
+            run.studio_image = f"studio-{n}.jpg"
+            run.error = ""
+        except Exception as exc:  # the old photo stays; the failed step is in the log
+            run.error = f"{type(exc).__name__}: {exc}"[:500]
+        finally:
+            run.stop_work()
+            self._save(run)
+        return run
 
     def _decide(self, run: Run, listing: Listing, verification: Verification) -> None:
         if verification.verdict == "block":

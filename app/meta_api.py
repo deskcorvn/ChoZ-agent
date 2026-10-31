@@ -260,7 +260,7 @@ class MockMetaClient:
             listing = {
                 "title": first[:1].upper() + first[1:],
                 "description": f"{first[:1].upper() + first[1:]}. Hàng có sẵn, giao nhanh trong ngày.",
-                "category": "Thời trang nam" if re.search(r"\báo\b|quần", note, re.I) else "Khác",
+                "category_id": "fashion_men" if re.search(r"\báo\b|quần", note, re.I) else "other",
                 "attributes": [], "variants": [], "price_vnd": price, "stock": stock, "unit": "cái",
                 "missing": [k for k, v in (("price_vnd", price), ("stock", stock)) if v is None],
                 "product_phrase_en": "product",

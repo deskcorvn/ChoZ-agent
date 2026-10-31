@@ -24,7 +24,10 @@ def test_a_complete_note_goes_straight_to_ready(settings):
     process(agent, run)
     assert run.status == "ready", run.error
     assert run.listing["price_vnd"] == 120000 and run.listing["stock"] == 50
-    assert [s.key for s in run.steps] == ["prepare", "listing", "verify", "segment", "background", "compose"]
+    keys = [s.key for s in run.steps]
+    assert keys[0] == "prepare" and keys[-1] == "compose"
+    assert sorted(keys[1:-1]) == ["background", "listing", "segment", "verify"]
+    assert keys.index("background") < keys.index("verify")      # the slow painter starts early
     assert all(s.status == "done" for s in run.steps)
     assert all(s.mock for s in run.steps if s.model)
     assert (settings.data_dir / "runs" / run.id / "studio.jpg").is_file()
@@ -34,8 +37,8 @@ def test_voice_is_transcribed_first(settings):
     agent = agent_for(settings)
     run = agent.create([product_photo()], wav_bytes(), "")
     process(agent, run)
-    assert run.steps[1].key == "transcribe" and run.transcript
-    assert run.steps[1].output["usage"]["audio_seconds"] == 1.5
+    step = next(s for s in run.steps if s.key == "transcribe")
+    assert run.transcript and step.output["usage"]["audio_seconds"] == 1.5
 
 
 def test_missing_price_asks_exactly_one_question(settings):
@@ -99,7 +102,8 @@ def test_a_listing_that_fails_validation_fails_the_run_and_the_step(settings):
     run = agent.create([product_photo()], None, "áo")
     process(agent, run)
     assert run.status == "failed"
-    assert run.steps[-1].key == "listing" and run.steps[-1].status == "failed"
+    failed = [s.key for s in run.steps if s.status == "failed"]
+    assert failed == ["listing"]
 
 
 class NoMatchClient(MockMetaClient):
@@ -134,3 +138,37 @@ def test_photo_count_is_one_to_three(settings):
         agent.create([], None, "áo")
     with pytest.raises(ValueError):
         agent.create([product_photo()] * 4, None, "áo")
+
+
+def test_category_is_chosen_by_id_and_shown_by_name(settings):
+    agent = agent_for(settings)
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    process(agent, run)
+    assert run.listing["category_id"] == "fashion_men" and run.listing["category"] == "Thời trang nam"
+
+
+def test_an_unknown_category_id_fails_validation():
+    from pydantic import ValidationError
+
+    from app.schema import Listing
+    with pytest.raises(ValidationError, match="unknown category"):
+        Listing.model_validate({"title": "Áo thun", "description": "x", "category_id": "Thời trang nam",
+                                "product_phrase_en": "shirt", "background_prompt_en": "studio"})
+
+
+def test_restyle_paints_a_second_room_and_keeps_the_product(settings):
+    agent = agent_for(settings)
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    process(agent, run)
+    asyncio.run(agent.restyle(run))
+    assert run.studio_image == "studio-1.jpg" and run.status == "ready" and not run.error
+    assert (settings.data_dir / "runs" / run.id / "studio-1.jpg").is_file()
+    assert [s.key for s in run.steps].count("restyle") == 1
+
+
+def test_restyle_needs_a_cut_out_product(settings):
+    agent = agent_for(settings, NoMatchClient(settings))
+    run = agent.create([product_photo()], None, "Áo thun, giá 120k, còn 5 cái")
+    process(agent, run)
+    with pytest.raises(ValueError, match="nothing to restyle"):
+        asyncio.run(agent.restyle(run))

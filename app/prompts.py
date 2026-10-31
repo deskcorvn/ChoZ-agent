@@ -19,7 +19,9 @@ Rules:
 - Convert spoken Vietnamese amounts to integers: "120 nghìn", "120k", "một trăm hai mươi nghìn" → 120000;
   "1 triệu 2" → 1200000; "còn năm chục cái" → stock 50.
 - Do not name a brand unless its logo or name is clearly visible or the seller said it.
-- `category` must be exactly one of: {", ".join(CATEGORIES)}.
+- If the seller's words and text printed on the product disagree (e.g. a weight), use the printed value.
+- `category_id`: the id of the category that fits the item, from this list (id: name):
+{chr(10).join(f"  {c['id']}: {c['name']}" for c in CATEGORIES)}
 - `attributes`: short name/value pairs in Vietnamese (e.g. Chất liệu: cotton) for facts you are sure of.
 - `product_phrase_en`: 1-4 plain English words naming the product as it appears, for an image
   segmentation model, e.g. "white t-shirt", "glass jar of honey".
@@ -28,19 +30,28 @@ Rules:
 """
 
 VERIFY = """You check a draft marketplace listing against the product photos before it is published.
+You also get what the seller said.
 
 For each concrete claim in the listing that a photo could confirm or contradict (item type, colour,
-pattern, visible material, printed text or brand, number of items shown), add one check:
+pattern, visible material, printed text, weight or size printed on the pack, brand, number of items
+shown), add one check:
 - "consistent": the photos support it;
-- "not_visible": the photos cannot show it (e.g. stock count, fabric weight) — this is fine;
+- "not_visible": the photos cannot show it (e.g. stock count, price) — this is fine;
 - "contradicted": the photos show something different.
+
+Also compare the seller's words with the photos. If the seller said something the photos contradict
+(for example "150 gram" while the label says 120g), add a "contradicted" check that names both values.
+
+Check that the category fits the item. A wrong category is a "contradicted" check, never a reason to block.
 
 Set `prohibited` to true if the item looks like goods a Vietnamese marketplace must not list: weapons
 or replicas, drugs, tobacco or e-cigarettes, wildlife products, prescription medicine, adult content,
 or goods with a well-known brand that look counterfeit. Explain in `prohibited_reason`.
 
-`verdict`: "block" if prohibited or the item type itself is contradicted; "warn" if any other claim
-is contradicted; otherwise "pass". `summary_vi`: one short Vietnamese sentence for the seller.
+`verdict`: "block" only if prohibited, or if the photos show a different kind of item than the listing
+describes; "warn" if any check is contradicted; otherwise "pass". `summary_vi`: one short sentence for
+the seller, entirely in Vietnamese (say "tin đăng", "bạn"; no English words); when warning, say what
+differs and which value the listing uses.
 """
 
 SALE_FACTS = """The seller answered a follow-up question about the price and/or stock of their product.
@@ -48,6 +59,11 @@ Extract `price_vnd` (integer Vietnamese dong) and `stock` (integer units) from t
 for anything the answer does not state. Convert spoken amounts: "120 nghìn"/"120k" → 120000,
 "năm chục" → 50, "1 triệu 2" → 1200000.
 """
+
+# Painted while the other steps run, before anything is known about the product (Muse Image is the
+# slowest call, 10-26 s measured), so it must suit any item.
+NEUTRAL_SCENE = ("An empty, minimal product-photo studio: a light warm-grey seamless backdrop curving into "
+                 "a pale wooden tabletop in the lower third, soft diffused window light from the left.")
 
 STUDIO_BACKGROUND = ("{scene} Square product-photo composition, empty centre ready for a product to be placed, "
                      "soft even studio lighting, photorealistic. No objects in the centre, no people, "

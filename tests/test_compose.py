@@ -61,3 +61,13 @@ def test_contact_shadow_follows_a_slanted_bottom_edge():
     left_col, right_col = 20 + 5, 20 + 95
     assert shadow[:, left_col].argmax() < shadow[:, right_col].argmax()     # it slants with the edge
     assert shadow[20 + 5, left_col] < shadow.max() * 0.05                     # next to nothing at the top
+
+
+def test_transparent_png_lands_on_white_not_black():
+    cutout_png = Image.new("RGBA", (200, 100), (0, 0, 0, 0))          # transparent black, as editors save it
+    cutout_png.paste((200, 30, 40, 255), (50, 25, 150, 75))
+    buffer = io.BytesIO()
+    cutout_png.save(buffer, "PNG")
+    out = np.asarray(Image.open(io.BytesIO(compose.normalise_photo(buffer.getvalue()))))
+    assert out[5, 5].min() > 245                     # corner was transparent → white
+    assert np.abs(out[50, 100].astype(int) - (200, 30, 40)).max() < 12

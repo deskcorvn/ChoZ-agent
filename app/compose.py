@@ -18,7 +18,13 @@ FLOOR_LINE = 0.86        # product's bottom edge sits at this height
 
 def normalise_photo(raw: bytes) -> bytes:
     """Upright (EXIF), RGB, longest side ≤ 1280 px, JPEG. Fewer tokens, same content."""
-    image = ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert("RGB")
+    image = ImageOps.exif_transpose(Image.open(io.BytesIO(raw)))
+    if image.mode in ("RGBA", "LA", "PA") or (image.mode == "P" and "transparency" in image.info):
+        # Cut-out product PNGs: transparent pixels hold arbitrary colour (often black). Put them on white.
+        rgba = image.convert("RGBA")
+        image = Image.new("RGB", rgba.size, (255, 255, 255))
+        image.paste(rgba, mask=rgba.getchannel("A"))
+    image = image.convert("RGB")
     image.thumbnail((MAX_UPLOAD_SIDE, MAX_UPLOAD_SIDE), Image.Resampling.LANCZOS)
     buffer = io.BytesIO()
     image.save(buffer, "JPEG", quality=88)
