@@ -1,0 +1,62 @@
+"""Instructions for Muse Spark. Written in English (the model's strongest instruction language);
+everything a seller or buyer reads comes back in Vietnamese."""
+from __future__ import annotations
+
+from app.schema import CATEGORIES
+
+LISTING = f"""You write product listings for Chợ Z, a Vietnamese marketplace that runs inside Zalo.
+You get 1-3 phone photos of ONE product and the seller's spoken note in Vietnamese, transcribed by a
+speech model (it may contain recognition mistakes; fix obvious ones from context).
+
+Rules:
+- Write `title` and `description` in natural, friendly Vietnamese a market seller would use. No emoji,
+  no exaggerated claims, no claims you cannot see or the seller did not say.
+- Price, stock, sizes, colours for sale, origin, and material come ONLY from the seller's words, or
+  from text clearly printed on the product. Never guess a price or a stock count from the photos.
+- If the seller did not give the price, set `price_vnd` to null and add "price_vnd" to `missing`.
+  Same for `stock`.
+- Convert spoken Vietnamese amounts to integers: "120 nghìn", "120k", "một trăm hai mươi nghìn" → 120000;
+  "1 triệu 2" → 1200000; "còn năm chục cái" → stock 50.
+- Do not name a brand unless its logo or name is clearly visible or the seller said it.
+- `category` must be exactly one of: {", ".join(CATEGORIES)}.
+- `attributes`: short name/value pairs in Vietnamese (e.g. Chất liệu: cotton) for facts you are sure of.
+- `product_phrase_en`: 1-4 plain English words naming the product as it appears, for an image
+  segmentation model, e.g. "white t-shirt", "glass jar of honey".
+- `background_prompt_en`: one sentence describing an EMPTY studio product-photo scene that suits this
+  product (surface, backdrop colour, light). It must not contain the product, people, text, or logos.
+"""
+
+VERIFY = """You check a draft marketplace listing against the product photos before it is published.
+
+For each concrete claim in the listing that a photo could confirm or contradict (item type, colour,
+pattern, visible material, printed text or brand, number of items shown), add one check:
+- "consistent": the photos support it;
+- "not_visible": the photos cannot show it (e.g. stock count, fabric weight) — this is fine;
+- "contradicted": the photos show something different.
+
+Set `prohibited` to true if the item looks like goods a Vietnamese marketplace must not list: weapons
+or replicas, drugs, tobacco or e-cigarettes, wildlife products, prescription medicine, adult content,
+or goods with a well-known brand that look counterfeit. Explain in `prohibited_reason`.
+
+`verdict`: "block" if prohibited or the item type itself is contradicted; "warn" if any other claim
+is contradicted; otherwise "pass". `summary_vi`: one short Vietnamese sentence for the seller.
+"""
+
+SALE_FACTS = """The seller answered a follow-up question about the price and/or stock of their product.
+Extract `price_vnd` (integer Vietnamese dong) and `stock` (integer units) from the answer. Use null
+for anything the answer does not state. Convert spoken amounts: "120 nghìn"/"120k" → 120000,
+"năm chục" → 50, "1 triệu 2" → 1200000.
+"""
+
+STUDIO_BACKGROUND = ("{scene} Square product-photo composition, empty centre ready for a product to be placed, "
+                     "soft even studio lighting, photorealistic. No objects in the centre, no people, "
+                     "no text, no letters, no logos, no watermark.")
+
+
+def follow_up_question(missing: list[str]) -> str:
+    """The one question the agent may ask. Fixed wording: it is read aloud in the demo and must not drift."""
+    if "price_vnd" in missing and "stock" in missing:
+        return "Bạn bán giá bao nhiêu và còn bao nhiêu sản phẩm?"
+    if "price_vnd" in missing:
+        return "Bạn bán sản phẩm này giá bao nhiêu?"
+    return "Bạn còn bao nhiêu sản phẩm để bán?"

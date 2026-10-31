@@ -1,0 +1,15 @@
+# Secrets: the API key lives in .env.local, never in git.
+.env
+.env.*
+!.env.example
+
+# Runtime data: uploaded photos, voice, generated images, the sample shop.
+data/
+
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.claude/
+*.log

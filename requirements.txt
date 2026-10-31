@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+python-multipart
+pydantic
+pillow
+numpy
+# Meta's own decoder for SAM 3.1 segmentation output (dependency-free).
+meta_sam_parser

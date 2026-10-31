@@ -1,0 +1,116 @@
+"""The fixed shapes the agent works with: the JSON schemas sent to Muse Spark and the models that check its answers.
+
+Structured output constrains decoding to the schema, and pydantic checks the result again: a listing
+that does not validate is a failed step, not something to patch up.
+"""
+from __future__ import annotations
+
+import json
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+from app.config import ROOT
+
+CATEGORIES: list[str] = json.loads((ROOT / "samples" / "categories.json").read_text(encoding="utf-8"))
+
+REQUIRED_FOR_SALE = ("price_vnd", "stock")
+
+
+class Attribute(BaseModel):
+    name: str
+    value: str
+
+
+class Listing(BaseModel):
+    title: str = Field(min_length=3, max_length=120)
+    description: str
+    category: str
+    attributes: list[Attribute] = []
+    variants: list[str] = []
+    price_vnd: int | None = Field(default=None, ge=0)
+    stock: int | None = Field(default=None, ge=0)
+    unit: str | None = None
+    missing: list[str] = []
+    product_phrase_en: str = Field(min_length=2, max_length=60)
+    background_prompt_en: str
+
+    def missing_for_sale(self) -> list[str]:
+        return [name for name in REQUIRED_FOR_SALE if getattr(self, name) is None]
+
+
+class Check(BaseModel):
+    claim: str
+    status: Literal["consistent", "not_visible", "contradicted"]
+    note: str = ""
+
+
+class Verification(BaseModel):
+    verdict: Literal["pass", "warn", "block"]
+    prohibited: bool
+    prohibited_reason: str = ""
+    checks: list[Check] = []
+    summary_vi: str
+
+
+class SaleFacts(BaseModel):
+    """What a seller's answer to the follow-up question settles."""
+    price_vnd: int | None = Field(default=None, ge=0)
+    stock: int | None = Field(default=None, ge=0)
+
+
+_NULLABLE_INT = {"type": ["integer", "null"], "minimum": 0}
+
+LISTING_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string", "description": "Vietnamese product title, at most 120 characters"},
+        "description": {"type": "string", "description": "Vietnamese sales description, 2-5 short sentences"},
+        "category": {"type": "string", "enum": CATEGORIES},
+        "attributes": {
+            "type": "array",
+            "items": {"type": "object",
+                      "properties": {"name": {"type": "string"}, "value": {"type": "string"}},
+                      "required": ["name", "value"]},
+        },
+        "variants": {"type": "array", "items": {"type": "string"},
+                     "description": "Sizes, colours or other options the seller named"},
+        "price_vnd": {**_NULLABLE_INT, "description": "Price in Vietnamese dong, null if the seller did not say"},
+        "stock": {**_NULLABLE_INT, "description": "Units in stock, null if the seller did not say"},
+        "unit": {"type": ["string", "null"], "description": "Selling unit in Vietnamese, e.g. cái, hộp, kg"},
+        "missing": {"type": "array", "items": {"type": "string"},
+                    "description": "Field names the seller did not give"},
+        "product_phrase_en": {"type": "string",
+                              "description": "1-4 English words naming the product as seen, for segmentation"},
+        "background_prompt_en": {"type": "string",
+                                 "description": "An empty studio scene for this product: no product, people, text or logos"},
+    },
+    "required": ["title", "description", "category", "attributes", "variants", "price_vnd", "stock",
+                 "unit", "missing", "product_phrase_en", "background_prompt_en"],
+}
+
+VERIFICATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "verdict": {"type": "string", "enum": ["pass", "warn", "block"]},
+        "prohibited": {"type": "boolean"},
+        "prohibited_reason": {"type": "string"},
+        "checks": {
+            "type": "array",
+            "items": {"type": "object",
+                      "properties": {"claim": {"type": "string"},
+                                     "status": {"type": "string",
+                                                "enum": ["consistent", "not_visible", "contradicted"]},
+                                     "note": {"type": "string"}},
+                      "required": ["claim", "status", "note"]},
+        },
+        "summary_vi": {"type": "string"},
+    },
+    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi"],
+}
+
+SALE_FACTS_SCHEMA = {
+    "type": "object",
+    "properties": {"price_vnd": _NULLABLE_INT, "stock": _NULLABLE_INT},
+    "required": ["price_vnd", "stock"],
+}

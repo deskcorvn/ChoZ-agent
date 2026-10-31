@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chợ Z · Đăng bán nhanh</title>
+  <link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<main class="stage">
+  <section class="phone" aria-label="Chợ Z Mini App">
+    <header class="zalo-bar">
+      <span class="zalo-title">Chợ Z · Đăng bán nhanh</span>
+      <span class="zalo-dots" aria-hidden="true">•••&nbsp;✕</span>
+    </header>
+
+    <div class="screen" id="screen-capture">
+      <h1>Đăng sản phẩm trong 30 giây</h1>
+      <p class="hint">Chụp 1–3 ảnh, rồi giữ nút và nói: tên hàng, size, giá, số lượng.</p>
+      <div class="slots" id="slots"></div>
+      <input id="photo-input" type="file" accept="image/*" capture="environment" multiple hidden>
+      <button class="mic" id="mic" type="button" aria-label="Giữ để nói">
+        <span class="mic-dot"></span><span class="mic-label">Giữ để nói</span>
+      </button>
+      <p class="heard" id="heard"></p>
+      <textarea id="note" rows="2" placeholder="Hoặc gõ: áo thun cotton nam, size M L XL, 120 nghìn, còn 50 cái"></textarea>
+      <button class="primary" id="create" type="button" disabled>Tạo tin đăng</button>
+      <p class="error" id="capture-error"></p>
+    </div>
+
+    <div class="screen" id="screen-working" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Trợ lý đang soạn tin…</h2>
+      <ol class="progress" id="progress"></ol>
+    </div>
+
+    <div class="screen" id="screen-question" hidden>
+      <div class="bubble agent" id="question"></div>
+      <button class="mic" id="mic-answer" type="button" aria-label="Giữ để trả lời">
+        <span class="mic-dot"></span><span class="mic-label">Giữ để trả lời</span>
+      </button>
+      <input id="answer-text" type="text" placeholder="Hoặc gõ câu trả lời">
+      <button class="primary" id="send-answer" type="button">Gửi</button>
+      <p class="error" id="answer-error"></p>
+    </div>
+
+    <div class="screen" id="screen-preview" hidden>
+      <img class="studio" id="studio" alt="Ảnh sản phẩm">
+      <div class="verdict" id="verdict"></div>
+      <label>Tên sản phẩm<input id="f-title" type="text"></label>
+      <div class="row">
+        <label>Giá (đ)<input id="f-price" type="number" min="0" step="1000"></label>
+        <label>Còn<input id="f-stock" type="number" min="0"></label>
+      </div>
+      <label>Danh mục<input id="f-category" type="text" readonly></label>
+      <div class="chips" id="chips"></div>
+      <label>Mô tả<textarea id="f-description" rows="5"></textarea></label>
+      <button class="primary" id="publish" type="button">Đăng lên Chợ Z</button>
+      <button class="ghost" id="restart" type="button">Làm lại</button>
+      <p class="error" id="preview-error"></p>
+    </div>
+
+    <div class="screen" id="screen-done" hidden>
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h2>Đã đăng lên cửa hàng</h2>
+      <p class="hint" id="done-summary"></p>
+      <div class="shop" id="shop"></div>
+      <button class="primary" id="another" type="button">Đăng sản phẩm khác</button>
+    </div>
+  </section>
+
+  <aside class="log" aria-label="Agent log">
+    <header class="log-head">
+      <div>
+        <h2>Agent log</h2>
+        <p>New in the hackathon (Oct 26 – Nov 4, 2026). Chợ Z itself is not called; listings go to a local sample catalog.</p>
+      </div>
+      <span class="mode" id="mode">…</span>
+    </header>
+    <ol class="steps" id="steps"><li class="empty">Run the agent to see each Meta model call here.</li></ol>
+    <footer class="totals" id="totals"></footer>
+  </aside>
+</main>
+<script src="/web/app.js"></script>
+</body>
+</html>
