@@ -181,7 +181,8 @@ function fillPreview(run) {
   }));
   const v = run.verification || { verdict: 'warn', summary_vi: 'Chưa kiểm tra.' };
   $('verdict').className = `verdict ${v.verdict}`;
-  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + v.summary_vi;
+  const summary = v.summary_vi.charAt(0).toUpperCase() + v.summary_vi.slice(1);
+  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary;
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   $('publish').disabled = run.status === 'blocked';
   $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';

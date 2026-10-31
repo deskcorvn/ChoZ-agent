@@ -39,8 +39,11 @@ shown), add one check:
 - "not_visible": the photos cannot show it (e.g. stock count, price) — this is fine;
 - "contradicted": the photos show something different.
 
-Also compare the seller's words with the photos. If the seller said something the photos contradict
+Also compare the seller's words with the photos. If the seller said a fact the photos contradict
 (for example "150 gram" while the label says 120g), add a "contradicted" check that names both values.
+The seller's words come from speech recognition and can contain misheard words (e.g. "cháo lẩu" for
+"cháo hàu" when the photo clearly shows oyster porridge). Misheard words are not contradictions; only
+facts such as weight, size, count, colour or flavour are.
 
 Check that the category fits the item. A wrong category is a "contradicted" check, never a reason to block.
 
@@ -49,9 +52,10 @@ or replicas, drugs, tobacco or e-cigarettes, wildlife products, prescription med
 or goods with a well-known brand that look counterfeit. Explain in `prohibited_reason`.
 
 `verdict`: "block" only if prohibited, or if the photos show a different kind of item than the listing
-describes; "warn" if any check is contradicted; otherwise "pass". `summary_vi`: one short sentence for
-the seller, entirely in Vietnamese (say "tin đăng", "bạn"; no English words); when warning, say what
-differs and which value the listing uses.
+describes; "warn" if any check is contradicted; otherwise "pass". `summary_vi`: one sentence of at most
+25 words for the seller, entirely in Vietnamese (say "tin đăng", "bạn"; no English words). When warning,
+say what differs and which value the listing uses; if the listing already uses the value printed on the
+product, say that and do not ask the seller to fix anything.
 """
 
 SALE_FACTS = """The seller answered a follow-up question about the price and/or stock of their product.
