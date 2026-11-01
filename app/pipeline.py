@@ -321,6 +321,7 @@ class Agent:
                         "seller's words + photos", {"in_words": signals, "in_photos": verification.instructions_found})
             verification.rule_ids.append("W3")
         # Grounding: every rule the verifier cites must exist in the written policy; a block must cite a P rule.
+        verification.rule_ids = list(dict.fromkeys(verification.rule_ids))     # the model and a guard may both cite one
         verification.rules, unknown = policy.cited(verification.rule_ids)
         if unknown:
             verification.checks.append(Check(claim="cited rules not in the policy", status="contradicted",
