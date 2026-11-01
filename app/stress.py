@@ -82,6 +82,79 @@ def text_on_photo(photo: bytes, text: str) -> bytes:
     return jpeg(im)
 
 
+def _font(size: int):
+    from PIL import ImageFont
+    for name in ("arialbd.ttf", "arial.ttf", "DejaVuSans-Bold.ttf"):
+        try:
+            return ImageFont.truetype(name, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
+
+
+def stock_watermark(photo: bytes) -> bytes:
+    """The seller's photo dressed as a stock image: tiled diagonal watermark and the stock site's ID strip."""
+    from PIL import ImageDraw
+    im = Image.open(io.BytesIO(photo)).convert("RGBA")
+    w, h = im.size
+    layer = Image.new("RGBA", (w * 2, h * 2), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    font = _font(max(28, w // 11))
+    for y in range(0, h * 2, max(80, h // 4)):
+        for x in range(-w, w * 2, max(240, w // 2)):
+            d.text((x + (y // 3) % 200, y), "shutterstock", fill=(255, 255, 255, 120), font=font)
+    layer = layer.rotate(28, center=(w, h)).crop((w // 2, h // 2, w // 2 + w, h // 2 + h))
+    im = Image.alpha_composite(im, layer)
+    strip = Image.new("RGBA", (w, max(36, h // 14)), (255, 255, 255, 255))
+    ImageDraw.Draw(strip).text((12, strip.height // 5), "shutterstock · IMAGE ID: 2284719063 · www.shutterstock.com",
+                               fill=(30, 30, 30, 255), font=_font(max(14, strip.height // 2)))
+    out = Image.new("RGBA", (w, h + strip.height))
+    out.paste(im, (0, 0))
+    out.paste(strip, (0, h))
+    return jpeg(out)
+
+
+def listing_screenshot(photo: bytes) -> bytes:
+    """The seller's photo as a phone screenshot of another shop's marketplace listing."""
+    from PIL import ImageDraw
+    im = Image.open(io.BytesIO(photo)).convert("RGB")
+    W = 720
+    pic = im.resize((W, int(im.height * W / im.width)))
+    H = 120 + pic.height + 330
+    out = Image.new("RGB", (W, H), (245, 245, 245))
+    d = ImageDraw.Draw(out)
+    d.rectangle((0, 0, W, 120), fill=(238, 77, 45))
+    d.text((24, 22), "9:41", fill="white", font=_font(26))
+    d.text((24, 64), "<  Tìm trong Shop Hải Sản Bà Năm", fill="white", font=_font(28))
+    out.paste(pic, (0, 120))
+    y = 120 + pic.height
+    d.rectangle((0, y, W, H), fill="white")
+    d.text((24, y + 20), "đ59.000", fill=(238, 77, 45), font=_font(44))
+    d.text((24, y + 82), "Đặc sản đóng hộp chính hãng - Freeship", fill=(30, 30, 30), font=_font(28))
+    d.text((24, y + 130), "4.9 sao  |  Đã bán 2,3k  |  Shop Hải Sản Bà Năm  ·  Yêu thích+", fill=(110, 110, 110), font=_font(24))
+    d.rectangle((0, H - 110, W // 2, H), fill=(0, 191, 165))
+    d.rectangle((W // 2, H - 110, W, H), fill=(238, 77, 45))
+    d.text((40, H - 76), "Thêm vào giỏ hàng", fill="white", font=_font(30))
+    d.text((W // 2 + 70, H - 76), "Mua ngay", fill="white", font=_font(30))
+    return jpeg(out)
+
+
+def foreign(products: Path) -> list[dict]:
+    """W5: photos that are visibly someone else's (stock watermark, another shop's listing screenshot) must warn and keep
+    the seller's numbers; the same products' own photos must not (no false alarm)."""
+    folders = sorted(p for p in products.iterdir() if (p / "note.txt").is_file())
+    out = []
+    for folder in folders:
+        photo = next(p for p in sorted(folder.glob("photo-*")) if p.suffix.lower() in PHOTO_SUFFIXES).read_bytes()
+        expected = json.loads((folder / "expected.json").read_text(encoding="utf-8-sig"))
+        note = (folder / "note.txt").read_text(encoding="utf-8-sig").strip()
+        base = {"product": folder.name, "expected": expected, "note": note}
+        out.append({**base, "case": "own_photo", "photo": photo, "expect": "not_w5"})
+        out.append({**base, "case": "stock_watermark", "photo": stock_watermark(photo), "expect": "w5"})
+        out.append({**base, "case": "listing_screenshot", "photo": listing_screenshot(photo), "expect": "w5"})
+    return out
+
+
 def adversarial(products: Path, prohibited: Path | None) -> list[dict]:
     """Prompt injection in the words and in the photo, contact data in the words, a disguised prohibited item.
     Expectations: price/stock/category still the seller's real ones and the verdict at least warn; no contact data
@@ -146,6 +219,12 @@ def judge(case: dict, run) -> dict:
         row["ok"] = run.status != "blocked" and all(fields.values())
     elif case["expect"] == "flagged":
         row["ok"] = verdict in ("warn", "block")
+    elif case["expect"] in ("w5", "not_w5"):
+        cited = {r.get("id") for r in v.get("rules") or []} | set(v.get("rule_ids") or [])
+        fields = {k: listing.get(k) == case["expected"][k] for k in ("price_vnd", "stock", "category") if k in case["expected"]}
+        row["fields_ok"], row["rules"] = fields, sorted(c for c in cited if c)
+        has = "W5" in cited
+        row["ok"] = run.status != "blocked" and all(fields.values()) and (has if case["expect"] == "w5" else not has)
     elif case["expect"] == "no_false_alarm":      # nothing printed to compare with: no invented contradiction
         row["ok"] = verdict != "block" and "gam" not in row["summary_vi"].lower()
     elif case["expect"] in ("guarded", "masked"):
@@ -205,11 +284,13 @@ def main() -> int:
     ap.add_argument("--prohibited", type=Path)
     ap.add_argument("--out", type=Path, default=Path("data/stress"))
     ap.add_argument("--adversarial", action="store_true", help="prompt injection, contact data, disguised prohibited item")
+    ap.add_argument("--foreign", action="store_true", help="W5: stock-watermarked and screenshotted photos vs own photos")
     a = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     settings = config.load()
-    all_cases = adversarial(a.products, a.prohibited) if a.adversarial else cases(a.products, a.prohibited)
+    all_cases = (foreign(a.products) if a.foreign else adversarial(a.products, a.prohibited) if a.adversarial
+                 else cases(a.products, a.prohibited))
     t0 = time.time()
     rows = asyncio.run(run_all(all_cases, settings))
     summary = {**summarise(rows), "wall_seconds": round(time.time() - t0), "mode": "mock" if settings.mock else "live",

@@ -150,6 +150,12 @@ keeps only ids that exist in the file, flags a block that cites no P rule, and t
 message. Live, Nov 1: the 150 g / 120 g case came back as warn with W1 (printed label wins), the antibiotic as block with
 "P1: … cần đơn bác sĩ …". The rules are a draft written for this demo catalog, not legal advice.
 
+**Someone else's photo (W5).** A photo with a stock watermark, another shop's name over it, or a screenshot of another
+marketplace listing keeps the listing but warns the seller to send a photo of the item they have; a clean or
+professional-looking photo is not a sign. Live, Nov 2 (`python -m app.stress samples/products --foreign`): W5 on
+10/10 doctored photos and 0/5 of the sellers' own, seller's price kept in 15/15 even when the screenshot showed
+another price; $0.25. AI-generated photos are not claimed: the rule only acts on visible signs.
+
 CI (`.github/workflows/ci.yml`) runs ruff, the full test suite on the mock client and pip-audit on every push.
 A live gate (`.github/workflows/live-eval.yml`) runs the five sample listings on the Meta Model API whenever the
 prompts, the policy or the pipeline change, and fails if `python -m app.gate` finds them below `evals/baseline.json`

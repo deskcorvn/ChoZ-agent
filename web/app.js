@@ -191,7 +191,8 @@ function fillPreview(run) {
   // The written rule behind a warning or a block (policy/listing-policy.md), e.g. "Quy định P1 · Prescription medicine".
   const RULES_VI = { P1: 'thuốc kê đơn', P2: 'vũ khí', P3: 'chất cấm, thuốc lá', P4: 'động vật hoang dã', P5: 'nội dung người lớn',
     P6: 'hàng giả', P7: 'ảnh khác sản phẩm', W1: 'theo nhãn in trên bao bì', W2: 'thông tin ảnh không khớp',
-    W3: 'chữ lạ ra lệnh trong ảnh/lời nói', W4: 'sai danh mục' };
+    W3: 'chữ lạ ra lệnh trong ảnh/lời nói', W4: 'sai danh mục',
+    W5: 'ảnh không phải của bạn' };
   const rules = (v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => `${r.id} · ${RULES_VI[r.id] || r.title}`).join(', ');
   $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
     + (rules && v.verdict !== 'pass' ? ` (Quy định ${rules})` : '');

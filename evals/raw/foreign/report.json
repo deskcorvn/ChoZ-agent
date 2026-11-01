@@ -1,0 +1,295 @@
+{
+ "summary": {
+  "runs": 15,
+  "ok": 15,
+  "by_case": {
+   "own_photo": "5/5",
+   "stock_watermark": "5/5",
+   "listing_screenshot": "5/5"
+  },
+  "false_blocks": 0,
+  "seconds_mean": 20.5,
+  "cost_total_usd": 0.2477,
+  "wall_seconds": 83,
+  "mode": "live",
+  "date": "2026-11-02"
+ },
+ "rows": [
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "own_photo",
+   "expect": "not_w5",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng khớp ảnh sản phẩm, bạn cứ yên tâm đăng bán.",
+   "seconds": 22.4,
+   "cost_usd": 0.015875,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [],
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "stock_watermark",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Tin đăng đúng hàng nhưng ảnh của bạn có chữ Shutterstock, vui lòng đổi ảnh thật.",
+   "seconds": 16.0,
+   "cost_usd": 0.01587,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "listing_screenshot",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng bạn dùng ảnh chụp màn hình của cửa hàng khác nên bạn gửi ảnh thật nhé",
+   "seconds": 25.1,
+   "cost_usd": 0.019095,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "own_photo",
+   "expect": "not_w5",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp ảnh sản phẩm, bạn có thể đăng bán ngay.",
+   "seconds": 10.2,
+   "cost_usd": 0.01425,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [],
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "stock_watermark",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn giữ nguyên nhưng ảnh có dấu mờ nên bạn hãy chụp ảnh thật nhé",
+   "seconds": 27.6,
+   "cost_usd": 0.016233,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "listing_screenshot",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn dùng ảnh chụp màn hình của cửa hàng khác nên bạn hãy đổi ảnh thật của mình",
+   "seconds": 21.8,
+   "cost_usd": 0.018522,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "own_photo",
+   "expect": "not_w5",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp ảnh sản phẩm nên đã sẵn sàng đăng bán.",
+   "seconds": 21.0,
+   "cost_usd": 0.017322,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "rules": [],
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "stock_watermark",
+   "expect": "w5",
+   "status": "needs_answer",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn dùng ảnh mẫu có dấu mờ nên bạn vui lòng chụp ảnh thật nhé",
+   "seconds": 18.2,
+   "cost_usd": 0.018726,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "listing_screenshot",
+   "expect": "w5",
+   "status": "needs_answer",
+   "verdict": "warn",
+   "summary_vi": "tin đăng bạn dùng ảnh chụp màn hình bạn hãy bổ sung ảnh thật sản phẩm bạn đang có",
+   "seconds": 22.9,
+   "cost_usd": 0.016849,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "own_photo",
+   "expect": "not_w5",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp ảnh nên được duyệt đăng bán.",
+   "seconds": 31.6,
+   "cost_usd": 0.015725,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [],
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "stock_watermark",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn đúng hàng nhưng ảnh mượn nên bạn hãy chụp lại nhé",
+   "seconds": 18.1,
+   "cost_usd": 0.017409,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "listing_screenshot",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn giữ nguyên nhưng ảnh là ảnh chụp màn hình của cửa hàng khác nên bạn hãy gửi ảnh thật nhé",
+   "seconds": 17.3,
+   "cost_usd": 0.014882,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "own_photo",
+   "expect": "not_w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Tin đăng bạn dùng 120g theo bao bì thay vì 150g là đúng.",
+   "seconds": 17.1,
+   "cost_usd": 0.014883,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W1"
+   ],
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "stock_watermark",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Tin đăng bạn đúng 120g theo nhãn, vui lòng gửi ảnh thật.",
+   "seconds": 20.9,
+   "cost_usd": 0.015598,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W1",
+    "W5"
+   ],
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "listing_screenshot",
+   "expect": "w5",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng bạn dùng 120g theo bao bì thay vì 150g bạn nói, và ảnh là chụp màn hình.",
+   "seconds": 16.8,
+   "cost_usd": 0.016511,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "rules": [
+    "W1",
+    "W5"
+   ],
+   "ok": true
+  }
+ ]
+}

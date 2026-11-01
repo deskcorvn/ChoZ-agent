@@ -46,6 +46,17 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | prohibited | 2/2 | 100 % | 34–100 % |
 | valid products not blocked | 15/15 | 100 % | 80–100 % |
 
+### W5 not the seller's photo: stock watermark, another shop's listing screenshot, own photo (Nov 2)
+
+15 live runs (2026-11-02) · p50 20.9 s · p95 31.6 s (4 runs in parallel) · $0.25 in total · file: foreign/report.json
+
+| Case | Met expectation | Rate | Wilson 95 % |
+|---|---|---|---|
+| own_photo | 5/5 | 100 % | 57–100 % |
+| stock_watermark | 5/5 | 100 % | 57–100 % |
+| listing_screenshot | 5/5 | 100 % | 57–100 % |
+| valid products not blocked | 15/15 | 100 % | 80–100 % |
+
 ### Stress: degraded photos, wrong product, wrong weight, prohibited (Nov 1)
 
 33 live runs (2026-11-01) · p50 27.1 s · p95 34.7 s (4 runs in parallel) · $0.82 in total · file: stress/report.json
