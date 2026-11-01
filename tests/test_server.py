@@ -125,3 +125,26 @@ def test_no_token_means_open(settings, monkeypatch):
     monkeypatch.delenv("LISTING_ACCESS_TOKEN", raising=False)
     with TestClient(create_app(settings)) as client:
         assert client.get("/api/catalog").status_code == 200
+
+
+def test_seller_can_export_and_delete_their_data(settings):
+    import io
+    import zipfile
+
+    with TestClient(create_app(settings)) as client:
+        created = client.post("/api/runs", files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))],
+                              data={"note": "Áo thun cotton nam, giá 120 nghìn, còn 50 cái"}).json()
+        run = wait(client, created["id"])
+        client.post(f"/api/runs/{run['id']}/publish", json={})
+        assert any(i["id"] == run["id"] for i in client.get("/api/catalog").json())
+        exported = client.get(f"/api/runs/{run['id']}/export")
+        names = zipfile.ZipFile(io.BytesIO(exported.content)).namelist()
+        assert exported.headers["content-type"] == "application/zip"
+        assert f"{run['id']}/run.json" in names and f"{run['id']}/catalog-item.json" in names
+        gone = client.delete(f"/api/runs/{run['id']}").json()
+        assert gone == {"deleted": run["id"], "catalog_item_removed": True, "folder_removed": True}
+        assert not (settings.data_dir / "runs" / run["id"]).exists()
+        assert all(i["id"] != run["id"] for i in client.get("/api/catalog").json())
+        assert client.get(f"/api/runs/{run['id']}").status_code == 404
+        assert client.delete("/api/runs/..%2F..%2Fetc").status_code == 404
+        assert client.delete("/api/runs/0123456789ab").status_code == 404

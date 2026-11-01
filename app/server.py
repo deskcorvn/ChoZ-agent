@@ -3,14 +3,18 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import io
+import json
 import os
+import re
 import shutil
 import time
+import zipfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
@@ -181,6 +185,39 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
         return item
+
+    def run_folder(run_id: str) -> Path:
+        if not re.fullmatch(r"[0-9a-f]{12}", run_id):
+            raise HTTPException(404, "unknown run")
+        folder = runs_dir / run_id
+        if run_id not in agent.runs and not folder.is_dir():
+            raise HTTPException(404, "unknown run")
+        return folder
+
+    @app.get("/api/runs/{run_id}/export")
+    def export_run(run_id: str):
+        """Everything kept about one listing (photos, studio image, run log), as a zip for the seller."""
+        folder = run_folder(run_id)
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for f in sorted(folder.glob("*")) if folder.is_dir() else []:
+                zf.write(f, f"{run_id}/{f.name}")
+            item = next((i for i in catalog.items() if i["id"] == run_id), None)
+            if item:
+                zf.writestr(f"{run_id}/catalog-item.json", json.dumps(item, ensure_ascii=False, indent=2))
+        return Response(buf.getvalue(), media_type="application/zip",
+                        headers={"Content-Disposition": f'attachment; filename="choz-{run_id}.zip"'})
+
+    @app.delete("/api/runs/{run_id}")
+    def delete_run(run_id: str):
+        """The seller deletes a listing's data: run folder (photos, studio image, log) and the catalog entry."""
+        folder = run_folder(run_id)
+        run = agent.runs.get(run_id)
+        if run is not None and run.status == "running":
+            raise HTTPException(409, "the agent is still working on this listing")
+        shutil.rmtree(folder, ignore_errors=True)
+        agent.runs.pop(run_id, None)
+        return {"deleted": run_id, "catalog_item_removed": catalog.remove(run_id), "folder_removed": not folder.exists()}
 
     @app.get("/api/catalog")
     def list_catalog():

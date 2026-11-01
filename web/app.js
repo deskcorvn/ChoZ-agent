@@ -230,6 +230,7 @@ $('publish').addEventListener('click', async () => {
     const item = await api(`/api/runs/${state.run.id}/publish`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(edits) });
     $('done-summary').textContent = `${item.title} · ${money(item.price_vnd)} · còn ${item.stock}`;
+    $('export-run').href = `/api/runs/${state.run.id}/export`;
     await renderShop();
     show('done');
     renderLog({ ...state.run, status: 'published' });
@@ -256,6 +257,16 @@ function reset() {
   show('capture');
 }
 $('restart').addEventListener('click', reset);
+
+async function deleteRun() {
+  if (!state.run || !confirm('Xoá ảnh, ảnh studio, nhật ký và tin đã đăng (nếu có)? Không hoàn tác được.')) return;
+  try {
+    await api(`/api/runs/${state.run.id}`, { method: 'DELETE' });
+    reset();
+  } catch (err) { $('preview-error').textContent = err.message; }
+}
+$('delete-run').addEventListener('click', deleteRun);
+$('delete-done').addEventListener('click', deleteRun);
 $('another').addEventListener('click', reset);
 
 // ---- agent log panel ------------------------------------------------------------------------

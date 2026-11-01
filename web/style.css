@@ -103,6 +103,9 @@ label input, label textarea { color: var(--ink); }
 .primary { background: var(--zalo); color: #fff; }
 .primary:disabled { background: #a9c6f5; cursor: default; }
 .ghost { background: transparent; color: var(--zalo-dark); }
+.danger { color: var(--bad); font-weight: 500; font-size: 14px; }
+a.ghost { text-align: center; text-decoration: none; font-size: 14px; font-weight: 500; }
+.fine { margin: 0; font-size: 12px; line-height: 1.45; color: #6b7280; }
 .error { color: var(--bad); margin: 0; font-size: 14px; min-height: 1em; }
 
 .spinner {

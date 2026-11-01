@@ -26,6 +26,8 @@
       <textarea id="note" rows="2" placeholder="Hoặc gõ: tên hàng, quy cách, giá, còn bao nhiêu"></textarea>
       <button class="primary" id="create" type="button" disabled>Tạo tin đăng</button>
       <p class="error" id="capture-error"></p>
+      <p class="fine">Ảnh và giọng nói được gửi tới Meta để tạo tin. Giọng nói bị xoá ngay sau khi chép thành chữ, ảnh và
+        nhật ký tự xoá sau 7 ngày; bạn có thể xoá ngay sau khi tạo. <a href="https://github.com/deskcorvn/ChoZ-agent/blob/main/PRIVACY.md" target="_blank" rel="noopener">Chi tiết</a></p>
     </div>
 
     <div class="screen" id="screen-working" hidden>
@@ -59,6 +61,7 @@
       <label class="ack" id="ack-row" hidden><input type="checkbox" id="ack"> Tôi đã đọc cảnh báo và đồng ý đăng</label>
       <button class="primary" id="publish" type="button">Đăng lên Chợ Z</button>
       <button class="ghost" id="restart" type="button">Làm lại</button>
+      <button class="ghost danger" id="delete-run" type="button">Xoá ảnh và dữ liệu của tin này</button>
       <p class="error" id="preview-error"></p>
     </div>
 
@@ -68,6 +71,8 @@
       <p class="hint" id="done-summary"></p>
       <div class="shop" id="shop"></div>
       <button class="primary" id="another" type="button">Đăng sản phẩm khác</button>
+      <a class="ghost" id="export-run" href="#" download>Tải về dữ liệu của tin này</a>
+      <button class="ghost danger" id="delete-done" type="button">Gỡ tin và xoá dữ liệu</button>
     </div>
   </section>
 

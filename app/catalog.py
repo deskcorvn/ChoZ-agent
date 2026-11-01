@@ -23,6 +23,18 @@ class Catalog:
             return []
         return json.loads(self.path.read_text(encoding="utf-8"))
 
+    def remove(self, item_id: str) -> bool:
+        """Take a listing off the catalog and delete its image (the seller asked to delete their data)."""
+        items = self.items()
+        keep = [i for i in items if i["id"] != item_id]
+        if len(keep) == len(items):
+            return False
+        for i in items:
+            if i["id"] == item_id:
+                (self.images / i["image"]).unlink(missing_ok=True)
+        self.path.write_text(json.dumps(keep, ensure_ascii=False, indent=2), encoding="utf-8")
+        return True
+
     def publish(self, run: Run, run_dir: Path, edits: dict) -> dict:
         if run.status == "blocked":
             raise ValueError("the check blocked this item; it cannot be listed")
