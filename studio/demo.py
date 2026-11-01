@@ -25,9 +25,12 @@ from studio.models import (
     JudgeInput,
     QcInput,
     QcVerdict,
+    Refs,
     RefsInput,
     RenderInput,
+    Script,
     ScriptInput,
+    ShotList,
     ShotListInput,
     VoiceInput,
 )
@@ -54,15 +57,18 @@ def tts_engine() -> str:
     return "vieneu" if os.environ.get("VIENEU_PYTHON") and os.environ.get("VIENEU_VO") else "mock"
 
 
-async def packshot(client, settings: Settings, photo: str, folder: Path, product: str) -> str:
+async def packshot(client, settings: Settings, photo: str, folder: Path, product: str, listing_phrase: str = "") -> str:
     """The real box cut out of the seller's photo by SAM 3.1; the photo itself when the cut-out fails."""
     out = folder / "packshot.png"
     async with log.step("packshot", "Cut the real product out of the seller's photo", "art", Path(photo).name,
                         mock=client.mock) as step:
         raw = compose.normalise_photo(Path(photo).read_bytes())
         try:
-            segments, meta = await client.segment(raw, product)
+            phrase = listing_phrase or "the product package"           # SAM wants a short English noun phrase
+            segments, meta = await client.segment(raw, phrase)
             step.apply(meta)
+            if not segments:
+                raise ValueError("SAM found no object")
             best = max(segments, key=lambda s: s.area)
             compose.cutout(Image.open(io.BytesIO(raw)), best.mask).save(out)
             step.decision = f"cut-out {best.area} px"
@@ -82,11 +88,21 @@ async def run_demo(client, settings: Settings, product_dir: Path, out_dir: Path 
         (folder / f"{name}.json").write_text(model.model_dump_json(indent=2), encoding="utf-8")
         outputs[name] = model.model_dump()
 
-    the_script = await script.run(client, settings, ScriptInput(listing=listing, photos=photos))
+    def resume(name: str, model_type):
+        """`$STUDIO_RESUME=1`: reuse a saved stage from an earlier run in the same folder (no credits spent twice)."""
+        path = folder / f"{name}.json"
+        if os.environ.get("STUDIO_RESUME") and path.is_file():
+            model = model_type.model_validate_json(path.read_text(encoding="utf-8"))
+            outputs[name] = model.model_dump()
+            outputs.setdefault("resumed", []).append(name)
+            return model
+        return None
+
+    the_script = resume("script", Script) or await script.run(client, settings, ScriptInput(listing=listing, photos=photos))
     save("script", the_script)
-    the_shots = await shotlist.run(client, settings, ShotListInput(script=the_script))
+    the_shots = resume("shotlist", ShotList) or await shotlist.run(client, settings, ShotListInput(script=the_script))
     save("shotlist", the_shots)
-    the_refs = await refs.run(client, settings, RefsInput(shotlist=the_shots, photos=photos, work_dir=str(folder)))
+    the_refs = resume("refs", Refs) or await refs.run(client, settings, RefsInput(shotlist=the_shots, photos=photos, work_dir=str(folder)))
     save("refs", the_refs)
     the_voice = await voice.run(client, settings, VoiceInput(script=the_script, work_dir=str(folder), tts=tts_engine()))
     save("voice", the_voice)
@@ -122,7 +138,8 @@ async def run_demo(client, settings: Settings, product_dir: Path, out_dir: Path 
         outputs["status"] = "no usable take"
         return outputs
 
-    pack = await packshot(client, settings, photos[0], folder, the_script.product) if photos else None
+    pack = await packshot(client, settings, photos[0], folder, the_script.product,
+                          str(listing.get("product_phrase_en") or "")) if photos else None
     plan = await edit.run(client, settings, EditInput(script=the_script, voice=the_voice, takes=takes,
                                                       packshot_path=pack, work_dir=str(folder),
                                                       render=render.ffmpeg_path() is not None))

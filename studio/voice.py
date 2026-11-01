@@ -104,6 +104,30 @@ async def synthesize(script: Script, engine: str) -> bytes:
     raise NotImplementedError(f"TTS plug-in {engine!r} is not wired; use mock or vieneu")
 
 
+def asr_wav(audio: bytes, ffmpeg: str | None) -> bytes:
+    """Voice Transcribe wants mono s16le at 16 kHz; the TTS take is kept as it is for the edit."""
+    with wave.open(io.BytesIO(audio), "rb") as w:
+        rate, channels, width = w.getframerate(), w.getnchannels(), w.getsampwidth()
+    if (rate, channels, width) in ((RATE, 1, 2), (24000, 1, 2)):
+        return audio
+    if ffmpeg:
+        result = subprocess.run([ffmpeg, "-v", "error", "-i", "pipe:0", "-ac", "1", "-ar", str(RATE), "-f", "s16le",
+                                 "pipe:1"], input=audio, capture_output=True)          # raw PCM: a piped WAV has no length
+        if result.returncode == 0 and result.stdout:
+            buffer = io.BytesIO()
+            with wave.open(buffer, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(RATE)
+                w.writeframes(result.stdout)
+            return buffer.getvalue()
+    with wave.open(io.BytesIO(audio), "rb") as w:              # no ffmpeg: pick every n-th sample of channel 1
+        frames = w.readframes(w.getnframes())
+    step = max(1, round(rate / RATE)) * channels * width
+    samples = [int.from_bytes(frames[i:i + 2], "little", signed=True) for i in range(0, len(frames) - 1, step)]
+    return _pcm(samples)
+
+
 def wav_seconds(audio: bytes) -> float:
     with wave.open(io.BytesIO(audio), "rb") as w:
         return w.getnframes() / w.getframerate()
@@ -164,7 +188,7 @@ async def run(client, settings: Settings, inp: VoiceInput) -> VoiceCheck:
             transcript = " ".join(inp.script.beats)
             step.model, step.endpoint = settings.asr_model, "POST /v1/asr/transcribe"
         else:
-            transcript, meta = await client.transcribe(audio)
+            transcript, meta = await client.transcribe(await asyncio.to_thread(asr_wav, audio, ffmpeg_path()))
             step.apply(meta)
         spans = await asyncio.to_thread(speech_spans, path, ffmpeg_path())
         lines = beat_lines(inp.script.beats, transcript, spans, seconds)

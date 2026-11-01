@@ -116,12 +116,18 @@ and `MockRenderer` makes a Ken Burns clip from the first frame with ffmpeg (from
 chain runs without credits. An external second-opinion reviewer on frames and clips is optional (`second_opinion`)
 and off by default.
 
-**Status: skeleton.** Every service runs in mock mode with sample data and is covered by `tests/test_studio.py`;
-the prompts are marked `TODO(prompt)` and a live call without one is refused (HTTP 501) rather than billed.
-The two new client calls (`/images/edits`, `/files` + `/responses` with a video) are shaped from the docs and
-not yet exercised live. Measurements (shots accepted after round 1 / round 2, credits per clip, $ and seconds
-per spot, frames rejected before credits) will be read from `studio/log.jsonl` and added here once the chain
-has run on the live API.
+**Measured on the live API (Nov 1, 2026, `samples/products/05-chao-hau-hop`, render plug-in = mock, i.e. a Ken Burns
+clip from each first frame, no video-model credits).** One full chain: script $0.011 (8.5 s), shot list $0.009 (6.7 s,
+5 shots), 8 reference images $0.070 (119 s), voice-over by VieNeu-TTS read back by Voice Transcribe (WER 0.03, 10.3 s,
+beat map from the pauses, $0.0005), first frames 3 per shot picked by Spark vision ($0.046 and ~85 s per round), QC per
+clip $0.005 (13-55 s), edit plan $0.009, judge $0.015. Whole chain ≈ **$0.37 and 13 min** after the references exist
+(≈ $0.46 with them). Across 5 shots the picker threw away a whole round of frames twice (extra hands, text) before
+anything was rendered; with mock clips the inspector accepted 2 of 5 shots and sent the rest back as "retry" for
+"one action", which is what a Ken Burns still deserves. The assembled spot: 1080×1920, 13.3 s, −14.4 LUFS / −1.4 dBTP
+after the two-pass loudnorm, subtitles on the beat map, end card with the AI label; Spark's judge gave it 4.2/10 and
+named the right gaps (too short for a 25-35 s spot, no real packshot). Not live yet: the SAM packshot cut-out found no
+object on this box photo (the photo is used as-is), and `KlingMCPRenderer` has not sent a job (the budget rule is that
+no video credit is spent until the first frame passes). Numbers come from `studio/log.jsonl`.
 
 ## Cost
 

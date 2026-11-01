@@ -112,17 +112,26 @@ def end_card(plan: EditPlan, title: str, price: str, cta: str, path: Path) -> Pa
     def font(size: int):
         return ImageFont.truetype(FONT_BOLD, size) if FONT_BOLD else ImageFont.load_default()
 
+    def fit(text: str, size: int, max_width: int):
+        """The largest font at or below `size` whose rendering of `text` fits in `max_width`."""
+        while size > 24 and draw.textlength(text, font=font(size)) > max_width:
+            size -= 4
+        return font(size)
+
     y = int(height * 0.60)
     for line in textwrap.wrap(title, 22):
-        draw.text(((width - draw.textlength(line, font=font(72))) / 2, y), line, fill=INK, font=font(72))
+        f = fit(line, 72, width - 160)
+        draw.text(((width - draw.textlength(line, font=f)) / 2, y), line, fill=INK, font=f)
         y += 86
     if price:
-        draw.text(((width - draw.textlength(price, font=font(120))) / 2, y + 20), price, fill=RED, font=font(120))
+        f = fit(price, 120, width - 160)
+        draw.text(((width - draw.textlength(price, font=f)) / 2, y + 20), price, fill=RED, font=f)
         y += 190
-    bw, bh = 760, 120
+    f = fit(cta, 60, width - 240)
+    bw, bh = int(draw.textlength(cta, font=f)) + 120, 120
     bx, by = (width - bw) // 2, y + 30
     draw.rounded_rectangle((bx, by, bx + bw, by + bh), radius=60, fill=RED)
-    draw.text(((width - draw.textlength(cta, font=font(60))) / 2, by + 24), cta, fill=CREAM, font=font(60))
+    draw.text(((width - draw.textlength(cta, font=f)) / 2, by + 24), cta, fill=CREAM, font=f)
     label = plan.end_card
     draw.text(((width - draw.textlength(label, font=font(40))) / 2, by + bh + 50), label, fill=INK, font=font(40))
     img.save(path)
@@ -148,9 +157,13 @@ def assemble(plan: EditPlan, ffmpeg: str, title: str = "", price: str = "", cta:
     work.mkdir(parents=True, exist_ok=True)
     inputs, chain, labels = [], [], []
     for i, clip in enumerate(plan.clips):
-        inputs += ["-ss", f"{clip.in_s:.3f}", "-t", f"{clip.out_s - clip.in_s:.3f}", "-i", clip.clip_path]
+        length = clip.out_s - clip.in_s
+        following = plan.clips[i + 1].at_s if i + 1 < len(plan.clips) else clip.at_s + length
+        hold = max(0.0, following - (clip.at_s + length))      # the plan may leave a gap: hold the last frame
+        inputs += ["-ss", f"{clip.in_s:.3f}", "-t", f"{length:.3f}", "-i", clip.clip_path]
         chain.append(f"[{i}:v]scale={plan.width}:{plan.height}:force_original_aspect_ratio=increase,"
-                     f"crop={plan.width}:{plan.height},fps=30,setpts=PTS-STARTPTS[v{i}]")
+                     f"crop={plan.width}:{plan.height},fps=30,setpts=PTS-STARTPTS"
+                     + (f",tpad=stop_mode=clone:stop_duration={hold:.3f}" if hold > 0.02 else "") + f"[v{i}]")
         labels.append(f"[v{i}]")
     n = len(plan.clips)
     chain.append("".join(labels) + f"concat=n={n}:v=1:a=0[body]")

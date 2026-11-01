@@ -53,8 +53,11 @@ async def run(client, settings: Settings, inp: FramesInput) -> FramePick:
             raw, meta = await client.chat_json(prompt, user, [c.read_bytes() for c in candidates],
                                                "FramePick", FRAME_PICK_SCHEMA)
             step.apply(meta)
-            raw.setdefault("candidates", [str(c) for c in candidates])
+            raw["candidates"] = [str(c) for c in candidates]         # the model may echo descriptions; paths are ours
             raw["shot_id"] = inp.shot.id
+            raw["picked"] = min(max(int(raw.get("picked", 0)), 0), len(candidates) - 1)
+            raw["rejected"] = {str(candidates[int(k) - 1]) if str(k).isdigit() and 0 < int(k) <= len(candidates) else str(k): v
+                               for k, v in (raw.get("rejected") or {}).items()}
             pick = FramePick.model_validate(raw)
         if inp.second_opinion:
             pick.second_opinion = await second_opinion(candidates, inp.shot.frame_prompt)
