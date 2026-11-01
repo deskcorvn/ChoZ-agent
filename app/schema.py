@@ -39,6 +39,8 @@ class Listing(BaseModel):
     missing: list[str] = []
     product_phrase_en: str = Field(max_length=60)
     background_prompt_en: str
+    evidence: dict = {}            # {"price_quote", "stock_quote"}: the seller's own words behind the numbers
+    provenance: dict = {}          # filled in code: per field, the source and whether the quote was found verbatim
 
     @field_validator("product_phrase_en")
     @classmethod
@@ -113,9 +115,14 @@ LISTING_SCHEMA = {
                               "description": "1-4 English words naming the product as seen, for segmentation"},
         "background_prompt_en": {"type": "string",
                                  "description": "An empty studio scene for this product: no product, people, text or logos"},
+        "evidence": {"type": "object",
+                     "properties": {"price_quote": {"type": "string"}, "stock_quote": {"type": "string"}},
+                     "required": ["price_quote", "stock_quote"],
+                     "description": "The exact words from the seller's note the price and the stock come from, "
+                                    "copied verbatim; \"\" when the field is null"},
     },
     "required": ["title", "description", "category_id", "attributes", "variants", "price_vnd", "stock",
-                 "unit", "missing", "product_phrase_en", "background_prompt_en"],
+                 "unit", "missing", "product_phrase_en", "background_prompt_en", "evidence"],
 }
 
 VERIFICATION_SCHEMA = {

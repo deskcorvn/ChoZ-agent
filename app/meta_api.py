@@ -298,6 +298,11 @@ _PRICE = re.compile(r"(\d+(?:[.,]\d+)?)\s*(k|nghìn|ngàn|ng|triệu|tr)\b|(\d{4
 _STOCK = re.compile(r"(?:còn|có|số lượng)\s*(\d+)", re.I)
 
 
+def mock_quote(text: str, pattern: str) -> str:
+    m = re.search(pattern, text, re.I)
+    return m.group(0) if m else ""
+
+
 def mock_price(text: str) -> int | None:
     m = _PRICE.search(text)
     if not m:
@@ -341,6 +346,8 @@ class MockMetaClient:
                 "missing": [k for k, v in (("price_vnd", price), ("stock", stock)) if v is None],
                 "product_phrase_en": "product",
                 "background_prompt_en": "A light grey seamless studio backdrop with a white tabletop.",
+                "evidence": {"price_quote": mock_quote(note, r"(?:giá\s*)?\d+\s*(?:nghìn|ngàn|k)\b") if price else "",
+                             "stock_quote": mock_quote(note, r"còn\s*\d+\s*\w+") if stock is not None else ""},
             }
             return listing, meta
         if name == "Verification":

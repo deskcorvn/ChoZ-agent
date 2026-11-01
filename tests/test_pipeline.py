@@ -252,3 +252,24 @@ def test_an_implausible_cut_out_is_not_composed(settings, monkeypatch):
     process(agent, run)
     step = next(s for s in run.steps if s.key == "compose")
     assert step.status == "skipped" and "covers 100.0 %" in step.output["reason"] and not run.studio_image
+
+
+def test_prices_and_stock_carry_the_sellers_quote_checked_verbatim(settings):
+    agent = agent_for(settings)
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    process(agent, run)
+    p = run.listing["provenance"]
+    assert p["price_vnd"]["verified"] and "120 nghìn" in p["price_vnd"]["quote"]
+    assert p["stock"]["verified"] and p["stock"]["quote"].startswith("còn 50")
+
+
+def test_a_quote_that_is_not_in_the_sellers_words_is_marked_unverified():
+    from app.pipeline import provenance
+    from app.schema import Listing
+
+    listing = Listing.model_validate({"title": "Áo thun", "description": "x", "category_id": "fashion_men",
+                                      "price_vnd": 120000, "stock": 5, "product_phrase_en": "shirt",
+                                      "background_prompt_en": "a table",
+                                      "evidence": {"price_quote": "giá 99 nghìn", "stock_quote": "còn 5 cái"}})
+    p = provenance(listing, "áo thun giá 120 nghìn, còn 5 cái")
+    assert p["price_vnd"]["verified"] is False and p["stock"]["verified"] is True

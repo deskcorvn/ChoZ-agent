@@ -45,7 +45,7 @@ class Catalog:
         shutil.copyfile(run_dir / image, target)
         item = {"id": run.id, "published_at": time.strftime("%Y-%m-%d %H:%M:%S"), "image": target.name,
                 "verification": (run.verification or {}).get("verdict"), **listing.model_dump(
-                    exclude={"missing", "product_phrase_en", "background_prompt_en"})}
+                    exclude={"missing", "product_phrase_en", "background_prompt_en", "evidence", "provenance"})}
         if kinds:
             item["masked"] = kinds
         if verification.get("verdict") == "warn":

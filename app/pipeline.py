@@ -11,6 +11,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -25,6 +26,23 @@ from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, C
 # A plausible product cut-out covers between 2 % and 95 % of the photo. Measured on 111 live cut-outs (31 Oct - 1 Nov):
 # 7.3 % to 49.8 %, median 35 %; the bounds leave room for small items and close-ups.
 CUTOUT_SHARE = (0.02, 0.95)
+
+
+def _norm(text: str) -> str:
+    return " ".join(re.sub(r"[^\w\s]", " ", text.lower()).split())
+
+
+def provenance(listing: Listing, seller_words: str) -> dict:
+    """Where each number comes from: the seller's quote, checked to appear verbatim (punctuation-insensitive) in what
+    the seller said. A number without a verifiable quote is marked unverified rather than silently trusted."""
+    out = {"title": {"source": "photo + seller's words"}, "category": {"source": "photo + seller's words"}}
+    words = _norm(seller_words)
+    for name, key in (("price_vnd", "price_quote"), ("stock", "stock_quote")):
+        if getattr(listing, name) is None:
+            continue
+        quote = str((listing.evidence or {}).get(key, "")).strip()
+        out[name] = {"source": "seller's words", "quote": quote, "verified": bool(quote) and _norm(quote) in words}
+    return out
 
 
 @dataclass
@@ -243,6 +261,7 @@ class Agent:
             step.status, step.error = "failed", f"listing failed validation: {exc.errors()[:3]}"
             raise
         listing.missing = listing.missing_for_sale()
+        listing.provenance = provenance(listing, seller_words)
         run.listing = listing.model_dump()
         step.output["listing"] = run.listing
         masked, kinds = guard.mask_listing(run.listing)
@@ -405,8 +424,10 @@ class Agent:
             listing = Listing.model_validate(run.listing)
             if facts.price_vnd is not None:
                 listing.price_vnd = facts.price_vnd
+                listing.provenance["price_vnd"] = {"source": "seller's answer", "quote": words, "verified": True}
             if facts.stock is not None:
                 listing.stock = facts.stock
+                listing.provenance["stock"] = {"source": "seller's answer", "quote": words, "verified": True}
             listing.missing = listing.missing_for_sale()
             run.listing = listing.model_dump()
             run.status = "ready"     # one question only; anything still missing is typed in on the preview

@@ -173,6 +173,12 @@ function fillPreview(run) {
   $('f-title').value = l.title;
   $('f-price').value = l.price_vnd ?? '';
   $('f-stock').value = l.stock ?? '';
+  // Provenance: the seller's own words behind each number, checked in code to appear verbatim in what they said.
+  for (const [field, id] of [['price_vnd', 'src-price'], ['stock', 'src-stock']]) {
+    const p = (l.provenance || {})[field];
+    $(id).textContent = p && p.quote ? `${p.verified ? '🎙' : '?'} “${p.quote}”` : '';
+    $(id).className = 'src' + (p && !p.verified ? ' unverified' : '');
+  }
   $('f-category').value = l.category;
   $('f-description').value = l.description;
   const chips = $('chips');
