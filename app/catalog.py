@@ -42,7 +42,8 @@ class Catalog:
             audit.append(audit.path_for(self.path.parent), "publish_refused", run.id, status=run.status,
                          verdict=(run.verification or {}).get("verdict"), reason=str(exc)[:120])
             raise
-        audit.append(audit.path_for(self.path.parent), "published", run.id, verdict=item.get("verification"),
+        audit.append(audit.path_for(self.path.parent), "published", run.id, seller=run.seller,
+                     verdict=item.get("verification"),
                      acknowledged=item.get("acknowledged", []), masked=item.get("masked", []),
                      confirmed_by=edits.get("confirmed_by", "seller (app)"))
         return item
@@ -67,7 +68,7 @@ class Catalog:
         image = run.studio_image or run.photos[0]
         target = self.images / f"{run.id}{Path(image).suffix}"
         shutil.copyfile(run_dir / image, target)
-        item = {"id": run.id, "published_at": time.strftime("%Y-%m-%d %H:%M:%S"), "image": target.name,
+        item = {"id": run.id, "seller": run.seller, "published_at": time.strftime("%Y-%m-%d %H:%M:%S"), "image": target.name,
                 "verification": (run.verification or {}).get("verdict"), **listing.model_dump(
                     exclude={"missing", "product_phrase_en", "background_prompt_en", "evidence", "provenance"})}
         if kinds:

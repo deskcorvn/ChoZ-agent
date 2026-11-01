@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-import hmac
 import io
 import json
 import os
@@ -18,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from app import audit, config, metrics
+from app import audit, config, metrics, sellers
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
@@ -74,22 +73,39 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
 
     # Optional access token: unset = open (localhost demo); set LISTING_ACCESS_TOKEN before exposing the server.
     # Scripts send "Authorization: Bearer <token>"; the browser signs in once at /login and gets an HttpOnly cookie.
-    token = os.environ.get("LISTING_ACCESS_TOKEN", "")
+    # Sellers and their token hashes (data/sellers.json, plus LISTING_ACCESS_TOKEN as "shop"). Empty = open demo.
+    table = sellers.load(settings.data_dir)
     open_paths = ("/login", "/api/health")
 
-    def token_ok(given: str | None) -> bool:
-        return bool(given) and hmac.compare_digest(given.encode(), token.encode())
+    def owner_of(run_id: str) -> str | None:
+        run = agent.runs.get(run_id)
+        if run is not None:
+            return run.seller
+        saved = runs_dir / run_id / "run.json"
+        return json.loads(saved.read_text(encoding="utf-8")).get("seller", "") if saved.is_file() else None
 
     @app.middleware("http")
     async def require_token(request: Request, call_next):
-        if not token or request.url.path in open_paths:
+        if not table or request.url.path in open_paths:
             return await call_next(request)
         bearer = request.headers.get("authorization", "")
-        if token_ok(bearer[7:] if bearer.lower().startswith("bearer ") else None) or token_ok(request.cookies.get("choz_token")):
+        seller = sellers.who(table, bearer[7:] if bearer.lower().startswith("bearer ") else None) or sellers.who(
+            table, request.cookies.get("choz_token"))
+        if seller is None:
+            if request.method == "GET" and request.url.path == "/":
+                return RedirectResponse("/login", status_code=303)
+            return JSONResponse({"detail": "access token required"}, status_code=401)
+        m = re.match(r"/files/runs/([0-9a-f]{12})/", request.url.path)
+        if m and owner_of(m.group(1)) != seller:           # another seller's photos: as if they did not exist
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        token = sellers.current.set(seller)
+        try:
             return await call_next(request)
-        if request.method == "GET" and request.url.path == "/":
-            return RedirectResponse("/login", status_code=303)
-        return JSONResponse({"detail": "access token required"}, status_code=401)
+        finally:
+            sellers.current.reset(token)
+
+    def mine(run_id: str) -> bool:
+        return not table or owner_of(run_id) == sellers.current.get()
 
     @app.get("/login", response_class=HTMLResponse)
     def login_page():
@@ -97,7 +113,7 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
 
     @app.post("/login")
     def login(access_token: str = Form(...)):
-        if not token or not token_ok(access_token):
+        if not table or sellers.who(table, access_token) is None:
             return HTMLResponse(LOGIN_PAGE.replace("<!--err-->", "<p>Sai mã truy cập.</p>"), status_code=401)
         response = RedirectResponse("/", status_code=303)
         response.set_cookie("choz_token", access_token, httponly=True, samesite="strict", max_age=12 * 3600)
@@ -105,7 +121,7 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
 
     def get_run(run_id: str):
         run = agent.runs.get(run_id)
-        if run is None:
+        if run is None or not mine(run_id):
             raise HTTPException(404, "unknown run")
         return run
 
@@ -147,7 +163,8 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         spend_guard()
         images = [await read_limited(p, MAX_PHOTO_BYTES) for p in photos]
         try:
-            run = agent.create([i for i in images if i], await read_limited(audio, MAX_AUDIO_BYTES), note)
+            run = agent.create([i for i in images if i], await read_limited(audio, MAX_AUDIO_BYTES), note,
+                               seller=sellers.current.get())
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         task = asyncio.create_task(agent.process(run))
@@ -190,7 +207,7 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         if not re.fullmatch(r"[0-9a-f]{12}", run_id):
             raise HTTPException(404, "unknown run")
         folder = runs_dir / run_id
-        if run_id not in agent.runs and not folder.is_dir():
+        if (run_id not in agent.runs and not folder.is_dir()) or not mine(run_id):
             raise HTTPException(404, "unknown run")
         return folder
 
@@ -218,13 +235,14 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         shutil.rmtree(folder, ignore_errors=True)
         agent.runs.pop(run_id, None)
         result = {"deleted": run_id, "catalog_item_removed": catalog.remove(run_id), "folder_removed": not folder.exists()}
-        audit.append(audit.path_for(settings.data_dir), "deleted_by_seller", run_id,
+        audit.append(audit.path_for(settings.data_dir), "deleted_by_seller", run_id, seller=sellers.current.get(),
                      catalog_item_removed=result["catalog_item_removed"])
         return result
 
     @app.get("/api/catalog")
     def list_catalog():
-        return catalog.items()
+        items = catalog.items()
+        return [i for i in items if i.get("seller", "") == sellers.current.get()] if table else items
 
     # ---- studio (preview): one route per service, same client, JSON in and out -------------------
 

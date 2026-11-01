@@ -75,6 +75,7 @@ class Run:
     question: str | None = None
     asked: bool = False
     steps: list[Step] = field(default_factory=list)
+    seller: str = ""                 # who made it (app/sellers.py); "" in the open single-user demo
     origin_marks: list[str] = field(default_factory=list)   # generator marks read from the uploads (app/origin.py)
     error: str = ""
     created: float = field(default_factory=time.time)
@@ -123,7 +124,8 @@ class Agent:
         """Record the decision (ids, verdict, rules, guards, cost; no seller content) in the hash-chained audit log."""
         v = run.verification or {}
         guards = sorted({s.key for s in run.steps if s.key in ("privacy", "injection")})
-        audit.append(audit.path_for(self.runs_dir.parent), event, run.id, status=run.status, verdict=v.get("verdict"),
+        audit.append(audit.path_for(self.runs_dir.parent), event, run.id, seller=run.seller, status=run.status,
+                     verdict=v.get("verdict"),
                      rules=sorted(v.get("rule_ids") or []), guards=guards, cost_usd=run.totals().get("cost_usd"),
                      error=(run.error or "").split(":")[0] or None)
 
@@ -192,12 +194,12 @@ class Agent:
 
     # ---- the agent --------------------------------------------------------------------------
 
-    def create(self, photos: list[bytes], audio: bytes | None, note: str) -> Run:
+    def create(self, photos: list[bytes], audio: bytes | None, note: str, seller: str = "") -> Run:
         if not 1 <= len(photos) <= 3:
             raise ValueError("send 1 to 3 photos")
         if not audio and not note.strip():
             raise ValueError("say or type something about the product")
-        run = Run(id=uuid.uuid4().hex[:12], mode="mock" if self.client.mock else "live", note=note.strip())
+        run = Run(id=uuid.uuid4().hex[:12], mode="mock" if self.client.mock else "live", note=note.strip(), seller=seller)
         run.start_work()
         self.runs[run.id] = run
         folder = self._dir(run)

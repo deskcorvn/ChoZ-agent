@@ -148,3 +148,35 @@ def test_seller_can_export_and_delete_their_data(settings):
         assert client.get(f"/api/runs/{run['id']}").status_code == 404
         assert client.delete("/api/runs/..%2F..%2Fetc").status_code == 404
         assert client.delete("/api/runs/0123456789ab").status_code == 404
+
+
+def test_each_seller_sees_only_their_own_listings(settings, monkeypatch):
+    from app import sellers
+
+    monkeypatch.delenv("LISTING_ACCESS_TOKEN", raising=False)
+    tok_a, tok_b = sellers.add(settings.data_dir, "ba-nam"), sellers.add(settings.data_dir, "co-tu")
+    assert tok_a not in sellers.path_for(settings.data_dir).read_text(encoding="utf-8")      # hashes only
+    a = {"Authorization": f"Bearer {tok_a}"}
+    b = {"Authorization": f"Bearer {tok_b}"}
+    with TestClient(create_app(settings)) as client:
+        created = client.post("/api/runs", headers=a, files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))],
+                              data={"note": "Áo thun cotton nam, giá 120 nghìn, còn 50 cái"}).json()
+        rid = created["id"]
+        deadline = time.time() + 10
+        while client.get(f"/api/runs/{rid}", headers=a).json()["status"] == "running" and time.time() < deadline:
+            time.sleep(0.05)
+        run = client.get(f"/api/runs/{rid}", headers=a).json()
+        assert run["seller"] == "ba-nam"
+        assert client.post(f"/api/runs/{rid}/publish", headers=a, json={}).status_code == 200
+        photo = f"/files/runs/{rid}/{run['photos'][0]}"
+        assert client.get(photo, headers=a).status_code == 200
+        # seller B: the run, its photo, export, publish and delete all look like they do not exist
+        assert client.get(f"/api/runs/{rid}", headers=b).status_code == 404
+        assert client.get(photo, headers=b).status_code == 404
+        assert client.get(f"/api/runs/{rid}/export", headers=b).status_code == 404
+        assert client.post(f"/api/runs/{rid}/publish", headers=b, json={}).status_code == 404
+        assert client.delete(f"/api/runs/{rid}", headers=b).status_code == 404
+        assert client.get("/api/catalog", headers=b).json() == []
+        assert [i["id"] for i in client.get("/api/catalog", headers=a).json()] == [rid]
+        assert client.get("/api/catalog").status_code == 401
+        assert client.delete(f"/api/runs/{rid}", headers=a).status_code == 200

@@ -144,7 +144,13 @@ failure, so a loop of restyles or retried answers stops by itself.
 **Access token.** Set `LISTING_ACCESS_TOKEN` and every page, API route, run file and `/metrics` needs it: scripts send
 `Authorization: Bearer <token>`, the browser signs in once at `/login` and keeps an HttpOnly, SameSite=Strict cookie
 for 12 hours (`/api/health` stays open for uptime checks). `python -m app` refuses to listen on anything but localhost
-without a token. It is one shared token for a single shop, not per-seller accounts.
+without a token.
+
+**One token per seller.** `python -m app.sellers add ba-nam` prints a token once and stores only its SHA-256 in
+`data/sellers.json`. Each run, catalog entry and audit line carries the seller id; another seller's run, photo files,
+export, publish and delete answer 404 as if they did not exist, and the shop view lists only the seller's own items.
+Runs made over MCP carry `LISTING_MCP_SELLER` (default `mcp`). `/metrics` stays an operator view across sellers
+(counts and timings only, no content).
 
 **Written rules, cited.** `policy/listing-policy.md` holds the catalog's listing rules (P = not listable, W = listable
 with a warning, C = enforced in code). The verifier gets the file verbatim and must return the rule ids it applied; code

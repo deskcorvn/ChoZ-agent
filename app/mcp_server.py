@@ -97,7 +97,8 @@ def build(settings: config.Settings | None = None, client=None) -> MCPServer:
         (e.g. "Bánh đa cua Khánh Thọ, hộp, 22 nghìn một hộp, còn 80 hộp"). Returns the listing, the check against the
         photos with the policy rules it cites, the seller's own words behind price and stock, and the next step.
         Costs about $0.016 of Meta credits."""
-        run = agent.create([read_photo(p) for p in photo_paths], None, seller_words)
+        run = agent.create([read_photo(p) for p in photo_paths], None, seller_words,
+                           seller=os.environ.get("LISTING_MCP_SELLER", "mcp"))
         await agent.process(run)
         return summary(run)
 
