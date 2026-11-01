@@ -143,20 +143,32 @@ def test_the_kling_renderer_takes_its_token_from_the_environment_only(monkeypatc
         KlingMCPRenderer()
 
 
-def test_the_kling_renderer_speaks_json_rpc_tool_calls(monkeypatch):
-    calls = []
+def test_the_kling_renderer_speaks_the_live_mcp_dialect(monkeypatch):
+    calls, uploads = [], []
 
     def handler(request):
+        if request.url.host == "upload.example":
+            uploads.append(request.content)
+            return httpx.Response(200, json={"url": "https://files.example/frame.png"})
         body = json.loads(request.content)
-        calls.append((request.headers["authorization"], body["method"], body["params"]["name"], body["params"]["arguments"]))
-        answers = {"file_upload": {"url": "https://files.example/frame.png"},
-                   "image_to_video": {"task_id": "t1"},
-                   "query_tasks": {"task_status": "succeed", "task_result": {"videos": [{"url": "https://v/t1.mp4"}]}}}
+        auth = request.headers["authorization"]
+        if body["method"] == "initialize":
+            calls.append((auth, "initialize", None, None))
+            return httpx.Response(200, headers={"Mcp-Session-Id": "s1"}, json={"jsonrpc": "2.0", "id": body["id"], "result": {}})
+        if "id" not in body:
+            return httpx.Response(202)
+        name, args = body["params"]["name"], body["params"]["arguments"]
+        calls.append((auth, request.headers.get("mcp-session-id"), name, args))
+        answers = {"query_membership_and_credits": {"availableRemainCredits": 3000},
+                   "file_upload": {"ticket": "tk", "uploadUrl": "https://upload.example/files"},
+                   "image_to_video": {"generationId": "g1"},
+                   "query_tasks": {"status": "completed", "creditsConsumed": 40,
+                                   "works": [{"urlWithoutWatermark": "https://v/g1.mp4"}]}}
         return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {
-            "content": [{"type": "text", "text": json.dumps(answers[body["params"]["name"]])}]}})
+            "content": [{"type": "text", "text": json.dumps(answers[name])}]}})
 
     async def go():
-        renderer = KlingMCPRenderer(token="kling-test-token", transport=httpx.MockTransport(handler))
+        renderer = KlingMCPRenderer(token="kling-test-token", credit_floor=1877, transport=httpx.MockTransport(handler))
         try:
             job_id = await renderer.submit(b"png", "steam rises", 5)
             return job_id, await renderer.poll(job_id)
@@ -164,11 +176,31 @@ def test_the_kling_renderer_speaks_json_rpc_tool_calls(monkeypatch):
             await renderer.aclose()
 
     job_id, state = asyncio.run(go())
-    assert job_id == "t1" and state == {"status": "done", "url": "https://v/t1.mp4", "credits": None, "error": ""}
-    assert [c[2] for c in calls] == ["file_upload", "image_to_video", "query_tasks"]
-    assert all(c[0] == "Bearer kling-test-token" and c[1] == "tools/call" for c in calls)
-    assert calls[1][3]["prompt"] == "steam rises" and calls[1][3]["duration"] == "5"
-    assert calls[1][3]["image"] == "https://files.example/frame.png"
+    assert job_id == "g1" and state == {"status": "done", "url": "https://v/g1.mp4", "credits": 40, "error": ""}
+    assert [c[2] for c in calls] == [None, "query_membership_and_credits", "file_upload", "image_to_video", "query_tasks"]
+    assert all(c[0] == "Bearer kling-test-token" for c in calls) and all(c[1] == "s1" for c in calls[1:])
+    i2v = calls[3][3]
+    assert i2v["model"] == "kling-video-v3_0" and i2v["inputs"][0]["name"] == "first_image"
+    assert {"name": "enable_audio", "value": "false"} in i2v["arguments"] and uploads
+
+
+def test_the_kling_renderer_refuses_below_the_credit_floor():
+    def handler(request):
+        body = json.loads(request.content)
+        if body["method"] == "initialize" or "id" not in body:
+            return httpx.Response(200, json={"jsonrpc": "2.0", "id": body.get("id"), "result": {}})
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {
+            "content": [{"type": "text", "text": json.dumps({"availableRemainCredits": 1800})}]}})
+
+    async def go():
+        renderer = KlingMCPRenderer(token="t", credit_floor=1877, transport=httpx.MockTransport(handler))
+        try:
+            await renderer.submit(b"png", "x", 5)
+        finally:
+            await renderer.aclose()
+
+    with pytest.raises(RuntimeError, match="floor"):
+        asyncio.run(go())
 
 
 # ---- the two new MetaClient calls, request shapes only -----------------------------------------

@@ -1,13 +1,12 @@
 """render: first frame + motion prompt → a silent 5-8 s clip, through a `Renderer` plug-in.
 
-The render engine is outside Meta. `KlingMCPRenderer` talks to Kling's MCP server (skeleton: the tool
-names and the JSON-RPC shape, nothing verified against the live server yet). `MockRenderer` makes a
+The render engine is outside Meta. `KlingMCPRenderer` talks to Kling's official MCP server in the dialect
+used live on 1 Nov 2026 (handshake, upload ticket, image_to_video with name/value arguments, query_tasks). `MockRenderer` makes a
 Ken Burns clip from the first frame with ffmpeg, so the chain runs end to end without credits.
 """
 from __future__ import annotations
 
 import asyncio
-import base64
 import json
 import os
 import shutil
@@ -85,48 +84,75 @@ class MockRenderer:
 
 
 class KlingMCPRenderer:
-    """Kling image-to-video over its MCP server (streamable HTTP, JSON-RPC 2.0).
+    """Kling image-to-video over its official MCP server (streamable HTTP, JSON-RPC 2.0).
 
-    Skeleton only. Tools used: `file_upload` (the first frame), `image_to_video` (frame + motion prompt +
-    duration), `query_tasks` (status, result URL). The token comes from `$KLING_MCP_TOKEN` and nothing
-    else; it is sent in the Authorization header and never logged. `CREDIT_FLOOR`: no job is submitted
-    when the account's credits are at or below `$KLING_CREDIT_FLOOR`.
-    TODO(live): initialize handshake, Mcp-Session-Id, exact argument names of the three tools.
+    Dialect as used against the live server on 1 Nov 2026 (the tests use a mock transport):
+    `initialize` and `notifications/initialized` once per client; the server's `Mcp-Session-Id` is carried
+    on every later call. `file_upload` returns a ticket; the bytes go in a multipart POST to its `uploadUrl`
+    (fields `ticket`, `file`) and the reply carries the public `url`. `image_to_video` takes `model`,
+    `arguments` (name/value pairs, all strings) and `inputs` (`first_image`). `query_tasks` takes
+    `generationId` and, once `status` is completed, lists `works` with the clip URL (kept 24 h).
+    The token comes from `$KLING_MCP_TOKEN` only and is never logged. No job is submitted when
+    `query_membership_and_credits` reports a balance at or below `$KLING_CREDIT_FLOOR`.
     """
 
     name = "kling"
+    model = "kling-video-v3_0"
+    done_states = ("completed", "succeed", "succeeded", "success", "finished", "done")
+    failed_states = ("failed", "fail", "error", "cancelled", "canceled")
 
     def __init__(self, token: str | None = None, url: str = KLING_MCP_URL, credit_floor: int | None = None,
-                 transport: httpx.AsyncBaseTransport | None = None):
+                 transport: httpx.AsyncBaseTransport | None = None, element_id: str | None = None):
         self.token = token if token is not None else os.environ.get("KLING_MCP_TOKEN", "")
         if not self.token:
             raise RuntimeError("KLING_MCP_TOKEN is not set")
         self.url = url
         self.credit_floor = credit_floor if credit_floor is not None else int(os.environ.get("KLING_CREDIT_FLOOR", "0"))
-        self._http = httpx.AsyncClient(timeout=60.0, transport=transport, headers={
+        self.element_id = element_id or os.environ.get("KLING_ELEMENT_ID")   # a saved character Element, optional
+        self._http = httpx.AsyncClient(timeout=120.0, transport=transport, headers={
             "Authorization": f"Bearer {self.token}", "Accept": "application/json, text/event-stream"})
         self._next_id = 0
+        self._session: str | None = None
+        self._ready = False
 
     async def aclose(self) -> None:
         await self._http.aclose()
 
-    async def _call(self, tool: str, arguments: dict) -> dict:
-        """One `tools/call`. Streamable HTTP may answer with JSON or with an SSE body; both are read."""
-        self._next_id += 1
-        body = {"jsonrpc": "2.0", "id": self._next_id, "method": "tools/call",
-                "params": {"name": tool, "arguments": arguments}}
-        response = await self._http.post(self.url, json=body)
+    async def _post(self, body: dict) -> dict | None:
+        headers = {"Mcp-Session-Id": self._session} if self._session else {}
+        response = await self._http.post(self.url, json=body, headers=headers)
         if response.status_code >= 400:
-            raise RuntimeError(f"kling mcp {tool} → HTTP {response.status_code}: {response.text[:300]}")
-        text = response.text
+            raise RuntimeError(f"kling mcp HTTP {response.status_code}: {response.text[:300]}")
+        self._session = response.headers.get("Mcp-Session-Id", self._session)
+        if "id" not in body:
+            return None
         if response.headers.get("content-type", "").startswith("text/event-stream"):
-            data = [line[6:] for line in text.splitlines() if line.startswith("data: ")]
-            text = data[-1] if data else "{}"
-        message = json.loads(text)
-        if "error" in message:
-            raise RuntimeError(f"kling mcp {tool}: {message['error']}")
-        result = message.get("result", {})
-        for part in result.get("content", []):          # MCP tool results carry JSON as text parts
+            for line in response.text.splitlines():
+                if line.startswith("data:"):
+                    message = json.loads(line[5:].strip())
+                    if message.get("id") == body["id"]:
+                        return message
+            raise RuntimeError("kling mcp: no response in the event stream")
+        return response.json()
+
+    async def _rpc(self, method: str, params: dict | None = None) -> dict:
+        self._next_id += 1
+        message = await self._post({"jsonrpc": "2.0", "id": self._next_id, "method": method, "params": params or {}})
+        if message and "error" in message:
+            raise RuntimeError(f"kling mcp {method}: {message['error']}")
+        return (message or {}).get("result", {})
+
+    async def _call(self, tool: str, arguments: dict) -> dict:
+        """One `tools/call` after the handshake; MCP tool results carry their JSON as a text part."""
+        if not self._ready:
+            await self._rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
+                                           "clientInfo": {"name": "choz-studio", "version": "0.1"}})
+            await self._post({"jsonrpc": "2.0", "method": "notifications/initialized"})
+            self._ready = True
+        result = await self._rpc("tools/call", {"name": tool, "arguments": arguments})
+        if result.get("isError"):
+            raise RuntimeError(f"kling mcp {tool}: {result}")
+        for part in result.get("content", []):
             if part.get("type") == "text":
                 try:
                     return json.loads(part["text"])
@@ -134,22 +160,55 @@ class KlingMCPRenderer:
                     return {"text": part["text"]}
         return result
 
+    async def credits(self) -> float:
+        return float((await self._call("query_membership_and_credits", {})).get("availableRemainCredits", 0.0))
+
+    async def upload(self, png: bytes, filename: str = "frame.png") -> str:
+        ticket = await self._call("file_upload", {"filename": filename, "contentType": "image/png", "size": len(png)})
+        response = await self._http.post(ticket["uploadUrl"], data={"ticket": ticket["ticket"]},
+                                         files={"file": (filename, png, "image/png")})
+        if response.status_code >= 400:
+            raise RuntimeError(f"kling upload HTTP {response.status_code}: {response.text[:200]}")
+        body = response.json()
+        url = body.get("url") or (body.get("data") or {}).get("url")
+        if not url:
+            raise RuntimeError(f"kling upload: no url in {body}")
+        return url
+
     async def submit(self, frame_png: bytes, prompt: str, seconds: float) -> str:
-        uploaded = await self._call("file_upload", {"file_name": "frame.png", "file_type": "image/png",
-                                                    "file_data": base64.b64encode(frame_png).decode("ascii")})
-        job = await self._call("image_to_video", {"image": uploaded.get("url") or uploaded.get("file_id"),
-                                                  "prompt": prompt, "duration": str(int(round(seconds))),
-                                                  "aspect_ratio": "9:16", "model": "kling-v3"})
-        return str(job.get("task_id") or job.get("id"))
+        balance = await self.credits()
+        if balance <= self.credit_floor:
+            raise RuntimeError(f"kling credits {balance:.0f} at or below the floor {self.credit_floor}; no job sent")
+        url = await self.upload(frame_png)
+        arguments = [{"name": "prompt", "value": prompt}, {"name": "duration", "value": str(int(round(seconds)))},
+                     {"name": "resolution", "value": "1080p"}, {"name": "imageCount", "value": "1"},
+                     {"name": "prefer_multi_shots", "value": "false"}, {"name": "enable_audio", "value": "false"}]
+        if self.element_id:
+            arguments.append({"name": "elements", "value": json.dumps([{"id": str(self.element_id), "bindName": "Lan"}])})
+        job = await self._call("image_to_video", {
+            "model": self.model, "arguments": arguments, "inputs": [{"inputType": "URL", "name": "first_image", "url": url}],
+            "rationale": "Studio: one-action silent clip from an approved first frame, cut to a pre-recorded voice-over."})
+        job_id = job.get("generationId") or job.get("generation_id") or job.get("id")
+        if not job_id:
+            raise RuntimeError(f"kling image_to_video: no generationId in {job}")
+        return str(job_id)
 
     async def poll(self, job_id: str) -> dict:
-        task = await self._call("query_tasks", {"task_id": job_id})
-        status = str(task.get("task_status") or task.get("status") or "running").lower()
-        mapped = {"submitted": "queued", "processing": "running", "succeed": "done", "succeeded": "done",
-                  "failed": "failed"}.get(status, "running")
-        videos = ((task.get("task_result") or {}).get("videos")) or []
-        return {"status": mapped, "url": videos[0].get("url") if videos else None,
-                "credits": task.get("credits"), "error": task.get("task_status_msg", "")}
+        task = await self._call("query_tasks", {"generationId": job_id})
+        status = str(task.get("status") or task.get("taskStatus") or "running").lower()
+        if status in self.done_states:
+            mapped = "done"
+        elif status in self.failed_states:
+            mapped = "failed"
+        else:
+            mapped = "queued" if status in ("submitted", "pending", "queued") else "running"
+        url = None
+        for work in task.get("works") or task.get("results") or []:
+            if isinstance(work, dict):
+                url = work.get("urlWithoutWatermark") or work.get("url") or work.get("videoUrl")
+                if url:
+                    break
+        return {"status": mapped, "url": url, "credits": task.get("creditsConsumed"), "error": task.get("message", "")}
 
 
 def make_renderer(settings: Settings, out_dir: Path, engine: str | None = None) -> Renderer:
