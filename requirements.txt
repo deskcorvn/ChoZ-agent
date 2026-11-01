@@ -8,3 +8,5 @@ pillow==13.0.0
 numpy==2.5.4
 # Meta's own decoder for SAM 3.1 segmentation output (dependency-free).
 meta_sam_parser==0.1.0
+# The agent as a tool for other agents (python -m app.mcp_server).
+mcp==2.3.0

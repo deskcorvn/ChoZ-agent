@@ -229,6 +229,20 @@ by live runs; `LISTING_ROOM_POOL=0` turns it off) is reused; "restyle" still pai
 "from cache" with the model that painted it. Measured on the five sample products, Nov 1, 2026: **12.9 s and $0.0155 per
 listing** (was 17.8 s and $0.025), price 5/5, stock 4/4, category 5/5, every listing with its studio photo.
 
+## Use it from another agent (MCP)
+
+The listing agent is also an MCP server, so Claude Desktop, Claude Code or any MCP client can list products through it:
+`create_listing` (photo paths + the seller's words), `answer_question`, `publish_listing` (a warned listing needs
+`acknowledge=True`, a blocked one is refused with its reason) and `get_metrics`. Same pipeline, same guards, same costs.
+
+```bash
+claude mcp add choz-listing -e LISTING_MCP_PHOTO_ROOT=$PWD/samples -- python -m app.mcp_server
+```
+
+Photos are read only from `LISTING_MCP_PHOTO_ROOT`. Live, Nov 2: `create_listing` on the oyster porridge box with
+"hộp 150 gam" returned warn W1 with the message for the seller, the verified quotes behind price and stock, and
+`next_step` asking for acknowledgement; 11.7 s, $0.013.
+
 ## Observability
 
 Every run keeps a step log (model, endpoint, ms, cost from the API's usage, decision, raw output), shown live in the
