@@ -157,6 +157,9 @@ professional-looking photo is not a sign. Live, Nov 2 (`python -m app.stress sam
 another price; $0.25. AI-generated photos are not claimed: the rule only acts on visible signs.
 
 CI (`.github/workflows/ci.yml`) runs ruff, the full test suite on the mock client and pip-audit on every push.
+Runtime dependencies are installed from `requirements.lock` with `--require-hashes` (every package and version pinned
+with its SHA-256, regenerated with `pip-compile --generate-hashes requirements.txt`), so a substituted package fails
+the build.
 A live gate (`.github/workflows/live-eval.yml`) runs the five sample listings on the Meta Model API whenever the
 prompts, the policy or the pipeline change, and fails if `python -m app.gate` finds them below `evals/baseline.json`
 (accuracy, p95 time, mean cost). It needs the `MODEL_API_KEY` repository secret (about $0.08 a run) and is skipped
