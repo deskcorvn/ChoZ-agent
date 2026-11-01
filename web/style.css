@@ -105,6 +105,8 @@ label input, label textarea { color: var(--ink); }
 .ghost { background: transparent; color: var(--zalo-dark); }
 .danger { color: var(--bad); font-weight: 500; font-size: 14px; }
 a.ghost { text-align: center; text-decoration: none; font-size: 14px; font-weight: 500; }
+.appeal { display: flex; flex-direction: column; gap: 6px; }
+.appeal textarea { font: inherit; padding: 8px; border-radius: 10px; border: 1px solid #d1d5db; }
 .fine { margin: 0; font-size: 12px; line-height: 1.45; color: #6b7280; }
 .error { color: var(--bad); margin: 0; font-size: 14px; min-height: 1em; }
 

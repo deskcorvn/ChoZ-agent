@@ -17,11 +17,11 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from app import audit, config, metrics, sellers
+from app import audit, config, guard, metrics, policy, sellers
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
-from app.pipeline import Agent
+from app.pipeline import Agent, Run
 from studio import SERVICES, PromptMissing, run_service
 from studio import log as studio_log
 
@@ -75,6 +75,11 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     # Scripts send "Authorization: Bearer <token>"; the browser signs in once at /login and gets an HttpOnly cookie.
     # Sellers and their token hashes (data/sellers.json, plus LISTING_ACCESS_TOKEN as "shop"). Empty = open demo.
     table = sellers.load(settings.data_dir)
+    role_of = sellers.roles(settings.data_dir)
+
+    def require_operator() -> None:
+        if table and role_of.get(sellers.current.get()) != "operator":
+            raise HTTPException(403, "operators only")
     open_paths = ("/login", "/api/health")
 
     def owner_of(run_id: str) -> str | None:
@@ -274,11 +279,83 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
 
     @app.get("/api/metrics")
     def api_metrics(days: int = 7):
+        require_operator()
         return metrics.collect(runs_dir, days)
 
     @app.get("/metrics")
     def metrics_page():
+        require_operator()
         return HTMLResponse(metrics.PAGE)
+
+    # ---- appeals: a person reviews what the agent blocked (policy R1) -----------------------------------
+
+    def load_any(run_id: str):
+        """Any seller's run, for the operator: from memory, or read back from run.json after a restart."""
+        if not re.fullmatch(r"[0-9a-f]{12}", run_id):
+            raise HTTPException(404, "unknown run")
+        run = agent.runs.get(run_id)
+        if run is None and (runs_dir / run_id / "run.json").is_file():
+            run = Run.from_dict(json.loads((runs_dir / run_id / "run.json").read_text(encoding="utf-8")))
+            agent.runs[run_id] = run
+        if run is None:
+            raise HTTPException(404, "unknown run")
+        return run
+
+    @app.post("/api/runs/{run_id}/appeal")
+    def appeal(run_id: str, body: dict | None = None):
+        run = get_run(run_id)
+        if run.status != "blocked":
+            raise HTTPException(409, "only a blocked listing can be appealed")
+        if run.appeal and run.appeal.get("status") == "pending":
+            raise HTTPException(409, "already waiting for review")
+        note = str((body or {}).get("note", ""))[:500]
+        run.appeal = {"status": "pending", "note": guard.mask_text(note)[0], "at": time.strftime("%Y-%m-%d %H:%M:%S")}
+        agent._save(run)
+        audit.append(audit.path_for(settings.data_dir), "appeal_requested", run.id, seller=run.seller,
+                     rules=sorted((run.verification or {}).get("rule_ids") or []))
+        return run.public()
+
+    @app.get("/api/appeals")
+    def list_appeals():
+        require_operator()
+        pending = []
+        for f in sorted(runs_dir.glob("*/run.json")):
+            data = json.loads(f.read_text(encoding="utf-8"))
+            if (data.get("appeal") or {}).get("status") == "pending":
+                v = data.get("verification") or {}
+                pending.append({"run_id": data["id"], "seller": data.get("seller", ""), "title": (data.get("listing") or {}).get("title"),
+                                "photo": f"/files/runs/{data['id']}/{(data.get('photos') or [''])[0]}",
+                                "reason": v.get("prohibited_reason") or v.get("summary_vi"), "rules": v.get("rule_ids"),
+                                "seller_note": data["appeal"].get("note"), "at": data["appeal"].get("at")})
+        return pending
+
+    @app.post("/api/appeals/{run_id}")
+    def decide_appeal(run_id: str, body: dict):
+        require_operator()
+        run = load_any(run_id)
+        decision, reason = body.get("decision"), str(body.get("reason", "")).strip()[:300]
+        if not run.appeal or run.appeal.get("status") != "pending":
+            raise HTTPException(409, "no pending appeal for this listing")
+        if decision not in ("uphold", "overturn") or not reason:
+            raise HTTPException(422, "decision must be uphold or overturn, with a reason")
+        run.appeal.update(status={"uphold": "upheld", "overturn": "overturned"}[decision], reason=reason,
+                          by=sellers.current.get() or "operator", decided_at=time.strftime("%Y-%m-%d %H:%M:%S"))
+        if decision == "overturn":
+            v = run.verification or {}
+            v.update(verdict="warn", prohibited_reason="",
+                     summary_vi="Người duyệt đã xem lại và cho phép đăng: " + reason)
+            v["rule_ids"] = list(dict.fromkeys((v.get("rule_ids") or []) + ["R1"]))
+            v["rules"], _ = policy.cited(v["rule_ids"])
+            run.verification, run.status = v, "ready"
+        agent._save(run)
+        audit.append(audit.path_for(settings.data_dir), "appeal_" + run.appeal["status"], run.id, seller=run.seller,
+                     by=run.appeal["by"])
+        return run.public()
+
+    @app.get("/review")
+    def review_page():
+        require_operator()
+        return HTMLResponse(REVIEW_PAGE)
 
     return app
 
@@ -289,3 +366,40 @@ LOGIN_PAGE = """<!doctype html><html lang="vi"><meta charset="utf-8"><meta name=
 <form method="post" action="/login"><label>Mã truy cập<br><input type="password" name="access_token" autofocus
 style="width:100%;padding:8px;margin:6px 0 12px"></label><button style="padding:8px 16px">Vào</button></form></body></html>
 """
+
+
+REVIEW_PAGE = """<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Chợ Z · xem lại tin bị chặn</title>
+<body style="font-family:system-ui;max-width:760px;margin:24px auto;padding:0 16px;color:#1f2937">
+<h1 style="font-size:20px">Tin bị chặn chờ xem lại</h1><p id="empty" hidden>Không có yêu cầu nào.</p><div id="list"></div>
+<script>
+async function load() {
+  const items = await (await fetch('/api/appeals')).json();
+  document.getElementById('empty').hidden = items.length > 0;
+  const list = document.getElementById('list'); list.replaceChildren();
+  for (const a of items) {
+    const card = document.createElement('div');
+    card.style.cssText = 'display:flex;gap:16px;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0';
+    const img = document.createElement('img'); img.src = a.photo; img.style.cssText = 'width:140px;height:140px;object-fit:cover;border-radius:8px';
+    const body = document.createElement('div'); body.style.flex = '1';
+    const lines = [['Tin', a.title], ['Người bán', a.seller || '-'], ['Lý do chặn', a.reason], ['Quy định', (a.rules || []).join(', ')],
+                   ['Người bán viết', a.seller_note || '-'], ['Lúc', a.at]];
+    for (const [k, v] of lines) { const p = document.createElement('div'); p.textContent = k + ': ' + (v || ''); body.append(p); }
+    const why = document.createElement('input'); why.placeholder = 'Lý do quyết định (bắt buộc)'; why.style.cssText = 'width:100%;margin:8px 0;padding:6px';
+    body.append(why);
+    for (const [label, decision] of [['Giữ chặn', 'uphold'], ['Cho đăng (kèm cảnh báo)', 'overturn']]) {
+      const b = document.createElement('button'); b.textContent = label; b.style.marginRight = '8px';
+      b.onclick = async () => {
+        const r = await fetch('/api/appeals/' + a.run_id, {method: 'POST', headers: {'Content-Type': 'application/json'},
+                                                          body: JSON.stringify({decision, reason: why.value})});
+        if (!r.ok) { alert((await r.json()).detail); return; } load();
+      };
+      body.append(b);
+    }
+    card.append(img, body); list.append(card);
+  }
+}
+load();
+</script></body></html>
+"""
+

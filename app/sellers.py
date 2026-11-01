@@ -4,6 +4,7 @@ Tokens are stored as SHA-256 hashes in data/sellers.json ({"seller_id": "<sha256
 hold anything that opens the app. A token is shown once, when it is created:
 
     python -m app.sellers add ba-nam          # prints a new token for seller "ba-nam"
+    python -m app.sellers add an --operator   # an operator: reviews appeals, sees /metrics
     python -m app.sellers list
 
 LISTING_ACCESS_TOKEN (one shared token) still works and maps to the seller id "shop".
@@ -31,12 +32,22 @@ def path_for(data_dir: Path) -> Path:
     return data_dir / "sellers.json"
 
 
+def _entries(data_dir: Path) -> dict:
+    p = path_for(data_dir)
+    return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+
+
+def roles(data_dir: Path) -> dict[str, str]:
+    """seller id → "operator" or "seller"."""
+    out = {k: (v.get("role", "seller") if isinstance(v, dict) else "seller") for k, v in _entries(data_dir).items()}
+    if os.environ.get("LISTING_ACCESS_TOKEN"):
+        out.setdefault("shop", "operator")        # one shared token = one person running everything
+    return out
+
+
 def load(data_dir: Path) -> dict[str, str]:
     """seller id → token hash, from data/sellers.json plus the shared LISTING_ACCESS_TOKEN (as "shop")."""
-    table = {}
-    p = path_for(data_dir)
-    if p.is_file():
-        table.update(json.loads(p.read_text(encoding="utf-8")))
+    table = {k: (v["hash"] if isinstance(v, dict) else v) for k, v in _entries(data_dir).items()}
     shared = os.environ.get("LISTING_ACCESS_TOKEN", "")
     if shared:
         table.setdefault("shop", _hash(shared))
@@ -55,13 +66,13 @@ def who(table: dict[str, str], token: str | None) -> str | None:
     return found
 
 
-def add(data_dir: Path, seller: str) -> str:
+def add(data_dir: Path, seller: str, operator: bool = False) -> str:
     if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,39}", seller):
         raise ValueError("seller id: 2-40 lowercase letters, digits, - or _")
     p = path_for(data_dir)
     table = json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
     token = secrets.token_urlsafe(24)
-    table[seller] = _hash(token)
+    table[seller] = {"hash": _hash(token), "role": "operator"} if operator else _hash(token)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(table, indent=2), encoding="utf-8")
     return token
@@ -70,9 +81,10 @@ def add(data_dir: Path, seller: str) -> str:
 if __name__ == "__main__":
     from app import config
     data_dir = config.load().data_dir
-    if len(sys.argv) == 3 and sys.argv[1] == "add":
-        print(f"token for {sys.argv[2]} (shown once, give it to the seller):\n{add(data_dir, sys.argv[2])}")
+    if len(sys.argv) in (3, 4) and sys.argv[1] == "add":
+        op = sys.argv[3:] == ["--operator"]
+        print(f"token for {sys.argv[2]} (shown once, give it to them):\n{add(data_dir, sys.argv[2], operator=op)}")
     elif len(sys.argv) == 2 and sys.argv[1] == "list":
-        print("\n".join(sorted(load(data_dir))) or "no sellers; the app is open on localhost")
+        print("\n".join(f"{k} ({v})" for k, v in sorted(roles(data_dir).items())) or "no sellers; open on localhost")
     else:
         sys.exit(__doc__)

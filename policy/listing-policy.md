@@ -33,6 +33,12 @@ this file verbatim and must cite the rule id for every block or warning; the cod
   code before the photo is re-encoded. The listing is kept and the seller is asked for a real photo. A photo without a
   mark is not proven real: metadata is easy to strip.
 
+## Review by a person
+
+- **R1 · Appeal.** A seller can ask for a blocked listing to be reviewed, with a note. An operator upholds or overturns
+  the block with a reason. An overturned listing becomes publishable with a warning the seller must read; both the
+  request and the decision are in the audit log.
+
 ## Always (enforced in code, no model decision)
 
 - **C1 · Contact data.** Phone numbers, e-mails, links and account numbers never appear in a public listing.

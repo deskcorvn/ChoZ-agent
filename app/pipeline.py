@@ -76,6 +76,7 @@ class Run:
     asked: bool = False
     steps: list[Step] = field(default_factory=list)
     seller: str = ""                 # who made it (app/sellers.py); "" in the open single-user demo
+    appeal: dict | None = None       # a blocked listing the seller asked a person to review (see server.py)
     origin_marks: list[str] = field(default_factory=list)   # generator marks read from the uploads (app/origin.py)
     error: str = ""
     created: float = field(default_factory=time.time)
@@ -96,6 +97,16 @@ class Run:
         if self.busy_since:
             self.agent_seconds += time.time() - self.busy_since
             self.busy_since = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Run:
+        """A run read back from its run.json (after a restart), for review."""
+        known = {f for f in cls.__dataclass_fields__}
+        run = cls(**{k: v for k, v in data.items() if k in known and k != "steps"})
+        step_fields = set(Step.__dataclass_fields__)
+        run.steps = [Step(**{k: v for k, v in s.items() if k in step_fields}) for s in data.get("steps") or []]
+        run.busy_since = None
+        return run
 
     def public(self) -> dict:
         data = asdict(self)

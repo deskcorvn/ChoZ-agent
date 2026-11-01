@@ -17,5 +17,7 @@
   "Gỡ tin và xoá dữ liệu" (`DELETE /api/runs/<id>`) removes the run folder and the catalog entry at once.
 - **Each seller sees only their own data.** With seller tokens (`python -m app.sellers add <id>`, stored as hashes)
   every run, photo file, export, delete and shop entry is scoped to its seller; without any token the server only
-  listens on `localhost`. The audit log (`data/audit/audit.jsonl`) keeps ids, verdicts and rule ids, never content. Chợ Z itself is not called; listings go to a local sample catalog.
+  listens on `localhost`. The audit log (`data/audit/audit.jsonl`) keeps ids, verdicts and rule ids, never content.
+- **An appeal note** (why a blocked listing should be allowed) is stored in that run's folder with contact data
+  masked, shown only to operators, and deleted with the run. Chợ Z itself is not called; listings go to a local sample catalog.
 - **Mock mode** (no key) sends nothing anywhere and says so in the log header.

@@ -192,7 +192,7 @@ function fillPreview(run) {
   const RULES_VI = { P1: 'thuốc kê đơn', P2: 'vũ khí', P3: 'chất cấm, thuốc lá', P4: 'động vật hoang dã', P5: 'nội dung người lớn',
     P6: 'hàng giả', P7: 'ảnh khác sản phẩm', W1: 'theo nhãn in trên bao bì', W2: 'thông tin ảnh không khớp',
     W3: 'chữ lạ ra lệnh trong ảnh/lời nói', W4: 'sai danh mục',
-    W5: 'ảnh không phải của bạn', W6: 'ảnh do AI tạo' };
+    W5: 'ảnh không phải của bạn', W6: 'ảnh do AI tạo', R1: 'đã có người xem lại', C4: 'tên hàng cấm' };
   const rules = (v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => `${r.id} · ${RULES_VI[r.id] || r.title}`).join(', ');
   $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
     + (rules && v.verdict !== 'pass' ? ` (Quy định ${rules})` : '');
@@ -202,6 +202,13 @@ function fillPreview(run) {
   $('ack-row').hidden = !needsAck;
   $('ack').checked = false;
   $('publish').disabled = run.status === 'blocked' || needsAck;
+  const appeal = run.appeal || {};
+  $('appeal-row').hidden = run.status !== 'blocked' && !appeal.status;
+  $('appeal').hidden = run.status !== 'blocked' || appeal.status === 'pending' || appeal.status === 'upheld';
+  $('appeal-note').hidden = $('appeal').hidden;
+  $('appeal-status').textContent = { pending: 'Đã gửi, đang chờ người duyệt xem lại.',
+    upheld: `Người duyệt giữ quyết định chặn: ${appeal.reason || ''}`,
+    overturned: `Người duyệt cho phép đăng: ${appeal.reason || ''}` }[appeal.status] || '';
   $('ack').onchange = () => { $('publish').disabled = !$('ack').checked; };
   $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';
 }
@@ -267,6 +274,13 @@ async function deleteRun() {
   } catch (err) { $('preview-error').textContent = err.message; }
 }
 $('delete-run').addEventListener('click', deleteRun);
+$('appeal').addEventListener('click', async () => {
+  try {
+    state.run = await api(`/api/runs/${state.run.id}/appeal`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: $('appeal-note').value }) });
+    fillPreview(state.run);
+  } catch (err) { $('preview-error').textContent = err.message; }
+});
 $('delete-done').addEventListener('click', deleteRun);
 $('another').addEventListener('click', reset);
 

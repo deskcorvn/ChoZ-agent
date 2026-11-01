@@ -161,7 +161,14 @@ without a token.
 `data/sellers.json`. Each run, catalog entry and audit line carries the seller id; another seller's run, photo files,
 export, publish and delete answer 404 as if they did not exist, and the shop view lists only the seller's own items.
 Runs made over MCP carry `LISTING_MCP_SELLER` (default `mcp`). `/metrics` stays an operator view across sellers
-(counts and timings only, no content).
+(counts and timings only, no content), and only operators can open it.
+
+**A person reviews what the agent blocked (rule R1).** Under a blocked listing the seller can ask for a review with a
+note (contact data masked). Operators (`python -m app.sellers add an --operator`) see the queue at `/review` with the
+photo, the block reason, the rules and the seller's note, and uphold or overturn it with a written reason. An
+overturned listing becomes publishable with a warning the seller must still tick; sellers get 403 on `/review`,
+`/api/appeals` and `/metrics`. Request and decision are audit events (`appeal_requested`, `appeal_upheld` /
+`appeal_overturned`, with who decided). Runs are read back from disk, so the queue survives a restart.
 
 **Written rules, cited.** `policy/listing-policy.md` holds the catalog's listing rules (P = not listable, W = listable
 with a warning, C = enforced in code). The verifier gets the file verbatim and must return the rule ids it applied; code

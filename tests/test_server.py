@@ -180,3 +180,59 @@ def test_each_seller_sees_only_their_own_listings(settings, monkeypatch):
         assert [i["id"] for i in client.get("/api/catalog", headers=a).json()] == [rid]
         assert client.get("/api/catalog").status_code == 401
         assert client.delete(f"/api/runs/{rid}", headers=a).status_code == 200
+
+
+def test_blocked_listing_appeal_reviewed_by_an_operator(settings, monkeypatch):
+    import json as _json
+
+    from app import audit, sellers
+
+    monkeypatch.delenv("LISTING_ACCESS_TOKEN", raising=False)
+    seller = {"Authorization": f"Bearer {sellers.add(settings.data_dir, 'ba-nam')}"}
+    operator = {"Authorization": f"Bearer {sellers.add(settings.data_dir, 'an', operator=True)}"}
+    with TestClient(create_app(settings)) as client:
+        created = client.post("/api/runs", headers=seller, files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))],
+                              data={"note": "Thuốc kháng sinh amoxicillin, 80 nghìn một hộp, còn 30 hộp"}).json()
+        rid = created["id"]
+        deadline = time.time() + 10
+        while client.get(f"/api/runs/{rid}", headers=seller).json()["status"] == "running" and time.time() < deadline:
+            time.sleep(0.05)
+        assert client.get(f"/api/runs/{rid}", headers=seller).json()["status"] == "blocked"     # C4 backstop
+        # sellers cannot see the operator views
+        assert client.get("/api/metrics", headers=seller).status_code == 403
+        assert client.get("/api/appeals", headers=seller).status_code == 403
+        assert client.get("/metrics", headers=operator).status_code == 200
+        run = client.post(f"/api/runs/{rid}/appeal", headers=seller, json={"note": "Đây là hộp mẫu rỗng, gọi 0912345678"}).json()
+        assert run["appeal"]["status"] == "pending" and "0912345678" not in run["appeal"]["note"]
+        assert client.post(f"/api/runs/{rid}/appeal", headers=seller, json={}).status_code == 409
+        pending = client.get("/api/appeals", headers=operator).json()
+        assert [a["run_id"] for a in pending] == [rid] and pending[0]["seller"] == "ba-nam"
+        assert client.post(f"/api/appeals/{rid}", headers=operator, json={"decision": "overturn"}).status_code == 422
+        decided = client.post(f"/api/appeals/{rid}", headers=operator,
+                              json={"decision": "uphold", "reason": "Thuốc kê đơn, không đăng được"}).json()
+        assert decided["status"] == "blocked" and decided["appeal"]["status"] == "upheld" and decided["appeal"]["by"] == "an"
+        assert client.get("/api/appeals", headers=operator).json() == []
+    events = [_json.loads(x)["event"] for x in audit.path_for(settings.data_dir).read_text(encoding="utf-8").splitlines()]
+    assert events[-2:] == ["appeal_requested", "appeal_upheld"]
+
+
+def test_operator_overturn_makes_it_publishable_with_a_warning(settings, monkeypatch):
+    from app import sellers
+
+    monkeypatch.delenv("LISTING_ACCESS_TOKEN", raising=False)
+    seller = {"Authorization": f"Bearer {sellers.add(settings.data_dir, 'ba-nam')}"}
+    operator = {"Authorization": f"Bearer {sellers.add(settings.data_dir, 'an', operator=True)}"}
+    app = create_app(settings)
+    with TestClient(app) as client:
+        created = client.post("/api/runs", headers=seller, files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))],
+                              data={"note": "Vape pod tinh dầu đồ chơi trưng bày, 80 nghìn, còn 3 cái"}).json()
+        rid = created["id"]
+        deadline = time.time() + 10
+        while client.get(f"/api/runs/{rid}", headers=seller).json()["status"] == "running" and time.time() < deadline:
+            time.sleep(0.05)
+        client.post(f"/api/runs/{rid}/appeal", headers=seller, json={"note": "mô hình nhựa"})
+        app.state.agent.runs.clear()                                      # as after a restart: read back from disk
+        out = client.post(f"/api/appeals/{rid}", headers=operator, json={"decision": "overturn", "reason": "Mô hình nhựa"}).json()
+        assert out["status"] == "ready" and out["verification"]["verdict"] == "warn" and "R1" in out["verification"]["rule_ids"]
+        assert client.post(f"/api/runs/{rid}/publish", headers=seller, json={}).status_code == 409        # must read it
+        assert client.post(f"/api/runs/{rid}/publish", headers=seller, json={"acknowledge": True}).status_code == 200
