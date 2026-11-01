@@ -187,7 +187,12 @@ function fillPreview(run) {
   $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
     + (rules && v.verdict !== 'pass' ? ` (Quy định ${rules})` : '');
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
-  $('publish').disabled = run.status === 'blocked';
+  // A warning must be read before publishing (human in the loop); the server enforces the same rule.
+  const needsAck = v.verdict === 'warn' && run.status !== 'blocked';
+  $('ack-row').hidden = !needsAck;
+  $('ack').checked = false;
+  $('publish').disabled = run.status === 'blocked' || needsAck;
+  $('ack').onchange = () => { $('publish').disabled = !$('ack').checked; };
   $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';
 }
 
@@ -211,7 +216,7 @@ $('publish').addEventListener('click', async () => {
   $('preview-error').textContent = '';
   const num = (id) => $(id).value === '' ? null : Number($(id).value);
   const edits = { title: $('f-title').value, description: $('f-description').value,
-                  price_vnd: num('f-price'), stock: num('f-stock') };
+                  price_vnd: num('f-price'), stock: num('f-stock'), acknowledge: $('ack').checked };
   try {
     const item = await api(`/api/runs/${state.run.id}/publish`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(edits) });

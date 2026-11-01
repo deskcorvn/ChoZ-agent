@@ -28,6 +28,10 @@ class Catalog:
             raise ValueError("the check blocked this item; it cannot be listed")
         if run.status != "ready":
             raise ValueError(f"run is {run.status}, not ready to publish")
+        verification = run.verification or {}
+        if verification.get("verdict") == "warn" and not edits.get("acknowledge"):
+            # Human in the loop: a warning (W rules) must be read and confirmed by the seller before it goes public.
+            raise ValueError("the check warned about this listing; confirm you have read the warning to publish")
         listing = Listing.model_validate({**run.listing, **{k: v for k, v in edits.items() if k in EDITABLE}})
         # The seller may type into the preview: what they type is masked like what the model wrote.
         masked, kinds = guard.mask_listing(listing.model_dump())
@@ -44,6 +48,8 @@ class Catalog:
                     exclude={"missing", "product_phrase_en", "background_prompt_en"})}
         if kinds:
             item["masked"] = kinds
+        if verification.get("verdict") == "warn":
+            item["acknowledged"] = [r["id"] for r in verification.get("rules") or []] or ["warning"]
         items = [i for i in self.items() if i["id"] != run.id] + [item]
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
