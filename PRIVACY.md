@@ -15,6 +15,7 @@
 - **The seller can take it all back.** The app says what is sent before upload. After a listing is made, "Tải về dữ liệu"
   (`GET /api/runs/<id>/export`) downloads a zip of everything kept for it, and "Xoá ảnh và dữ liệu" /
   "Gỡ tin và xoá dữ liệu" (`DELETE /api/runs/<id>`) removes the run folder and the catalog entry at once.
-- **No per-seller accounts in this build.** One optional shared token (`LISTING_ACCESS_TOKEN`) guards every route;
-  without it the server only listens on `localhost`. Chợ Z itself is not called; listings go to a local sample catalog.
+- **Each seller sees only their own data.** With seller tokens (`python -m app.sellers add <id>`, stored as hashes)
+  every run, photo file, export, delete and shop entry is scoped to its seller; without any token the server only
+  listens on `localhost`. The audit log (`data/audit/audit.jsonl`) keeps ids, verdicts and rule ids, never content. Chợ Z itself is not called; listings go to a local sample catalog.
 - **Mock mode** (no key) sends nothing anywhere and says so in the log header.
