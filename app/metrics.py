@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import time
 from collections import Counter, defaultdict
 from pathlib import Path
+
+from app import audit
 
 
 def _pct(values: list[float], q: float) -> float:
@@ -49,17 +52,19 @@ def collect(runs_dir: Path, days: int = 7) -> dict:
         for s in run.get("steps") or []:
             if s.get("model") and s.get("status") == "done":
                 models[s["model"]] += 1
-            if s.get("key") in ("privacy", "injection"):
+            if s.get("key") in ("privacy", "injection", "fallback"):
                 guards[s["key"]] += 1
             if s.get("status") == "failed":
                 err = s.get("error", "")
-                failures[err[1:err.index("]")] if err.startswith("[") and "]" in err else s.get("key", "?")] += 1
+                kind = re.search(r"\[(\w+)\]", err)
+                failures[kind.group(1) if kind else s.get("key", "?")] += 1
     days_out = [{"day": k, "runs": v["runs"], "p50_s": _pct(v["seconds"], .5), "p95_s": _pct(v["seconds"], .95),
                  "cost_usd": round(v["cost"], 4), "cost_per_run": round(v["cost"] / max(v["runs"], 1), 4)}
                 for k, v in sorted(per_day.items())]
     return {"window_days": days, "runs": total, "status": dict(status), "verdict": dict(verdict),
             "model_calls": dict(models.most_common()), "guards": dict(guards), "rules_cited": dict(rules.most_common()),
-            "failures": dict(failures), "per_day": days_out}
+            "failures": dict(failures), "per_day": days_out,
+            "audit": audit.head(audit.path_for(runs_dir.parent))}
 
 
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
@@ -75,6 +80,6 @@ const T=(title,obj)=>`<div class="card"><h2>${title}</h2><table>${Object.entries
 fetch('/api/metrics').then(r=>r.json()).then(m=>{
  document.getElementById('sub').textContent=`${m.runs} runs in the last ${m.window_days} days, from each run's step log (model, ms, cost).`;
  const days=`<div class="card" style="grid-column:1/-1"><h2>Per day</h2><table><tr><th>day</th><th>runs</th><th>p50 s</th><th>p95 s</th><th>cost $</th><th>$ / run</th></tr>${m.per_day.map(d=>`<tr><td>${d.day}</td><td class="n">${d.runs}</td><td class="n">${d.p50_s}</td><td class="n">${d.p95_s}</td><td class="n">${d.cost_usd}</td><td class="n">${d.cost_per_run}</td></tr>`).join('')}</table></div>`;
- document.getElementById('grid').innerHTML=days+T('Status',m.status)+T('Verdict',m.verdict)+T('Model calls',m.model_calls)+T('Guards fired',m.guards)+T('Rules cited',m.rules_cited)+T('Failures by kind',m.failures);
+ document.getElementById('grid').innerHTML=days+T('Status',m.status)+T('Verdict',m.verdict)+T('Model calls',m.model_calls)+T('Guards fired',m.guards)+T('Rules cited',m.rules_cited)+T('Failures by kind',m.failures)+T('Audit log',m.audit);
 });
 </script></body></html>"""

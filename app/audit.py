@@ -70,6 +70,13 @@ def verify(path: Path) -> tuple[bool, int, str]:
     return True, n, "chain intact"
 
 
+def head(path: Path) -> dict:
+    """What to copy off the machine (a chat message, a commit, a daily e-mail): if the chain is later rewritten, the
+    copied head no longer appears in it."""
+    ok, n, why = verify(path)
+    return {"events": n, "head_hash": _last(path)[1] if n else GENESIS, "chain": why if ok else f"BROKEN: {why}"}
+
+
 def path_for(data_dir: Path) -> Path:
     return data_dir / "audit" / "audit.jsonl"
 

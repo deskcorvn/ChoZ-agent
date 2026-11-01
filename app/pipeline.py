@@ -101,6 +101,10 @@ class Run:
         return data
 
 
+class BudgetExceeded(RuntimeError):
+    kind = "budget"
+
+
 class Agent:
     def __init__(self, client, runs_dir: Path):
         self.client = client
@@ -129,6 +133,14 @@ class Agent:
     async def _step(self, run: Run, key: str, title: str, coro, describe_input: str = ""):
         step = Step(key=key, title=title, input=describe_input, mock=self.client.mock)
         run.steps.append(step)
+        # Per-run ceiling: a loop (restyle after restyle, a retried answer) cannot spend more than this on one listing.
+        budget = float(os.environ.get("LISTING_RUN_BUDGET_USD", "0.08"))
+        spent = run.totals()["cost_usd"]
+        if spent >= budget:
+            coro.close()
+            step.status, step.error = "failed", f"BudgetExceeded: [budget] ${spent:.4f} spent of ${budget:.2f} for this listing"
+            self._save(run)
+            raise BudgetExceeded(step.error)
         self._save(run)
         t0 = time.perf_counter()
         try:

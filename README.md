@@ -137,7 +137,9 @@ acknowledged. Live on the five samples, Nov 2: 9/9 quotes found verbatim, price 
 
 **Spend limits.** A live server refuses new listings (HTTP 429, before any paid call) once today's logged cost reaches
 `DAILY_COST_CAP_USD` (default $5, about 300 listings) or more than `RUNS_PER_MINUTE` (default 12) start in a minute, so a
-leaked link cannot burn the credits.
+leaked link cannot burn the credits. Each listing also has its own ceiling, `LISTING_RUN_BUDGET_USD` (default $0.08, a listing costs
+$0.016–0.025): once a run has spent it, the next paid call is refused before it is sent and logged as a `budget`
+failure, so a loop of restyles or retried answers stops by itself.
 
 **Access token.** Set `LISTING_ACCESS_TOKEN` and every page, API route, run file and `/metrics` needs it: scripts send
 `Authorization: Bearer <token>`, the browser signs in once at `/login` and keeps an HttpOnly, SameSite=Strict cookie
@@ -290,7 +292,8 @@ refused publish and its reason; each seller delete. Lines are hash-chained (each
 `python -m app.audit verify` finds any line edited, removed or reordered. It sits outside the run folders, so the
 7-day purge and a seller's delete keep the record that something happened, and it holds ids and decisions only, never
 the seller's words, photos or numbers. It is tamper-evident, not tamper-proof: whoever controls the disk can rewrite
-the whole chain, so ship it off the machine if that matters.
+the whole chain; `/metrics` shows the event count, the chain status and the head hash, and a head copied
+anywhere else (a commit, a message) exposes a later rewrite.
 
 ## Privacy
 

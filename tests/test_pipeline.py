@@ -302,3 +302,26 @@ def test_voice_failure_without_words_keeps_the_question_open(settings, tmp_path)
     assert run.status == "needs_answer" and run.steps[-1].key == "fallback"
     asyncio.run(agent.answer(run, None, "120 nghìn"))
     assert run.status == "ready" and run.listing["price_vnd"] == 120000
+
+
+class PricedClient(MockMetaClient):
+    """Mock that charges like the live API, so the per-run ceiling can be hit."""
+
+    def _meta(self, endpoint, model, usage):
+        return {**super()._meta(endpoint, model, usage), "cost_usd": 0.01}
+
+
+def test_a_listing_cannot_spend_past_its_budget(settings, tmp_path, monkeypatch):
+    from app import metrics
+
+    monkeypatch.setenv("LISTING_RUN_BUDGET_USD", "0.06")
+    agent = Agent(PricedClient(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 5 cái")
+    asyncio.run(agent.process(run))
+    assert run.status == "ready"
+    for _ in range(6):                     # a seller (or a stuck client) pressing "restyle" again and again
+        asyncio.run(agent.restyle(run))
+    paid = [s for s in run.steps if s.status == "done" and s.cost_usd]
+    assert run.totals()["cost_usd"] <= 0.06 + 1e-9 and "[budget]" in run.error
+    assert sum(s.key == "restyle" for s in paid) < 6
+    assert metrics.collect(tmp_path / "runs", 1)["failures"].get("budget", 0) >= 1

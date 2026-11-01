@@ -46,3 +46,15 @@ def test_the_app_records_check_publish_refusal_and_delete_without_seller_content
     text = log.read_text(encoding="utf-8")
     assert "0912" not in text and "120000" not in text and "Áo thun" not in text        # ids and decisions only
     assert audit.verify(log)[0]
+
+
+def test_metrics_publish_the_chain_head(tmp_path):
+    from app import metrics
+
+    (tmp_path / "runs").mkdir()
+    log = audit.path_for(tmp_path)
+    rec = audit.append(log, "checked", "abc", verdict="pass")
+    m = metrics.collect(tmp_path / "runs", 1)["audit"]
+    assert m == {"events": 1, "head_hash": rec["hash"], "chain": "chain intact"}
+    log.write_text(log.read_text(encoding="utf-8").replace("pass", "block"), encoding="utf-8")
+    assert metrics.collect(tmp_path / "runs", 1)["audit"]["chain"].startswith("BROKEN")
