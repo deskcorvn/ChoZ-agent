@@ -87,7 +87,7 @@ class Run:
         done = [s for s in self.steps if s.status == "done"]
         busy = time.time() - self.busy_since if self.busy_since else 0.0
         return {"cost_usd": round(sum(s.cost_usd for s in self.steps), 6),
-                "model_calls": sum(1 for s in done if s.model),
+                "model_calls": sum(1 for s in done if s.model and not s.model.startswith("cache")),   # a reused room is not a call
                 "seconds": round(self.agent_seconds + busy, 1)}
 
     def start_work(self) -> None:

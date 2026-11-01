@@ -332,3 +332,11 @@ def test_an_empty_title_does_not_stop_the_check():
     listing = Listing.model_validate({"title": "", "description": "", "category_id": "food_specialty",
                                       "product_phrase_en": "", "background_prompt_en": ""})
     assert listing.title == "Sản phẩm chưa có tên" and listing.product_phrase_en == "product"
+
+
+def test_a_cached_room_is_not_counted_as_a_model_call(settings, tmp_path):
+    from app.pipeline import Run, Step
+    run = Run(id="abc", mode="live")
+    run.steps = [Step(key="transcribe", title="", model="muse-voice-transcribe-1.0", status="done"),
+                 Step(key="background", title="", model="cache (muse-image-1.0)", status="done")]
+    assert run.totals()["model_calls"] == 1

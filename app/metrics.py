@@ -50,7 +50,7 @@ def collect(runs_dir: Path, days: int = 7) -> dict:
         for r in v.get("rules") or []:
             rules[r["id"]] += 1
         for s in run.get("steps") or []:
-            if s.get("model") and s.get("status") == "done":
+            if s.get("model") and s.get("status") == "done" and not s["model"].startswith("cache"):
                 models[s["model"]] += 1
             if s.get("key") in ("privacy", "injection", "fallback", "origin", "backstop"):
                 guards[s["key"]] += 1
