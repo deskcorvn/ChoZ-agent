@@ -240,8 +240,14 @@ listing** (was 17.8 s and $0.025), price 5/5, stock 4/4, category 5/5, every lis
 ## Use it from another agent (MCP)
 
 The listing agent is also an MCP server, so Claude Desktop, Claude Code or any MCP client can list products through it:
-`create_listing` (photo paths + the seller's words), `answer_question`, `publish_listing` (a warned listing needs
-`acknowledge=True`, a blocked one is refused with its reason) and `get_metrics`. Same pipeline, same guards, same costs.
+`create_listing` (photo paths + the seller's words), `answer_question`, `publish_listing` and `get_metrics`. Same
+pipeline, same guards, same costs.
+
+**The calling agent cannot publish on its own.** `publish_listing` takes only the run id. Before it runs, the server
+sends an MCP elicitation: the client shows its user a form with the title, price, stock and any warning ("Cảnh báo (W1):
+…"), and the listing is stored only if the person ticks publish, and for a warned listing also that they read the
+warning. A blocked listing is refused before anyone is asked; a client without elicitation support gets an error
+naming the missing capability. Tested in-process and over stdio (`tests/test_mcp_server.py`).
 
 ```bash
 claude mcp add choz-listing -e LISTING_MCP_PHOTO_ROOT=$PWD/samples -- python -m app.mcp_server
@@ -249,7 +255,7 @@ claude mcp add choz-listing -e LISTING_MCP_PHOTO_ROOT=$PWD/samples -- python -m 
 
 Photos are read only from `LISTING_MCP_PHOTO_ROOT`. Live, Nov 2: `create_listing` on the oyster porridge box with
 "hộp 150 gam" returned warn W1 with the message for the seller, the verified quotes behind price and stock, and
-`next_step` asking for acknowledgement; 11.7 s, $0.013.
+`next_step`; 11.7 s, $0.013.
 
 ## Observability
 

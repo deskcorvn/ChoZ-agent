@@ -1,25 +1,45 @@
 """The listing agent as an MCP server, so other agents (Claude Desktop, an IDE agent, another marketplace bot) can use it
-as a tool. Same agent, same guards: the photos and words go through the Meta pipeline, a warned listing still needs
-`acknowledge=True` to publish, a blocked one cannot be published, contact data is masked.
+as a tool. Same agent, same guards: the photos and words go through the Meta pipeline, a blocked listing cannot be published, contact data is
+masked, and nothing is published until the person at the client confirms it. The confirmation is an MCP elicitation
+(a form the client shows its user, with the warning in it), not a tool argument, so the calling model cannot approve
+its own publish; clients without elicitation get a refusal and a pointer to the Chợ Z app.
 
     python -m app.mcp_server            # stdio transport (Claude Desktop / Claude Code config: see README)
 
 Tools: create_listing, answer_question, publish_listing, get_metrics. Photos are read from local paths, which must be
 image files under $LISTING_MCP_PHOTO_ROOT (default: the current directory) and at most 15 MB each.
 """
-from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Annotated
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver import Elicit, ElicitationResult, MCPServer, Resolve
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
+from pydantic import BaseModel, Field
 
 from app import config, metrics
 from app.catalog import Catalog
 from app.meta_api import make_client
 from app.pipeline import Agent
+
+
+class SellerConfirms(BaseModel):
+    publish: bool = Field(description="Đăng tin này lên Chợ Z")
+    read_warning: bool = Field(default=False, description="Tôi đã đọc cảnh báo (nếu có)")
+
+
+def confirmation_message(run) -> str:
+    listing, v = run.listing or {}, run.verification or {}
+    price = f"{listing.get('price_vnd') or 0:,}".replace(",", ".")
+    lines = [f"Đăng tin lên Chợ Z: {listing.get('title')}",
+             f"Giá {price}đ · còn {listing.get('stock')} {listing.get('unit') or ''}".strip()]
+    if v.get("verdict") == "warn":
+        rules = ", ".join(r.get("id", "") for r in v.get("rules") or []) or "cảnh báo"
+        lines.append(f"Cảnh báo ({rules}): {v.get('summary_vi')}")
+    return "\n".join(lines)
+
 
 PHOTO_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp")
 MAX_PHOTO_BYTES = 15 * 1024 * 1024
@@ -30,7 +50,7 @@ def summary(run) -> dict:
     listing = run.listing or {}
     v = run.verification or {}
     next_step = {"needs_answer": "call answer_question with the seller's answer",
-                 "ready": "show the listing to the seller; call publish_listing (acknowledge=True if verdict is warn)",
+                 "ready": "call publish_listing; the seller confirms the listing and any warning in your client",
                  "blocked": "cannot be published", "failed": "see error"}.get(run.status, "")
     return {
         "run_id": run.id, "status": run.status, "next_step": next_step, "question": run.question or None,
@@ -88,16 +108,32 @@ def build(settings: config.Settings | None = None, client=None) -> MCPServer:
         await agent.answer(run, None, answer)
         return summary(run)
 
+    def ask_seller(run_id: str) -> Elicit[SellerConfirms]:
+        """Runs before publish_listing: refuse what cannot be published, otherwise ask the person at the client."""
+        run = find(run_id)
+        verdict = (run.verification or {}).get("verdict")
+        if run.status != "ready" or verdict == "block":
+            raise ToolError(f"run is {run.status}{' and blocked' if verdict == 'block' else ''}; nothing to publish")
+        return Elicit(confirmation_message(run), SellerConfirms)
+
     @server.tool(annotations=ToolAnnotations(title="Publish to the sample catalog", readOnlyHint=False,
                                              destructiveHint=False, idempotentHint=True))
-    def publish_listing(run_id: str, acknowledge: bool = False) -> dict:
-        """Publish a ready listing to the local sample catalog. If the check warned, the seller must have read the
-        warning: pass acknowledge=True only after showing it to them. Blocked listings cannot be published."""
+    def publish_listing(run_id: str,
+                        answer: Annotated[ElicitationResult[SellerConfirms], Resolve(ask_seller)]) -> dict:
+        """Publish a ready listing to the local sample catalog. The person at the client is asked to confirm (and to
+        confirm any warning) through an MCP elicitation form; the calling model cannot confirm on their behalf.
+        Blocked listings cannot be published."""
         run = find(run_id)
+        warned = (run.verification or {}).get("verdict") == "warn"
+        if answer.action != "accept" or not answer.data.publish:
+            raise ToolError("the seller did not confirm; not published")
+        if warned and not answer.data.read_warning:
+            raise ToolError("the seller did not confirm the warning; not published")
         try:
-            return catalog.publish(run, settings.data_dir / "runs" / run.id, {"acknowledge": acknowledge})
-        except ValueError as exc:     # blocked, unacknowledged warning, missing price/stock: the reason goes back
+            item = catalog.publish(run, settings.data_dir / "runs" / run.id, {"acknowledge": warned})
+        except ValueError as exc:     # missing price/stock and similar: the reason goes back
             raise ToolError(str(exc)) from exc
+        return {**item, "confirmed_by": "seller (MCP elicitation)"}
 
     @server.tool(annotations=ToolAnnotations(title="Agent metrics", readOnlyHint=True))
     def get_metrics(days: int = 7) -> dict:
