@@ -6,6 +6,8 @@ this file verbatim and must cite the rule id for every block or warning; the cod
 ## Not listable (block)
 
 - **P1 · Prescription medicine.** Medicines that need a doctor's prescription, including antibiotics, cannot be listed.
+  Capsules or tablets in blister packs are treated as medicine whatever the seller calls them (candy, supplement),
+  because this catalog is not a licensed pharmacy.
 - **P2 · Weapons.** Weapons, replicas of weapons, ammunition, explosives and fireworks.
 - **P3 · Drugs and tobacco.** Narcotics, tobacco products and e-cigarettes.
 - **P4 · Wildlife.** Wild animals and products made from them.
@@ -35,4 +37,7 @@ this file verbatim and must cite the rule id for every block or warning; the cod
 
 - **C1 · Contact data.** Phone numbers, e-mails, links and account numbers never appear in a public listing.
 - **C2 · Seller's numbers.** Price and stock come only from the seller's words (or the seller's own edits).
+- **C4 · Named prohibited items.** The plainest names of P1–P4 items (antibiotic and other prescription drug names,
+  real guns, explosives, narcotics, e-cigarettes, wildlife parts) in the seller's words or the listing text block the
+  listing in code, whatever the model decided. Generic words ("thuốc", "dao") are left to the verifier.
 - **C3 · Real product pixels.** The product in the studio photo is the seller's photo, cut out and scaled, never redrawn.

@@ -282,11 +282,17 @@ class Agent:
                 if run.steps and run.steps[-1].key == "transcribe":
                     run.steps[-1].output["audio"] = "deleted after transcription"
         seller_words = " ".join(part for part in (run.transcript, run.note) if part)
+        # Minimisation: phone numbers, e-mails, links and account numbers are not needed to describe a product, so they
+        # are masked before the words leave this server (the originals stay local, for the provenance check).
+        words_out, masked_out = guard.mask_text(seller_words)
+        if masked_out:
+            self._local(run, "privacy", "Privacy guard (local): contact data masked before it is sent to Meta",
+                        "seller's words", {"masked": masked_out})
 
         # 2. Photos + words → listing
         raw, step = await self._step(
             run, "listing", "Photos + words → listing (JSON schema)",
-            self.client.chat_json(prompts.LISTING, guard.seller_data(seller_words), photos, "Listing", LISTING_SCHEMA),
+            self.client.chat_json(prompts.LISTING, guard.seller_data(words_out), photos, "Listing", LISTING_SCHEMA),
             f"{len(photos)} photo(s) + {len(seller_words)} chars")
         try:
             listing = Listing.model_validate(raw)
@@ -309,7 +315,7 @@ class Agent:
         verify = self._step(
             run, "verify", "Check listing against photos",
             self.client.chat_json(prompts.VERIFY,
-                                  guard.seller_data(seller_words) + "\n\nListing to check:\n"
+                                  guard.seller_data(words_out) + "\n\nListing to check:\n"
                                   + json.dumps(listing_for_check, ensure_ascii=False),
                                   photos, "Verification", VERIFICATION_SCHEMA),
             "listing + seller's words + photos")
@@ -324,6 +330,22 @@ class Agent:
             await asyncio.gather(segment_task, return_exceptions=True)
             raise
         verification = Verification.model_validate(verified[0])
+        hits = guard.prohibited_terms(seller_words, run.listing.get("title", ""), run.listing.get("description", ""))
+        if hits:
+            # C4: a named prohibited item blocks in code, whatever the model decided.
+            rules = list(dict.fromkeys(rule for rule, _ in hits))
+            overruled = verification.verdict != "block"
+            if overruled:
+                verification.verdict = "block"
+                verification.prohibited_reason = f"{rules[0]}: " + ", ".join(word for _, word in hits)
+                verification.summary_vi = ("Tin đăng bị chặn vì có tên mặt hàng không được bán ("
+                                           + ", ".join(word for _, word in hits) + ").")
+            verification.checks.append(Check(claim="named prohibited item", status="contradicted",
+                                             note=", ".join(f"{r}: {w}" for r, w in hits)))
+            self._local(run, "backstop", "Rule backstop (local): named prohibited item"
+                        + (" — overrules the model" if overruled else " — agrees with the model"),
+                        "seller's words + listing text", {"hits": hits, "overruled_model": overruled})
+            verification.rule_ids += rules + ["C4"]
         if run.origin_marks:
             # A generator's own mark in the file: not the seller's photo of the item they have (W6).
             if verification.verdict == "pass":
@@ -470,7 +492,7 @@ class Agent:
                         return run
             facts_raw, step = await self._step(
                 run, "answer", "Answer → price / stock",
-                self.client.chat_json(prompts.SALE_FACTS, f"Question: {run.question}\nAnswer: {words}", [],
+                self.client.chat_json(prompts.SALE_FACTS, f"Question: {run.question}\nAnswer: {guard.mask_text(words)[0]}", [],
                                       "SaleFacts", SALE_FACTS_SCHEMA),
                 words)
             facts = SaleFacts.model_validate(facts_raw)

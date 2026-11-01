@@ -106,3 +106,49 @@ def test_a_warned_listing_needs_the_sellers_acknowledgement_to_publish(settings)
         catalog.publish(run, settings.data_dir / "runs" / run.id, {})
     item = catalog.publish(run, settings.data_dir / "runs" / run.id, {"acknowledge": True})
     assert item["acknowledged"] == ["W3"]
+
+
+def test_named_prohibited_items_and_no_false_hits():
+    from app import guard
+    assert guard.prohibited_terms("Thuốc kháng sinh amoxicillin 500mg") == [("P1", "kháng sinh")]
+    assert guard.prohibited_terms("Pháo nổ Tết") == [("P2", "pháo nổ")]
+    assert guard.prohibited_terms("Vape pod tinh dầu")[0][0] == "P3"
+    for fine in ("Bánh đa cua Khánh Thọ", "Dao inox nhà bếp", "Thuốc nhuộm tóc", "Pháo hoa giấy trang trí",
+                 "Súng nước đồ chơi", "Trà thảo mộc"):
+        assert guard.prohibited_terms(fine) == [], fine
+
+
+def test_backstop_blocks_when_the_model_passes(settings, tmp_path):
+    import asyncio
+
+    from app.meta_api import MockMetaClient
+    from app.pipeline import Agent
+    from tests.conftest import product_photo
+
+    agent = Agent(MockMetaClient(settings), tmp_path / "runs")      # the mock verifier passes everything
+    run = agent.create([product_photo()], None, "Thuốc kháng sinh amoxicillin, 80 nghìn một hộp, còn 30 hộp")
+    asyncio.run(agent.process(run))
+    assert run.status == "blocked" and {"P1", "C4"} <= set(run.verification["rule_ids"])
+    step = next(s for s in run.steps if s.key == "backstop")
+    assert step.output["overruled_model"] is True
+
+
+def test_contact_data_is_masked_before_it_leaves(settings, tmp_path):
+    import asyncio
+
+    from app.meta_api import MockMetaClient
+    from app.pipeline import Agent
+    from tests.conftest import product_photo
+
+    sent = []
+
+    class Spy(MockMetaClient):
+        async def chat_json(self, system, user, images, name, schema):
+            sent.append(user)
+            return await super().chat_json(system, user, images, name, schema)
+
+    agent = Agent(Spy(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], None, "Áo thun, giá 120 nghìn, còn 5 cái, gọi 0912 345 678 hoặc zalo.me/0912345678")
+    asyncio.run(agent.process(run))
+    assert sent and all("0912" not in s and "zalo.me" not in s for s in sent)
+    assert run.listing["price_vnd"] == 120000

@@ -29,6 +29,31 @@ INJECTION = re.compile(
     re.I,
 )
 
+# C4: a deterministic backstop under the model for the plainest cases of P1-P4. Names only, not categories: "thuốc"
+# alone (hair dye, pesticide, herbal tea) or "dao" (kitchen knives) are left to the verifier and the photos.
+PROHIBITED_TERMS = (
+    ("P1", re.compile(r"kháng sinh|amoxi(?:cillin|clin)|ampicillin|augmentin|cephalexin|cefuroxim|azithromycin|"
+                      r"ciprofloxacin|levofloxacin|tramadol|codein|diazepam|seduxen|alprazolam|morphin|"
+                      r"thuốc\s+kê\s+đơn|antibiotic", re.I)),
+    ("P2", re.compile(r"\bsúng\s+(?:thật|bắn đạn|hơi|săn|ngắn|trường|K\d+)|đạn\s+(?:thật|chì|súng)|lựu đạn|"
+                      r"thuốc\s+nổ|pháo\s+(?:nổ|hoa nổ|đại|bi)|kíp nổ", re.I)),
+    ("P3", re.compile(r"cần sa|ma\s*túy|thuốc lắc|\bketamin|cỏ mỹ|thuốc lá điện tử|\bvape\b|\bpod\s+(?:dầu|tinh dầu)|"
+                      r"shisha|thuốc lá\b", re.I)),
+    ("P4", re.compile(r"sừng tê|ngà voi|mật gấu|vảy tê tê|\btê tê\b|cao hổ|xương hổ|móng gấu|tổ yến lậu", re.I)),
+)
+
+
+def prohibited_terms(*texts: str) -> list[tuple[str, str]]:
+    """(rule, matched words) for every prohibited-item name found in the seller's words or the listing text."""
+    hits = []
+    for text in texts:
+        for rule, pattern in PROHIBITED_TERMS:
+            m = pattern.search(text or "")
+            if m and (rule, m.group(0).lower()) not in hits:
+                hits.append((rule, m.group(0).lower()))
+    return hits
+
+
 # Order matters: links and e-mails first (a Zalo link often contains the phone number), then numbers.
 MASKS = (("link", LINK, "[đã ẩn liên kết]"), ("email", EMAIL, "[đã ẩn email]"),
          ("phone", PHONE, "[đã ẩn số điện thoại]"), ("account_or_id", LONG_DIGITS, "[đã ẩn số tài khoản]"))
