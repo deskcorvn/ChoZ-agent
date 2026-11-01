@@ -229,3 +229,26 @@ def test_the_seller_voice_is_deleted_once_it_is_text(settings):
     run = agent.create([product_photo()], wav_bytes(), "")
     process(agent, run)
     assert not (agent.runs_dir / run.id / "speech.wav").exists() and run.transcript
+
+
+def test_an_implausible_cut_out_is_not_composed(settings, monkeypatch):
+    """SAM returned 200 but the mask covers almost the whole frame: the photo as taken is used, with the reason."""
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    from app.meta_api import Segment
+
+    agent = agent_for(settings)
+
+    async def segment(jpeg, phrase):
+        img = Image.open(io.BytesIO(jpeg))
+        mask = np.ones((img.height, img.width), bool)
+        return [Segment("0", (0, 0, img.width, img.height), mask, 0.9)], {"model": "sam-3.1", "endpoint": "x", "cost_usd": 0}
+
+    monkeypatch.setattr(agent.client, "segment", segment)
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    process(agent, run)
+    step = next(s for s in run.steps if s.key == "compose")
+    assert step.status == "skipped" and "covers 100.0 %" in step.output["reason"] and not run.studio_image

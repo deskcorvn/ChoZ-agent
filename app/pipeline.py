@@ -22,6 +22,10 @@ from pydantic import ValidationError
 from app import compose, guard, policy, prompts
 from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
+# A plausible product cut-out covers between 2 % and 95 % of the photo. Measured on 111 live cut-outs (31 Oct - 1 Nov):
+# 7.3 % to 49.8 %, median 35 %; the bounds leave room for small items and close-ups.
+CUTOUT_SHARE = (0.02, 0.95)
+
 
 @dataclass
 class Step:
@@ -309,8 +313,16 @@ class Agent:
         segmented, painted = await asyncio.gather(segment_task, background, return_exceptions=True)
 
         # 4. Compose: real product pixels on the painted room. Without a cutout, show the photo as taken.
-        if isinstance(segmented, BaseException) or not segmented[0]:
-            note = "no product found" if not isinstance(segmented, BaseException) else str(segmented)[:200]
+        implausible = None
+        if not isinstance(segmented, BaseException) and segmented[0]:
+            # Verify the tool's outcome, not its success flag: a mask covering almost nothing or almost the whole
+            # frame is a failed cut-out even when the call returned 200; the photo as taken is safer than a bad cut.
+            mask = max(segmented[0], key=lambda s: ((s.confidence or 0.0), s.area)).mask
+            share = float(mask.sum()) / mask.size
+            if not CUTOUT_SHARE[0] <= share <= CUTOUT_SHARE[1]:
+                implausible = f"cut-out covers {100 * share:.1f} % of the photo; expected {CUTOUT_SHARE[0]:.0%}–{CUTOUT_SHARE[1]:.0%}"
+        if isinstance(segmented, BaseException) or not segmented[0] or implausible:
+            note = implausible or ("no product found" if not isinstance(segmented, BaseException) else str(segmented)[:200])
             self._local(run, "compose", "Compose studio photo (local)", "", {"reason": note}, status="skipped")
         else:
             segments, seg_step = segmented
