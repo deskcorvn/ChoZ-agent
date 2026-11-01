@@ -104,3 +104,24 @@ def test_spend_guard_refuses_runs_over_the_daily_budget(settings, monkeypatch):
     client = TestClient(create_app(settings, client=LiveLike()))
     r = client.post("/api/runs", files={"photos": ("p.jpg", product_photo(), "image/jpeg")}, data={"note": "áo"})
     assert r.status_code == 429 and "budget" in r.json()["detail"]
+
+
+def test_access_token(settings, monkeypatch):
+    monkeypatch.setenv("LISTING_ACCESS_TOKEN", "s3cret-test")
+    with TestClient(create_app(settings)) as client:
+        assert client.get("/api/health").status_code == 200            # open for uptime checks
+        assert client.get("/api/catalog").status_code == 401
+        assert client.get("/metrics").status_code == 401
+        assert client.get("/", follow_redirects=False).headers["location"] == "/login"
+        assert client.get("/api/catalog", headers={"Authorization": "Bearer wrong"}).status_code == 401
+        assert client.get("/api/catalog", headers={"Authorization": "Bearer s3cret-test"}).status_code == 200
+        assert client.post("/login", data={"access_token": "wrong"}).status_code == 401
+        signed_in = client.post("/login", data={"access_token": "s3cret-test"}, follow_redirects=False)
+        assert signed_in.status_code == 303 and "httponly" in signed_in.headers["set-cookie"].lower()
+        assert client.get("/api/catalog").status_code == 200           # the cookie now rides along
+
+
+def test_no_token_means_open(settings, monkeypatch):
+    monkeypatch.delenv("LISTING_ACCESS_TOKEN", raising=False)
+    with TestClient(create_app(settings)) as client:
+        assert client.get("/api/catalog").status_code == 200

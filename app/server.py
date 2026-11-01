@@ -2,14 +2,15 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import os
 import shutil
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
@@ -66,6 +67,37 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
 
     app = FastAPI(title="Chợ Z listing agent", lifespan=lifespan)
     app.state.agent, app.state.catalog, app.state.tasks = agent, catalog, tasks
+
+    # Optional access token: unset = open (localhost demo); set LISTING_ACCESS_TOKEN before exposing the server.
+    # Scripts send "Authorization: Bearer <token>"; the browser signs in once at /login and gets an HttpOnly cookie.
+    token = os.environ.get("LISTING_ACCESS_TOKEN", "")
+    open_paths = ("/login", "/api/health")
+
+    def token_ok(given: str | None) -> bool:
+        return bool(given) and hmac.compare_digest(given.encode(), token.encode())
+
+    @app.middleware("http")
+    async def require_token(request: Request, call_next):
+        if not token or request.url.path in open_paths:
+            return await call_next(request)
+        bearer = request.headers.get("authorization", "")
+        if token_ok(bearer[7:] if bearer.lower().startswith("bearer ") else None) or token_ok(request.cookies.get("choz_token")):
+            return await call_next(request)
+        if request.method == "GET" and request.url.path == "/":
+            return RedirectResponse("/login", status_code=303)
+        return JSONResponse({"detail": "access token required"}, status_code=401)
+
+    @app.get("/login", response_class=HTMLResponse)
+    def login_page():
+        return LOGIN_PAGE
+
+    @app.post("/login")
+    def login(access_token: str = Form(...)):
+        if not token or not token_ok(access_token):
+            return HTMLResponse(LOGIN_PAGE.replace("<!--err-->", "<p>Sai mã truy cập.</p>"), status_code=401)
+        response = RedirectResponse("/", status_code=303)
+        response.set_cookie("choz_token", access_token, httponly=True, samesite="strict", max_age=12 * 3600)
+        return response
 
     def get_run(run_id: str):
         run = agent.runs.get(run_id)
@@ -191,3 +223,11 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         return HTMLResponse(metrics.PAGE)
 
     return app
+
+
+LOGIN_PAGE = """<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Chợ Z · đăng nhập</title><body style="font-family:system-ui;max-width:360px;margin:15vh auto;padding:0 16px">
+<h1 style="font-size:20px">Chợ Z listing agent</h1><!--err-->
+<form method="post" action="/login"><label>Mã truy cập<br><input type="password" name="access_token" autofocus
+style="width:100%;padding:8px;margin:6px 0 12px"></label><button style="padding:8px 16px">Vào</button></form></body></html>
+"""

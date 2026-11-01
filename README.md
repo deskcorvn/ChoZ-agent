@@ -139,6 +139,11 @@ acknowledged. Live on the five samples, Nov 2: 9/9 quotes found verbatim, price 
 `DAILY_COST_CAP_USD` (default $5, about 300 listings) or more than `RUNS_PER_MINUTE` (default 12) start in a minute, so a
 leaked link cannot burn the credits.
 
+**Access token.** Set `LISTING_ACCESS_TOKEN` and every page, API route, run file and `/metrics` needs it: scripts send
+`Authorization: Bearer <token>`, the browser signs in once at `/login` and keeps an HttpOnly, SameSite=Strict cookie
+for 12 hours (`/api/health` stays open for uptime checks). `python -m app` refuses to listen on anything but localhost
+without a token. It is one shared token for a single shop, not per-seller accounts.
+
 **Written rules, cited.** `policy/listing-policy.md` holds the catalog's listing rules (P = not listable, W = listable
 with a warning, C = enforced in code). The verifier gets the file verbatim and must return the rule ids it applied; code
 keeps only ids that exist in the file, flags a block that cites no P rule, and the preview shows the rule next to the
