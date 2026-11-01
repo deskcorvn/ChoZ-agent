@@ -1,0 +1,6 @@
+﻿product,mode,run,status,seconds,cost_usd,transcript,title,category,price_vnd,stock,verdict,studio_photo,error,price_vnd_ok,stock_ok,category_ok
+01-banh-da-ca-ro-goi,live,4230fc9260c7,ready,15.1,0.015935,,Bánh đa cá rô đồng ăn liền Khánh Thọ gói 125g,Thực phẩm và đặc sản,15000,300,pass,True,,True,True,True
+02-banh-da-ca-ro-hop,live,67b065fc876e,ready,11.1,0.015197,,Bánh đa cá rô đồng ăn liền Khánh Thọ hộp 120g,Thực phẩm và đặc sản,22000,120,pass,True,,True,True,True
+03-banh-da-cua-goi,live,f8c7c88a2b98,needs_answer,12.9,0.01551,,Bánh Đa Cua Đồng Ăn Liền Khánh Thọ Gói 125g Có Gói Riêu Cua,Thực phẩm và đặc sản,15000,,pass,True,,True,,True
+04-banh-da-cua-hop,live,96a1db6613d1,ready,13.2,0.016164,,Bánh đa cua đồng ăn liền Hải Phòng Khánh Thọ dạng hộp,Thực phẩm và đặc sản,22000,80,pass,True,,True,True,True
+05-chao-hau-hop,live,139d15c5e455,ready,12.3,0.014727,,Cháo hàu ăn liền đặc sản Hải Phòng hộp 120g,Thực phẩm và đặc sản,22000,80,warn,True,,True,True,True

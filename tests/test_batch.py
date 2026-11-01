@@ -27,3 +27,12 @@ def test_batch_reports_status_cost_and_accuracy(settings, tmp_path):
         assert len(list(csv.DictReader(handle))) == 3
     text = summary(rows)
     assert "price_vnd: 1/2 correct" in text and "stock: 1/1 correct" in text
+
+
+def test_wilson_interval_reads_small_samples_honestly():
+    from app.results import wilson
+
+    lo, hi = wilson(5, 5)
+    assert round(lo, 2) == 0.57 and hi == 1.0
+    lo, hi = wilson(30, 30)
+    assert round(lo, 2) == 0.89

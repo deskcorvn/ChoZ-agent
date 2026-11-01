@@ -307,7 +307,11 @@ class Agent:
                                     "mask_pixels": best.area})
             photo = Image.open(io.BytesIO(photos[0])).convert("RGB")
             if isinstance(painted, BaseException):
-                room, source = Image.new("RGB", (compose.STUDIO_SIDE,) * 2, (245, 245, 245)), "plain (image step failed)"
+                pooled = sorted(self._pool_dir().glob("room-*.png"))
+                if pooled:     # the room painter failed: a room it painted earlier is better than a flat grey
+                    room, source = Image.open(pooled[int(run.id, 16) % len(pooled)]), "cached room (image step failed)"
+                else:
+                    room, source = Image.new("RGB", (compose.STUDIO_SIDE,) * 2, (245, 245, 245)), "plain (image step failed)"
             else:
                 room, source = Image.open(io.BytesIO(painted[0])), "Muse Image"
                 (folder / "background.png").write_bytes(painted[0])

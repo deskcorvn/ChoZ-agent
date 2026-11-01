@@ -18,6 +18,7 @@ import asyncio
 import base64
 import io
 import json
+import random
 import re
 import wave
 from dataclasses import dataclass
@@ -34,8 +35,22 @@ from app.config import Settings
 
 class MetaAPIError(RuntimeError):
     def __init__(self, endpoint: str, status: int, body: str):
-        super().__init__(f"{endpoint} → HTTP {status}: {body[:300]}")
         self.endpoint, self.status, self.body = endpoint, status, body
+        self.kind = error_kind(status)
+        super().__init__(f"[{self.kind}] {endpoint} → HTTP {status}: {body[:300]}")
+
+
+def error_kind(status: int) -> str:
+    """One word the log, the seller message and the eval report can group by."""
+    if status == 0:
+        return "network"
+    if status in (401, 403):
+        return "auth"
+    if status in (402, 429):
+        return "quota"
+    if status >= 500:
+        return "server"
+    return "request"
 
 
 @dataclass
@@ -124,9 +139,15 @@ class MetaClient:
 
     async def _post(self, path: str, **kwargs) -> dict:
         for attempt in range(2):
-            response = await self._http.post(path, **kwargs)
+            try:
+                response = await self._http.post(path, **kwargs)
+            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                if attempt == 0:          # one retry on a dropped connection or a timeout
+                    await asyncio.sleep(1.0 + random.random())
+                    continue
+                raise MetaAPIError(path, 0, f"{type(exc).__name__}: {exc}") from exc
             if response.status_code in (429, 500, 502, 503, 504) and attempt == 0:
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(1.0 + random.random())      # jitter: parallel calls do not retry in lockstep
                 continue
             if response.status_code >= 400:
                 raise MetaAPIError(path, response.status_code, response.text)

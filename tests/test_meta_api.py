@@ -169,3 +169,31 @@ def test_http_errors_name_the_endpoint_and_never_the_key(settings):
         run(go())
     assert exc.value.status == 401 and "/images/generations" in str(exc.value)
     assert "test-key" not in str(exc.value)
+
+
+def test_a_dropped_connection_is_retried_once_then_classified(settings):
+    """One retry with jitter on a network error; a second failure is a MetaAPIError of kind 'network'."""
+    import httpx as _httpx
+
+    from app.meta_api import MetaAPIError, MetaClient
+
+    calls = []
+
+    def handler(request):
+        calls.append(request.url.path)
+        if len(calls) == 1:
+            raise _httpx.ConnectError("boom")
+        return _httpx.Response(429, text="slow down")
+
+    client = MetaClient(settings, transport=_httpx.MockTransport(handler))
+    try:
+        asyncio.run(client._post("/chat/completions", json={}))
+    except MetaAPIError as exc:
+        assert exc.kind == "quota" and exc.status == 429
+    assert len(calls) == 2
+
+
+def test_error_kinds():
+    from app.meta_api import error_kind
+
+    assert [error_kind(s) for s in (0, 401, 429, 503, 400)] == ["network", "auth", "quota", "server", "request"]

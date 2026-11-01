@@ -1,0 +1,484 @@
+{
+ "summary": {
+  "runs": 33,
+  "ok": 33,
+  "by_case": {
+   "clean": "5/5",
+   "blur": "5/5",
+   "dark": "5/5",
+   "tilted": "5/5",
+   "wrong_weight_not_in_photo": "3/3",
+   "wrong_product": "5/5",
+   "wrong_weight_printed": "2/2",
+   "prohibited": "3/3"
+  },
+  "false_blocks": 0,
+  "seconds_mean": 26.1,
+  "cost_total_usd": 0.8248,
+  "wall_seconds": 224,
+  "mode": "live",
+  "date": "2026-11-01",
+  "note": "wrong_weight re-scored 1 Nov 2026: 3 of 5 sample photos show no printed weight, so 'flagged' was the wrong expectation there; model outputs unchanged"
+ },
+ "rows": [
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "clean",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp với ảnh nên có thể đăng bán",
+   "seconds": 33.9,
+   "cost_usd": 0.026575,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "blur",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp với ảnh nên có thể đăng bán.",
+   "seconds": 27.1,
+   "cost_usd": 0.026322,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "dark",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi gói 125 gam nhưng ảnh ghi một kilôgam bạn kiểm tra lại nhé",
+   "seconds": 34.5,
+   "cost_usd": 0.029105,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "tilted",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp ảnh nên được duyệt để đăng bán",
+   "seconds": 33.9,
+   "cost_usd": 0.027818,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "wrong_weight",
+   "expect": "no_false_alarm",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng khớp ảnh bánh đa cá rô đồng, bạn cứ giữ nguyên.",
+   "seconds": 31.7,
+   "cost_usd": 0.025114,
+   "ok": true
+  },
+  {
+   "product": "01-banh-da-ca-ro-goi",
+   "case": "wrong_product",
+   "expect": "flagged",
+   "status": "needs_answer",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi bánh đa cá rô đúng như bao bì, bạn nói cua đồng là chưa đúng.",
+   "seconds": 25.6,
+   "cost_usd": 0.028333,
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "clean",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp hình ảnh sản phẩm nên đã sẵn sàng đăng bán.",
+   "seconds": 25.4,
+   "cost_usd": 0.025199,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "blur",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp với ảnh sản phẩm nên có thể đăng bán ngay",
+   "seconds": 26.4,
+   "cost_usd": 0.024427,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "dark",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp ảnh sản phẩm, bạn có thể đăng bán nhé.",
+   "seconds": 25.6,
+   "cost_usd": 0.024688,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "tilted",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp hình ảnh sản phẩm nên đã sẵn sàng đăng bán",
+   "seconds": 22.3,
+   "cost_usd": 0.027975,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "wrong_weight",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Bạn nói 200 gam khác ảnh, tin đăng ghi 120 gam đúng theo bao bì.",
+   "seconds": 23.2,
+   "cost_usd": 0.025306,
+   "ok": true
+  },
+  {
+   "product": "02-banh-da-ca-ro-hop",
+   "case": "wrong_product",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi vị cua đồng nhưng ảnh ghi cá rô, khối lượng bạn ghi khớp bao bì",
+   "seconds": 21.2,
+   "cost_usd": 0.027699,
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "clean",
+   "expect": "listed",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng khớp ảnh, bạn cứ yên tâm đăng bán nhé.",
+   "seconds": 9.8,
+   "cost_usd": 0.024053,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "blur",
+   "expect": "listed",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp ảnh, cứ giữ nguyên để bán nhé",
+   "seconds": 29.3,
+   "cost_usd": 0.025797,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "dark",
+   "expect": "listed",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp ảnh bao bì, đủ điều kiện đăng bán.",
+   "seconds": 28.4,
+   "cost_usd": 0.025429,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "tilted",
+   "expect": "listed",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp hình ảnh, cảm ơn bạn đã gửi bán.",
+   "seconds": 27.8,
+   "cost_usd": 0.025061,
+   "fields_ok": {
+    "price_vnd": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "wrong_weight",
+   "expect": "no_false_alarm",
+   "status": "needs_answer",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp ảnh sản phẩm, cảm ơn bạn đã cung cấp đầy đủ.",
+   "seconds": 21.4,
+   "cost_usd": 0.02475,
+   "ok": true
+  },
+  {
+   "product": "03-banh-da-cua-goi",
+   "case": "wrong_product",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi bánh đa cua khớp ảnh, khác lời nói cháo hàu.",
+   "seconds": 32.0,
+   "cost_usd": 0.028865,
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "clean",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp hoàn toàn với hình ảnh sản phẩm đã cung cấp",
+   "seconds": 32.1,
+   "cost_usd": 0.025393,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "blur",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp hình ảnh sản phẩm nên có thể đăng bán ngay.",
+   "seconds": 32.0,
+   "cost_usd": 0.024681,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "dark",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn khớp ảnh sản phẩm, bạn có thể đăng bán nhé.",
+   "seconds": 32.2,
+   "cost_usd": 0.023963,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "tilted",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "Tin đăng của bạn đúng với hình sản phẩm và có thể đăng bán.",
+   "seconds": 34.7,
+   "cost_usd": 0.024841,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "wrong_weight",
+   "expect": "no_false_alarm",
+   "status": "ready",
+   "verdict": "pass",
+   "summary_vi": "tin đăng của bạn khớp hình ảnh sản phẩm nên sẵn sàng đăng bán",
+   "seconds": 34.6,
+   "cost_usd": 0.024889,
+   "ok": true
+  },
+  {
+   "product": "04-banh-da-cua-hop",
+   "case": "wrong_product",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi bánh đa cua đúng như bao bì, lời nói nhầm thành cá rô mà thôi.",
+   "seconds": 34.8,
+   "cost_usd": 0.027089,
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "clean",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi đúng khối lượng in trên hộp dù lời nói khác.",
+   "seconds": 33.8,
+   "cost_usd": 0.026222,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "blur",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi 120 gam đúng như bao bì dù lời nói nhầm 150 gam",
+   "seconds": 14.7,
+   "cost_usd": 0.025564,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "dark",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Tin đăng bạn ghi 120g đúng như bao bì, khác lời nói 150 gam.",
+   "seconds": 31.1,
+   "cost_usd": 0.024594,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "tilted",
+   "expect": "listed",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng của bạn ghi một trăm hai mươi gam đúng như bao bì dù lời nói nhầm một trăm năm mươi gam",
+   "seconds": 14.2,
+   "cost_usd": 0.026395,
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true,
+    "category": true
+   },
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "wrong_weight",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "tin đăng bạn ghi một trăm hai mươi gam đúng với bao bì dù lời nói nhầm hai trăm gam.",
+   "seconds": 20.2,
+   "cost_usd": 0.025387,
+   "ok": true
+  },
+  {
+   "product": "05-chao-hau-hop",
+   "case": "wrong_product",
+   "expect": "flagged",
+   "status": "ready",
+   "verdict": "warn",
+   "summary_vi": "Bạn nói bánh đa cá rô nhưng tin đăng ghi cháo hàu đúng như ảnh.",
+   "seconds": 16.5,
+   "cost_usd": 0.024879,
+   "ok": true
+  },
+  {
+   "product": "antibiotic",
+   "case": "prohibited_clean",
+   "expect": "blocked",
+   "status": "blocked",
+   "verdict": "block",
+   "summary_vi": "Tin đăng của bạn bị chặn vì thuốc kê đơn không được phép rao bán.",
+   "seconds": 15.9,
+   "cost_usd": 0.017111,
+   "ok": true
+  },
+  {
+   "product": "antibiotic",
+   "case": "prohibited_blur",
+   "expect": "blocked",
+   "status": "blocked",
+   "verdict": "block",
+   "summary_vi": "tin đăng của bạn bị chặn vì thuốc kháng sinh kê đơn không được phép bán",
+   "seconds": 18.2,
+   "cost_usd": 0.015262,
+   "ok": true
+  },
+  {
+   "product": "antibiotic",
+   "case": "prohibited_dark",
+   "expect": "blocked",
+   "status": "blocked",
+   "verdict": "block",
+   "summary_vi": "Tin đăng của bạn là thuốc kê đơn nên không được phép đăng bán.",
+   "seconds": 15.3,
+   "cost_usd": 0.016023,
+   "ok": true
+  }
+ ]
+}
