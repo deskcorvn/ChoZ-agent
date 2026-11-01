@@ -145,8 +145,11 @@ keeps only ids that exist in the file, flags a block that cites no P rule, and t
 message. Live, Nov 1: the 150 g / 120 g case came back as warn with W1 (printed label wins), the antibiotic as block with
 "P1: … cần đơn bác sĩ …". The rules are a draft written for this demo catalog, not legal advice.
 
-CI (`.github/workflows/ci.yml`) runs ruff and the full test suite on the mock client
-on every push; live evaluations cost credits and are run by hand, their results dated in this README.
+CI (`.github/workflows/ci.yml`) runs ruff, the full test suite on the mock client and pip-audit on every push.
+A live gate (`.github/workflows/live-eval.yml`) runs the five sample listings on the Meta Model API whenever the
+prompts, the policy or the pipeline change, and fails if `python -m app.gate` finds them below `evals/baseline.json`
+(accuracy, p95 time, mean cost). It needs the `MODEL_API_KEY` repository secret (about $0.08 a run) and is skipped
+without it; the larger live suites are run by hand and dated in [evals/RESULTS.md](evals/RESULTS.md).
 
 ## Shop banner (Meta only)
 
