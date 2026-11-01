@@ -14,7 +14,7 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | category | 19/19 | 100 % | 83–100 % |
 | no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
 
-### gate
+### Regression gate after the W5 and W6 policy changes, five samples (Nov 2)
 
 5 live runs · p50 13.6 s · p95 15.2 s · mean $0.0156 per listing · files: batch-20261102-014112.csv
 
