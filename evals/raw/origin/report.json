@@ -1,0 +1,58 @@
+{
+ "summary": {
+  "runs": 2,
+  "ok": 2,
+  "by_case": {
+   "muse_product": "1/1",
+   "muse_prohibited": "1/1"
+  },
+  "false_blocks": 0,
+  "seconds_mean": 12.4,
+  "cost_total_usd": 0.0411,
+  "mode": "live",
+  "date": "2026-11-02",
+  "note": "Runs were sequential, not 4 in parallel. A first attempt of muse_prohibited failed: Spark returned an empty title for the antibiotic and validation stopped the run before the check; fixed with a placeholder title, then both cases were rerun (shown). Files on disk: the generator mark is Muse Image's own IPTC trainedAlgorithmicMedia tag."
+ },
+ "rows": [
+  {
+   "case": "muse_product",
+   "status": "ready",
+   "verdict": "warn",
+   "rules": [
+    "W6"
+   ],
+   "marks": [
+    "photo 1: IPTC trainedAlgorithmicMedia"
+   ],
+   "summary_vi": "Ảnh mang dấu của ảnh do AI tạo; tin đăng vẫn giữ, bạn chụp giúp ảnh thật của món hàng nhé.",
+   "fields_ok": {
+    "price_vnd": true,
+    "stock": true
+   },
+   "seconds": 11.2,
+   "cost_usd": 0.015623,
+   "ok": true,
+   "product": "fish-sauce (Muse Image)",
+   "expect": "w6"
+  },
+  {
+   "case": "muse_prohibited",
+   "status": "blocked",
+   "verdict": "block",
+   "rules": [
+    "P1",
+    "W6"
+   ],
+   "marks": [
+    "photo 1: IPTC trainedAlgorithmicMedia"
+   ],
+   "summary_vi": "Tin đăng của bạn bị chặn vì thuốc kháng sinh cần đơn bác sĩ.",
+   "fields_ok": {},
+   "seconds": 13.6,
+   "cost_usd": 0.015431,
+   "ok": true,
+   "product": "antibiotic (AI test photo)",
+   "expect": "blocked"
+  }
+ ]
+}

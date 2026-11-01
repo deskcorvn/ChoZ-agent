@@ -82,7 +82,10 @@ def contact_shadow(item: Image.Image, pad: int = 48) -> Image.Image:
     return Image.fromarray(np.maximum(np.asarray(tight), np.asarray(wide)))
 
 
-def jpeg(image: Image.Image, quality: int = 90) -> bytes:
+def jpeg(image: Image.Image, quality: int = 90, xmp: str | None = None) -> bytes:
     buffer = io.BytesIO()
-    image.convert("RGB").save(buffer, "JPEG", quality=quality)
+    if xmp:
+        image.convert("RGB").save(buffer, "JPEG", quality=quality, xmp=xmp.encode("utf-8"))
+    else:
+        image.convert("RGB").save(buffer, "JPEG", quality=quality)
     return buffer.getvalue()

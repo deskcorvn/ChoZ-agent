@@ -23,7 +23,8 @@ Run them all: `python -m app.batch samples/products`.
 ## Supplier material
 
 `supplier/` holds the producer's price list and brand graphics (OCOP badge, slogan, frame, texture),
-as received. The agent does not use them yet.
+as received. The agent does not use them yet. `ocop-4-sao.png` and `texture.png` carry generator marks in their metadata (IPTC
+`trainedAlgorithmicMedia` and a C2PA manifest), as read by `app/origin.py`; the product photos in `products/` carry none.
 
 ## Categories
 

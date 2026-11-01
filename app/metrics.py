@@ -52,7 +52,7 @@ def collect(runs_dir: Path, days: int = 7) -> dict:
         for s in run.get("steps") or []:
             if s.get("model") and s.get("status") == "done":
                 models[s["model"]] += 1
-            if s.get("key") in ("privacy", "injection", "fallback"):
+            if s.get("key") in ("privacy", "injection", "fallback", "origin"):
                 guards[s["key"]] += 1
             if s.get("status") == "failed":
                 err = s.get("error", "")

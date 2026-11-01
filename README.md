@@ -156,7 +156,15 @@ message. Live, Nov 1: the 150 g / 120 g case came back as warn with W1 (printed 
 marketplace listing keeps the listing but warns the seller to send a photo of the item they have; a clean or
 professional-looking photo is not a sign. Live, Nov 2 (`python -m app.stress samples/products --foreign`): W5 on
 10/10 doctored photos and 0/5 of the sellers' own, seller's price kept in 15/15 even when the screenshot showed
-another price; $0.25. AI-generated photos are not claimed: the rule only acts on visible signs.
+another price; $0.25.
+
+**Generated photo (W6), and our own label.** Muse Image writes the IPTC tag `trainedAlgorithmicMedia` into every
+image it makes. `app/origin.py` reads that tag, C2PA content credentials and generator names in EXIF or PNG text
+from each upload before it is re-encoded; a mark keeps the listing but warns the seller (W6) and asks for a real
+photo. Live, Nov 2: a Muse Image fish-sauce photo uploaded as the seller's got W6 with the seller's price and stock
+kept; an AI-made antibiotic photo was blocked under P1 and also carried W6. A photo without a mark is not proven
+real, because metadata is easy to strip. The agent labels its own output the same way: every studio photo carries
+`compositeWithTrainedAlgorithmicMedia` (the seller's real pixels on a room Muse Image painted).
 
 CI (`.github/workflows/ci.yml`) runs ruff, the full test suite on the mock client and pip-audit on every push.
 Runtime dependencies are installed from `requirements.lock` with `--require-hashes` (every package and version pinned

@@ -325,3 +325,10 @@ def test_a_listing_cannot_spend_past_its_budget(settings, tmp_path, monkeypatch)
     assert run.totals()["cost_usd"] <= 0.06 + 1e-9 and "[budget]" in run.error
     assert sum(s.key == "restyle" for s in paid) < 6
     assert metrics.collect(tmp_path / "runs", 1)["failures"].get("budget", 0) >= 1
+
+
+def test_an_empty_title_does_not_stop_the_check():
+    from app.schema import Listing
+    listing = Listing.model_validate({"title": "", "description": "", "category_id": "food_specialty",
+                                      "product_phrase_en": "", "background_prompt_en": ""})
+    assert listing.title == "Sản phẩm chưa có tên" and listing.product_phrase_en == "product"

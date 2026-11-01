@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 from pydantic import ValidationError
 
-from app import audit, compose, guard, policy, prompts
+from app import audit, compose, guard, origin, policy, prompts
 from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
 # A plausible product cut-out covers between 2 % and 95 % of the photo. Measured on 111 live cut-outs (31 Oct - 1 Nov):
@@ -75,6 +75,7 @@ class Run:
     question: str | None = None
     asked: bool = False
     steps: list[Step] = field(default_factory=list)
+    origin_marks: list[str] = field(default_factory=list)   # generator marks read from the uploads (app/origin.py)
     error: str = ""
     created: float = field(default_factory=time.time)
     agent_seconds: float = 0.0       # time the agent worked; time spent waiting for the seller is not counted
@@ -203,6 +204,7 @@ class Agent:
         t0 = time.perf_counter()
         sizes = []
         for i, raw in enumerate(photos):
+            run.origin_marks += [f"photo {i + 1}: {m}" for m in origin.marks(raw)]   # before re-encoding drops them
             jpeg = compose.normalise_photo(raw)
             (folder / f"photo-{i + 1}.jpg").write_bytes(jpeg)
             run.photos.append(f"photo-{i + 1}.jpg")
@@ -320,6 +322,17 @@ class Agent:
             await asyncio.gather(segment_task, return_exceptions=True)
             raise
         verification = Verification.model_validate(verified[0])
+        if run.origin_marks:
+            # A generator's own mark in the file: not the seller's photo of the item they have (W6).
+            if verification.verdict == "pass":
+                verification.verdict = "warn"
+                verification.summary_vi = ("Ảnh mang dấu của ảnh do AI tạo; tin đăng vẫn giữ, bạn chụp giúp ảnh thật "
+                                           "của món hàng nhé.")
+            verification.checks.append(Check(claim="photo is the seller's own", status="contradicted",
+                                             note="; ".join(run.origin_marks)[:300]))
+            self._local(run, "origin", "Origin check (local): generator mark in the photo metadata",
+                        "uploaded photo files", {"marks": run.origin_marks}, "warn")
+            verification.rule_ids.append("W6")
         signals = guard.injection_signals(seller_words)
         if signals or verification.instructions_found.strip():
             # Inputs that try to steer the agent are logged and never allowed to end on a plain pass.
@@ -392,7 +405,7 @@ class Agent:
             piece = compose.cutout(photo, best.mask)
             piece.save(folder / "cutout.png")
             final = compose.studio(room, piece)
-            (folder / "studio.jpg").write_bytes(compose.jpeg(final))
+            (folder / "studio.jpg").write_bytes(compose.jpeg(final, xmp=origin.COMPOSITE_XMP))
             run.studio_image = "studio.jpg"
             step = self._local(run, "compose", "Compose studio photo (local)", f"cutout + {source} background",
                                {"size": final.size, "product_pixels": "from the seller's photo, scaled only"})
@@ -415,7 +428,7 @@ class Agent:
             n = sum(1 for s in run.steps if s.key == "restyle")
             (folder / f"background-{n}.png").write_bytes(image)
             final = compose.studio(Image.open(io.BytesIO(image)), Image.open(folder / "cutout.png"))
-            (folder / f"studio-{n}.jpg").write_bytes(compose.jpeg(final))
+            (folder / f"studio-{n}.jpg").write_bytes(compose.jpeg(final, xmp=origin.COMPOSITE_XMP))
             run.studio_image = f"studio-{n}.jpg"
             run.error = ""
         except Exception as exc:  # the old photo stays; the failed step is in the log

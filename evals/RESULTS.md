@@ -57,6 +57,18 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | listing_screenshot | 5/5 | 100 % | 57–100 % |
 | valid products not blocked | 15/15 | 100 % | 80–100 % |
 
+### W6 generated photo: a Muse Image product photo and an AI-made prohibited item, uploaded as the seller's (Nov 2)
+
+2 live runs (2026-11-02) · p50 11.2 s · p95 13.6 s (4 runs in parallel) · $0.04 in total · file: origin/report.json
+
+| Case | Met expectation | Rate | Wilson 95 % |
+|---|---|---|---|
+| muse_product | 1/1 | 100 % | 21–100 % |
+| muse_prohibited | 1/1 | 100 % | 21–100 % |
+| valid products not blocked | 1/1 | 100 % | 21–100 % |
+
+Note: Runs were sequential, not 4 in parallel. A first attempt of muse_prohibited failed: Spark returned an empty title for the antibiotic and validation stopped the run before the check; fixed with a placeholder title, then both cases were rerun (shown). Files on disk: the generator mark is Muse Image's own IPTC trainedAlgorithmicMedia tag.
+
 ### Stress: degraded photos, wrong product, wrong weight, prohibited (Nov 1)
 
 33 live runs (2026-11-01) · p50 27.1 s · p95 34.7 s (4 runs in parallel) · $0.82 in total · file: stress/report.json

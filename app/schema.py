@@ -27,7 +27,7 @@ class Attribute(BaseModel):
 
 
 class Listing(BaseModel):
-    title: str = Field(min_length=3, max_length=120)
+    title: str = Field(max_length=120)
     description: str
     category_id: str
     category: str = ""                   # the Vietnamese name, filled in from category_id
@@ -41,6 +41,14 @@ class Listing(BaseModel):
     background_prompt_en: str
     evidence: dict = {}            # {"price_quote", "stock_quote"}: the seller's own words behind the numbers
     provenance: dict = {}          # filled in code: per field, the source and whether the quote was found verbatim
+
+    @field_validator("title")
+    @classmethod
+    def _title_or_placeholder(cls, value: str) -> str:
+        # Measured 2 Nov 2026: for the same antibiotic Spark returned an empty title, and the run failed before the
+        # check could block it. A placeholder keeps the run going; the seller types a title on the preview.
+        value = value.strip()
+        return value if len(value) >= 3 else "Sản phẩm chưa có tên"
 
     @field_validator("product_phrase_en")
     @classmethod

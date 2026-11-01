@@ -89,7 +89,8 @@ def main(folder: Path) -> str:
     for f in sorted(folder.rglob("report.json")):
         title = {"stress": "Stress: degraded photos, wrong product, wrong weight, prohibited (Nov 1)",
                  "adversarial": "Adversarial: prompt injection, contact data, disguised prohibited item (Nov 1)",
-                 "foreign": "W5 not the seller's photo: stock watermark, another shop's listing screenshot, own photo (Nov 2)"}
+                 "foreign": "W5 not the seller's photo: stock watermark, another shop's listing screenshot, own photo (Nov 2)",
+                 "origin": "W6 generated photo: a Muse Image product photo and an AI-made prohibited item, uploaded as the seller's (Nov 2)"}
         lines += stress_section(title.get(f.parent.name, f.parent.name), f)
     return "\n".join(lines)
 

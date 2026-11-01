@@ -26,6 +26,10 @@ this file verbatim and must cite the rule id for every block or warning; the cod
   over the image, or a screenshot of another marketplace listing (price tag, buttons, sold count, ratings). The listing
   is kept and the seller is asked for a photo of the item they actually have. A clean, well-lit or professional-looking
   photo is not a sign, and the brand printed on the product's own packaging is not a sign.
+- **W6 · Generated photo.** The photo file carries a generator's mark: IPTC DigitalSourceType "trainedAlgorithmicMedia"
+  (written by Muse Image, among others), C2PA content credentials, or a generator's name in its metadata. Checked in
+  code before the photo is re-encoded. The listing is kept and the seller is asked for a real photo. A photo without a
+  mark is not proven real: metadata is easy to strip.
 
 ## Always (enforced in code, no model decision)
 
