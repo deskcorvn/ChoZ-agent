@@ -1,0 +1,6 @@
+{
+  "note": "Thresholds for python -m app.gate on the five sample products. Set from the live runs of Oct 31 - Nov 2 (price 25/25, stock 20/20, category 25/25; p95 15-27 s; $0.016-0.025 per listing). Change only with a reviewed reason.",
+  "min_accuracy": {"price_vnd_ok": 1.0, "stock_ok": 1.0, "category_ok": 1.0},
+  "max_p95_seconds": 35,
+  "max_mean_cost_usd": 0.03
+}

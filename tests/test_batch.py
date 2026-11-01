@@ -36,3 +36,18 @@ def test_wilson_interval_reads_small_samples_honestly():
     assert round(lo, 2) == 0.57 and hi == 1.0
     lo, hi = wilson(30, 30)
     assert round(lo, 2) == 0.89
+
+
+def test_the_gate_fails_a_batch_below_the_baseline(tmp_path):
+    import csv as _csv
+
+    from app.gate import check
+
+    path = tmp_path / "b.csv"
+    with path.open("w", newline="", encoding="utf-8-sig") as f:
+        w = _csv.DictWriter(f, fieldnames=["product", "status", "seconds", "cost_usd", "price_vnd_ok", "stock_ok", "category_ok"])
+        w.writeheader()
+        w.writerow({"product": "a", "status": "ready", "seconds": 12, "cost_usd": 0.016, "price_vnd_ok": "True", "stock_ok": "True", "category_ok": "True"})
+        w.writerow({"product": "b", "status": "ready", "seconds": 50, "cost_usd": 0.016, "price_vnd_ok": "False", "stock_ok": "True", "category_ok": "True"})
+    problems = check(path, {"min_accuracy": {"price_vnd_ok": 1.0}, "max_p95_seconds": 35, "max_mean_cost_usd": 0.03})
+    assert any("price_vnd_ok" in p for p in problems) and any("p95" in p for p in problems)

@@ -1,0 +1,31 @@
+name: live-eval
+# A live regression gate on the Meta Model API: runs when prompts, the policy or the pipeline change, or by hand.
+# It needs the repository secret MODEL_API_KEY and costs about $0.08 per run (five sample listings); without the
+# secret the job says so and stops.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["app/prompts.py", "app/pipeline.py", "app/schema.py", "policy/**", "evals/baseline.json"]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+      LISTING_MODE: live
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip without a key
+        if: env.MODEL_API_KEY == ''
+        run: echo "No MODEL_API_KEY secret; the live gate is not run." && exit 0
+      - uses: actions/setup-python@v5
+        if: env.MODEL_API_KEY != ''
+        with:
+          python-version: "3.12"
+      - if: env.MODEL_API_KEY != ''
+        run: pip install -r requirements.txt
+      - name: Live batch on the five samples
+        if: env.MODEL_API_KEY != ''
+        run: python -m app.batch samples/products
+      - name: Gate against evals/baseline.json
+        if: env.MODEL_API_KEY != ''
+        run: python -m app.gate "$(ls -t data/reports/batch-*.csv | head -1)"
