@@ -87,9 +87,28 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
                 "models": {"text": settings.text_model, "image": settings.image_model,
                            "segmentation": settings.sam_model, "speech": settings.asr_model}}
 
+    recent: list[float] = []      # start times of recent runs, for the rate limit
+
+    def spend_guard() -> None:
+        """Refuse new runs over the daily budget or the per-minute rate, before any paid call is made."""
+        if client.mock:
+            return
+        cap = float(os.environ.get("DAILY_COST_CAP_USD", "5"))
+        today = time.strftime("%Y-%m-%d")
+        spent = next((d["cost_usd"] for d in metrics.collect(runs_dir, 1)["per_day"] if d["day"] == today), 0.0)
+        if cap > 0 and spent >= cap:
+            raise HTTPException(429, f"over today's budget: ${spent:.2f} of ${cap:.2f} (DAILY_COST_CAP_USD)")
+        now = time.time()
+        recent[:] = [t for t in recent if now - t < 60]
+        per_minute = int(os.environ.get("RUNS_PER_MINUTE", "12"))
+        if per_minute > 0 and len(recent) >= per_minute:
+            raise HTTPException(429, f"too many listings this minute (RUNS_PER_MINUTE={per_minute}); try again shortly")
+        recent.append(now)
+
     @app.post("/api/runs")
     async def create_run(photos: list[UploadFile] = File(...), audio: UploadFile | None = File(None),
                          note: str = Form("")):
+        spend_guard()
         images = [await read_limited(p, MAX_PHOTO_BYTES) for p in photos]
         try:
             run = agent.create([i for i in images if i], await read_limited(audio, MAX_AUDIO_BYTES), note)

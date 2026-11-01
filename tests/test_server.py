@@ -77,3 +77,30 @@ def test_metrics_aggregate_the_run_logs(settings):
     m = client.get("/api/metrics").json()
     assert m["runs"] == 1 and m["per_day"][0]["runs"] == 1 and m["guards"] == {"privacy": 1}
     assert m["model_calls"] and "Agent metrics" in client.get("/metrics").text
+
+
+def test_spend_guard_refuses_runs_over_the_daily_budget(settings, monkeypatch):
+    """A live server refuses new runs once today's logged cost reaches DAILY_COST_CAP_USD (no paid call is made)."""
+    import json as _json
+    import time as _time
+
+    from fastapi.testclient import TestClient
+
+    from app.server import create_app
+    from tests.conftest import product_photo
+
+    runs = settings.data_dir / "runs" / "aaaaaaaaaaaa"
+    runs.mkdir(parents=True)
+    (runs / "run.json").write_text(_json.dumps({"created": _time.time(), "status": "ready", "steps": [],
+                                                "totals": {"cost_usd": 6.0, "seconds": 10}}), encoding="utf-8")
+
+    class LiveLike:          # the guard only applies to a live client; the mock never costs anything
+        mock = False
+
+        async def aclose(self):
+            pass
+
+    monkeypatch.setenv("DAILY_COST_CAP_USD", "5")
+    client = TestClient(create_app(settings, client=LiveLike()))
+    r = client.post("/api/runs", files={"photos": ("p.jpg", product_photo(), "image/jpeg")}, data={"note": "áo"})
+    assert r.status_code == 429 and "budget" in r.json()["detail"]
