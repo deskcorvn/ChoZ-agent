@@ -18,6 +18,7 @@ import asyncio
 import base64
 import io
 import json
+import os
 import random
 import re
 import wave
@@ -155,10 +156,23 @@ class MetaClient:
         raise AssertionError("unreachable")
 
     async def chat_json(self, system: str, text: str, images: list[bytes], name: str, schema: dict) -> tuple[dict, dict]:
+        """Spark 1.3; if it is still down after the retry (network / quota / server), the pinned fallback model
+        (LISTING_FALLBACK_TEXT_MODEL, default muse-spark-1.2, "" to disable) answers and the result says so."""
+        try:
+            return await self._chat_json(self.s.text_model, system, text, images, name, schema)
+        except MetaAPIError as exc:
+            fallback = os.environ.get("LISTING_FALLBACK_TEXT_MODEL", "muse-spark-1.2")
+            if exc.kind not in ("network", "quota", "server") or not fallback or fallback == self.s.text_model:
+                raise
+            out, meta = await self._chat_json(fallback, system, text, images, name, schema)
+            return out, {**meta, "fallback_from": self.s.text_model, "fallback_reason": exc.kind}
+
+    async def _chat_json(self, model: str, system: str, text: str, images: list[bytes], name: str,
+                         schema: dict) -> tuple[dict, dict]:
         content = [{"type": "text", "text": text}]
         content += [{"type": "image_url", "image_url": {"url": data_url(img)}} for img in images]
         payload = {
-            "model": self.s.text_model,
+            "model": model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}],
             "response_format": {"type": "json_schema", "json_schema": {"name": name, "schema": schema}},
         }
@@ -169,9 +183,9 @@ class MetaClient:
         if isinstance(message, list):
             message = "".join(part.get("text", "") for part in message if isinstance(part, dict))
         usage = body.get("usage") or {}
-        meta = {"endpoint": "POST /v1/chat/completions", "model": self.s.text_model,
+        meta = {"endpoint": "POST /v1/chat/completions", "model": model,
                 "usage": {**usage, "reasoning_effort": self.s.reasoning_effort or "default"},
-                "cost_usd": prices.text_cost(self.s.text_model, usage)}
+                "cost_usd": prices.text_cost(model, usage)}
         return json.loads(message), meta
 
     async def transcribe(self, wav: bytes) -> tuple[str, dict]:

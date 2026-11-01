@@ -158,6 +158,9 @@ class Agent:
         step.model, step.endpoint = meta.get("model", ""), meta.get("endpoint", "")
         step.cost_usd = round(float(meta.get("cost_usd") or 0.0), 6)
         step.output = {"usage": meta.get("usage")}
+        if meta.get("fallback_from"):      # degraded but answered: the log says which model and why
+            step.output["fallback"] = f"{meta['fallback_from']} unavailable ({meta['fallback_reason']}); answered by {step.model}"
+            step.title += f" — fallback model {step.model}"
         if meta.get("raw"):
             step.output["raw"] = meta["raw"]
         self._save(run)

@@ -197,3 +197,36 @@ def test_error_kinds():
     from app.meta_api import error_kind
 
     assert [error_kind(s) for s in (0, 401, 429, 503, 400)] == ["network", "auth", "quota", "server", "request"]
+
+
+def test_spark_down_falls_back_to_the_pinned_model(settings, monkeypatch):
+    import asyncio
+    import json
+
+    import httpx
+
+    from app.meta_api import MetaClient
+
+    async def no_wait(*_):
+        return None
+    monkeypatch.setattr("app.meta_api.asyncio.sleep", no_wait)
+    seen = []
+
+    def handler(request):
+        model = json.loads(request.content)["model"]
+        seen.append(model)
+        if model == "muse-spark-1.3":
+            return httpx.Response(503, text="overloaded")
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{\"ok\": \"yes\"}"}}],
+                                         "usage": {"prompt_tokens": 10, "completion_tokens": 2}})
+
+    client = MetaClient(settings, transport=httpx.MockTransport(handler))
+    out, meta = asyncio.run(client.chat_json("s", "t", [], "Ok", {"type": "object"}))
+    assert out == {"ok": "yes"} and meta["model"] == "muse-spark-1.2" and meta["fallback_reason"] == "server"
+    assert seen == ["muse-spark-1.3", "muse-spark-1.3", "muse-spark-1.2"]          # retried once, then fell back
+
+    monkeypatch.setenv("LISTING_FALLBACK_TEXT_MODEL", "")
+    import pytest
+
+    with pytest.raises(Exception, match="503"):
+        asyncio.run(MetaClient(settings, transport=httpx.MockTransport(handler)).chat_json("s", "t", [], "Ok", {}))

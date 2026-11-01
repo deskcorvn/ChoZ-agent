@@ -300,8 +300,10 @@ classified (network / auth / quota / server / request) in the log and on `/metri
 the listing is not lost: the agent goes on with the photos and any typed words (a "Voice not transcribed" step in
 the log) and asks its one question for what is missing; a failed spoken answer keeps the question open so the
 seller can say or type it again. If Muse Image fails, a pooled studio room is used; if SAM's mask is implausible,
-the original photo is kept rather than a bad cut-out. A failed Spark call fails the run with its kind, because
-without it there is no listing to check.
+the original photo is kept rather than a bad cut-out. If Spark 1.3 is still down after the retry (network, quota or
+server error), the same call goes to a pinned fallback, Spark 1.2 (`LISTING_FALLBACK_TEXT_MODEL`; checked live on
+Nov 2), and the log step names the model that answered and why. Request and auth errors are not retried on another
+model, because they would fail there too.
 
 ## Observability
 
