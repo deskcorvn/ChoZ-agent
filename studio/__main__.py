@@ -12,6 +12,7 @@ from app import config
 from app.meta_api import make_client
 from studio import SERVICES, run_service
 from studio.demo import run_demo
+from studio.render import ffmpeg_path
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -26,6 +27,11 @@ def main(argv: list[str] | None = None) -> int:
     settings = config.load()
     if args.mock:
         settings = replace(settings, mock=True)
+    if args.service == "demo" and ffmpeg_path() is None and settings.mock:
+        # Measured on a clean clone: without ffmpeg the mock renderer makes no clip and the chain ends with
+        # "no usable take", which reads like a model failure. Say why before spending a minute on the chain.
+        print("ffmpeg not found (PATH or $FFMPEG): the mock renderer needs it to make clips, so this demo will end "
+              "with 'no usable take'. Install ffmpeg or set FFMPEG to its folder.", file=sys.stderr)
     client = make_client(settings)
 
     async def go():

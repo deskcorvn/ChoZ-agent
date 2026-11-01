@@ -90,7 +90,9 @@ services in `studio/`, each a module with `run(client, settings, input) -> outpu
 one log line per model call in `studio/log.jsonl` (role, model, endpoint, ms, cost, decision), a CLI
 (`python -m studio <service> --in file.json [--out file.json] [--mock]`) and a route (`POST /studio/<service>`,
 `GET /studio/log`). `python -m studio demo samples/products/05-chao-hau-hop --mock` runs the whole chain
-on one sample product.
+on one sample product. The Studio demo needs **ffmpeg** (on `PATH`, or `$FFMPEG` set to the file or its folder) to
+make clips and assemble the spot; without it the chain ends with "no usable take" and says so up front. The
+listing app itself does not need ffmpeg.
 
 ```
 script → shotlist → refs → voice → frames → render → qc → edit → judge
