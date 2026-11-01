@@ -93,7 +93,7 @@ product (must be flagged), the seller stating a weight that is not on the pack (
 the printed weight, `label_weight_g` in `expected.json`; no invented contradiction when it does not), and a
 prohibited item as is, blurred and dark (must be blocked). **Live, Nov 1, 2026: 33 of 33** — degraded photos
 15/15, different product 5/5, printed weight 2/2, no false alarm where no weight is printed 3/3, prescription
-antibiotic blocked 3/3, no valid product blocked (0 of 30); $0.82 for the 33 runs, 26 s each with four in
+antibiotic blocked 3/3 (the prohibited item is an AI-generated test photo, labelled as such), no valid product blocked (0 of 30); $0.82 for the 33 runs, 26 s each with four in
 parallel. The weight expectation was first set to "flagged" for all five products; three of the sample photos
 show no printed weight, so it was corrected and those rows re-scored (the model outputs did not change; the
 report in `data/stress/report.json` says so).
