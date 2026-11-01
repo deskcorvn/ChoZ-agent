@@ -130,9 +130,17 @@ clip $0.005 (13-55 s), edit plan $0.009, judge $0.015. Whole chain ≈ **$0.37 a
 anything was rendered; with mock clips the inspector accepted 2 of 5 shots and sent the rest back as "retry" for
 "one action", which is what a Ken Burns still deserves. The assembled spot: 1080×1920, 13.3 s, −14.4 LUFS / −1.4 dBTP
 after the two-pass loudnorm, subtitles on the beat map, end card with the AI label; Spark's judge gave it 4.2/10 and
-named the right gaps (too short for a 25-35 s spot, no real packshot). Not live yet: the SAM packshot cut-out found no
-object on this box photo (the photo is used as-is), and `KlingMCPRenderer` has not sent a job (the budget rule is that
-no video credit is spent until the first frame passes). Numbers come from `studio/log.jsonl`.
+named the right gaps (too short for a 25-35 s spot, no real packshot).
+
+**First live render through the plug-in (Nov 1, 2026, same product).** The two shots the inspector had accepted were
+sent to Kling 3.0 image-to-video through `KlingMCPRenderer`, one take each from the approved first frame: 2 of 2
+finished in about 3 minutes, 6 s each, 96 credits, and Spark's clip QC accepted both. Running it live surfaced two
+bugs the mock could not: the clip URL was never downloaded (`render.download`, Kling keeps it for 24 h), and the
+edit planner renamed the shots (`s00` for `s2`), so the validator rejected the plan (`edit.match_takes` now ties
+shot ids to the take's clip path). The spot is still 13.3 s because only 2 of 5 shots were rendered; the other
+three are waiting for new first frames, by the rule above. SAM 3.1 finds this box with the phrase
+"round food container with lid" ("the product package" and "cup" find nothing), so `demo.packshot` now tries a
+list of phrases. Numbers come from `studio/log.jsonl`.
 
 ## Cost
 
@@ -152,21 +160,18 @@ SAM 3.1's documented output, decoded with Meta's `meta_sam_parser`), and the age
 
 ## Not yet verified against the live API
 
-- The exact JSON body of `/v1/asr/transcribe`: the parser accepts the likely shapes and the raw body is
-  shown in the log of the transcribe step.
-- Whether the file endpoint accepts `languageBias` (documented for the realtime endpoint). If it answers
-  400, the call is retried without it.
 - Recognition quality for Vietnamese prices and sizes, and SAM 3.1 on cluttered phone photos — this is
   what `app.batch` on the sample products measures.
-- Studio (preview): the body of `POST /v1/images/edits` with reference images, and whether Muse Spark
-  accepts a video through `POST /v1/files` + `POST /v1/responses` (`input_file`). Request shapes are
-  tested against a mock transport only.
+
+Verified live since: the body of `/v1/asr/transcribe` (`sessionId`, `transcript`, `audioDurationMs`, `turns`; the raw
+body is kept in the log), `languageBias` on the file endpoint (accepted, no retry), `POST /v1/images/edits` with reference images (Studio first frames), and a video sent to
+Muse Spark through `POST /v1/files` + `POST /v1/responses` (`input_file`) for clip QC and judging (Nov 1, 2026).
 
 ## Layout
 
 ```
 app/          agent (pipeline.py), Meta Model API client (meta_api.py), schemas, prompts, compose, server
-studio/       listing → 30-second video, nine services + Renderer plug-in (preview, mock only so far)
+studio/       listing → 30-second video, nine services + Renderer plug-in (preview; Kling live since Nov 1)
 web/          demo UI: a Zalo Mini App look-alike + agent log panel (plain HTML/CSS/JS)
 samples/      categories and sample products
 tests/        pytest, no network
