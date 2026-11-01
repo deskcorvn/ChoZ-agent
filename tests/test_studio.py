@@ -376,3 +376,25 @@ def test_wer_ignores_punctuation_case_and_asr_stutters():
     from studio.voice import wer
     assert wer("Đổ nước sôi, đậy nắp.", "đổ đổ nước sôi đậy nắp") == 0.0
     assert 0 < wer("cháo hàu ăn liền", "cháu họ ăn liền") <= 0.5
+
+
+def test_render_download_saves_the_clip(tmp_path):
+    """A finished engine job is saved locally: Kling keeps the URL for a day only."""
+    from studio import render
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert str(request.url) == "https://v/g1.mp4"
+        return httpx.Response(200, content=b"\x00\x00\x00\x18ftypmp42clip")
+
+    path = asyncio.run(render.download("https://v/g1.mp4", tmp_path / "s2" / "g1.mp4", httpx.MockTransport(handler)))
+    assert Path(path).read_bytes().endswith(b"clip")
+
+
+def test_edit_plan_shot_ids_follow_the_clip_path():
+    """Spark renamed s2 to s00 in a live plan; the take's clip path decides the shot id."""
+    from studio import edit
+    from studio.models import EditClip, EditPlan, QcVerdict
+
+    take = QcVerdict(shot_id="s2", clip_path="F:/x/render/s2/a.mp4", verdict="accept", usable_start_s=0.0, usable_end_s=6.0)
+    plan = EditPlan.model_construct(clips=[EditClip(shot_id="s00", clip_path="F:/x/render/s2/a.mp4", in_s=0.5, out_s=5.0, at_s=0.0)])
+    assert edit.match_takes(plan, [take]).clips[0].shot_id == "s2"

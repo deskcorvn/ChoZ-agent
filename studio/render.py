@@ -220,6 +220,18 @@ def make_renderer(settings: Settings, out_dir: Path, engine: str | None = None) 
     raise ValueError(f"unknown render engine {engine!r}; mock or kling")
 
 
+async def download(url: str, path: Path, transport: httpx.AsyncBaseTransport | None = None) -> str:
+    """Save a finished clip next to the shot's other files; the engine's URL is only kept for a day."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    async with httpx.AsyncClient(timeout=300.0, follow_redirects=True, transport=transport) as http:
+        async with http.stream("GET", url) as response:
+            response.raise_for_status()
+            with path.open("wb") as out:
+                async for chunk in response.aiter_bytes():
+                    out.write(chunk)
+    return str(path)
+
+
 async def run(client, settings: Settings, inp: RenderInput, renderer: Renderer | None = None) -> RenderJob:
     folder = work_dir(settings, inp.work_dir, "render", inp.shot.id)
     renderer = renderer or make_renderer(settings, folder, inp.engine)
@@ -236,7 +248,7 @@ async def run(client, settings: Settings, inp: RenderInput, renderer: Renderer |
             await asyncio.sleep(POLL_SECONDS)
         clip_path = state.get("path")
         if state["status"] == "done" and not clip_path and state.get("url"):
-            clip_path = str(folder / f"{job_id}.mp4")     # TODO(live): download state["url"] to clip_path
+            clip_path = await download(state["url"], folder / f"{job_id}.mp4")   # engine URLs expire (Kling: 24 h)
         job = RenderJob(shot_id=inp.shot.id, engine=renderer.name, job_id=job_id, status=state["status"],
                         seconds=inp.shot.seconds, clip_path=clip_path, url=state.get("url"),
                         credits=state.get("credits"), error=str(state.get("error") or ""))

@@ -33,6 +33,16 @@ Viết EditPlan (JSON theo schema):
 - Tổng (clip cuối + thẻ kết) ≤ 33 s. Không bịa đường dẫn: chỉ dùng clip_path có trong Takes."""
 
 
+def match_takes(plan: EditPlan, takes) -> EditPlan:
+    """Measured 1 Nov 2026: Spark sometimes renames shots ("s00" for "s2"); the clip path is the ground truth."""
+    by_path = {Path(t.clip_path).resolve(): t.shot_id for t in takes}
+    for clip in plan.clips:
+        known = by_path.get(Path(clip.clip_path).resolve())
+        if known and clip.shot_id != known:
+            clip.shot_id = known
+    return plan
+
+
 def validate_plan(plan: EditPlan, takes_by_shot: dict[str, tuple[float, float]]) -> list[str]:
     """What is wrong with a plan, as a list; empty means it can be rendered."""
     problems = []
@@ -214,13 +224,14 @@ async def run(client, settings: Settings, inp: EditInput) -> EditPlan:
             step.model, step.endpoint = settings.text_model, "POST /v1/chat/completions"
         else:
             prompt = require_prompt("edit", PROMPT)
-            user = (f"Voice:\n{inp.voice.model_dump_json()}\n\nTakes:\n"
+            ids = ", ".join(t.shot_id for t in inp.takes if t.verdict == "accept")
+            user = (f"Voice:\n{inp.voice.model_dump_json()}\n\nTakes (use exactly these shot_id values: {ids}):\n"
                     + "\n".join(t.model_dump_json() for t in inp.takes)
                     + f"\n\nPackshot: {inp.packshot_path}\nOutput: {output_path}")
             raw, meta = await client.chat_json(prompt, user, [], "EditPlan", EDIT_PLAN_SCHEMA)
             step.apply(meta)
             raw.update({"voice_path": inp.voice.audio_path, "output_path": output_path, "rendered": False})
-            plan = EditPlan.model_validate(raw)
+            plan = match_takes(EditPlan.model_validate(raw), inp.takes)
         problems = validate_plan(plan, {t.shot_id: (t.usable_start_s, t.usable_end_s) for t in inp.takes
                                         if t.verdict == "accept"})
         if problems:
