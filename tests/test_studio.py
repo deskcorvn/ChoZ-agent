@@ -1,0 +1,289 @@
+"""The studio chain on the mock client (nine services, one sample product), the log, the two new client calls, the routes."""
+import asyncio
+import base64
+import json
+from dataclasses import replace
+from pathlib import Path
+
+import httpx
+import pytest
+from fastapi.testclient import TestClient
+
+from app.config import ROOT
+from app.meta_api import MetaClient, MockMetaClient
+from app.server import create_app
+from studio import SERVICES, PromptMissing, log, script
+from studio.demo import run_demo
+from studio.models import (
+    EditClip,
+    EditPlan,
+    FramePick,
+    JudgeReport,
+    QcVerdict,
+    Refs,
+    RenderJob,
+    Script,
+    ScriptInput,
+    ShotList,
+    VoiceCheck,
+)
+from studio.render import KlingMCPRenderer, MockRenderer, ffmpeg_path
+from tests.conftest import product_photo
+
+PRODUCT = ROOT / "samples" / "products" / "05-chao-hau-hop"
+
+
+@pytest.fixture(autouse=True)
+def studio_log(tmp_path, monkeypatch):
+    path = tmp_path / "log.jsonl"
+    monkeypatch.setenv("STUDIO_LOG", str(path))
+    return path
+
+
+class FakeRenderer:
+    """A render plug-in for tests without ffmpeg: the clip is the frame, renamed."""
+
+    name = "mock"
+
+    def __init__(self, out_dir: Path):
+        self.out_dir, self.jobs = out_dir, {}
+
+    async def submit(self, frame_png, prompt, seconds):
+        job_id = f"job{len(self.jobs) + 1}"
+        clip = self.out_dir / f"{job_id}.mp4"
+        clip.write_bytes(frame_png[:64])
+        self.jobs[job_id] = {"status": "done", "path": str(clip), "credits": 0}
+        return job_id
+
+    async def poll(self, job_id):
+        return self.jobs[job_id]
+
+
+def test_the_mock_chain_runs_all_nine_services_on_a_sample_product(settings, studio_log, tmp_path):
+    out = asyncio.run(run_demo(MockMetaClient(settings), settings, PRODUCT, renderer=FakeRenderer(tmp_path)))
+    assert out["status"] == "done", out
+    Script.model_validate(out["script"])
+    shots = ShotList.model_validate(out["shotlist"])
+    refs = Refs.model_validate(out["refs"])
+    VoiceCheck.model_validate(out["voice"])
+    assert all(QcVerdict.model_validate(t).verdict == "accept" for t in out["takes"])
+    plan = EditPlan.model_validate(out["edit"])
+    JudgeReport.model_validate(out["judge"])
+    assert len(out["takes"]) == len(shots.shots) and all(r == 1 for r in out["rounds"].values())
+    assert plan.seconds <= 35 and plan.end_card
+    assert [r.role for r in refs.images].count("character") == 3 and refs.for_role("product")[0].source == "photo"
+    assert out["script"]["product"].startswith("Cháo hàu") and any("22.000" in b for b in out["script"]["beats"])
+    folder = Path(out["work_dir"])
+    assert (folder / "script.json").is_file() and (folder / "voice" / "voice.wav").is_file()
+
+    lines = [json.loads(line) for line in studio_log.read_text(encoding="utf-8").splitlines()]
+    assert {line["key"] for line in lines} == set(SERVICES)
+    for line in lines:
+        assert line["status"] == "done" and line["mock"] is True and line["cost_usd"] == 0.0, line
+        assert line["role"] and line["model"] and line["endpoint"] and line["decision"] and line["ms"] >= 0
+    assert log.tail(3) == lines[-3:]
+
+
+def test_every_service_exposes_input_output_and_run():
+    from studio import service
+    for name in SERVICES:
+        module = service(name)
+        assert hasattr(module, "INPUT") and hasattr(module, "OUTPUT") and callable(module.run), name
+
+
+def test_a_live_client_without_a_prompt_is_refused_before_any_call(settings):
+    live = type("Live", (), {"mock": False})()
+    with pytest.raises(PromptMissing, match="TODO\\(prompt\\)"):
+        asyncio.run(script.run(live, settings, ScriptInput(listing={"title": "x"})))
+    lines = log.tail()
+    assert lines[-1]["status"] == "failed" and lines[-1]["mock"] is False
+
+
+def test_a_long_beat_fails_validation():
+    with pytest.raises(ValueError, match="longer than 12 words"):
+        Script(product="x", beats=["một " * 13] + ["a"] * 3, cta="x")
+
+
+def test_qc_window_must_end_after_it_starts():
+    with pytest.raises(ValueError, match="before it starts"):
+        QcVerdict(shot_id="s01", clip_path="c.mp4", usable_start_s=3, usable_end_s=1, verdict="accept")
+
+
+def test_edit_plan_validator_rejects_cuts_outside_the_usable_window():
+    from studio.edit import validate_plan
+    plan = EditPlan(clips=[EditClip(shot_id="s01", clip_path="a.mp4", in_s=0, out_s=4, at_s=0),
+                           EditClip(shot_id="s02", clip_path="b.mp4", in_s=1, out_s=2, at_s=3)],
+                    voice_path="v.wav", output_path="o.mp4")
+    problems = validate_plan(plan, {"s01": (1.0, 5.0), "s02": (0.0, 5.0)})
+    assert any("outside usable" in p for p in problems) and any("overlap" in p for p in problems)
+    assert validate_plan(plan, {"s01": (0.0, 5.0), "s02": (0.0, 5.0), "x": (0, 1)})[0].endswith("overlap on the timeline")
+
+
+def test_the_mock_renderer_reports_a_missing_ffmpeg_instead_of_pretending(tmp_path, monkeypatch):
+    monkeypatch.setattr("studio.render.ffmpeg_path", lambda: None)
+    renderer = MockRenderer(tmp_path)
+    job_id = asyncio.run(renderer.submit(product_photo(), "steam rises", 5.0))
+    state = asyncio.run(renderer.poll(job_id))
+    assert state["status"] == "failed" and "ffmpeg" in state["error"]
+
+
+@pytest.mark.skipif(ffmpeg_path() is None, reason="needs ffmpeg on PATH or $FFMPEG")
+def test_the_mock_renderer_makes_a_five_second_clip_with_ffmpeg(tmp_path):
+    renderer = MockRenderer(tmp_path)
+    job_id = asyncio.run(renderer.submit(product_photo(), "steam rises", 5.0))
+    state = asyncio.run(renderer.poll(job_id))
+    assert state["status"] == "done", state
+    assert Path(state["path"]).stat().st_size > 1000
+
+
+def test_the_kling_renderer_takes_its_token_from_the_environment_only(monkeypatch):
+    monkeypatch.delenv("KLING_MCP_TOKEN", raising=False)
+    with pytest.raises(RuntimeError, match="KLING_MCP_TOKEN"):
+        KlingMCPRenderer()
+
+
+def test_the_kling_renderer_speaks_json_rpc_tool_calls(monkeypatch):
+    calls = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        calls.append((request.headers["authorization"], body["method"], body["params"]["name"], body["params"]["arguments"]))
+        answers = {"file_upload": {"url": "https://files.example/frame.png"},
+                   "image_to_video": {"task_id": "t1"},
+                   "query_tasks": {"task_status": "succeed", "task_result": {"videos": [{"url": "https://v/t1.mp4"}]}}}
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {
+            "content": [{"type": "text", "text": json.dumps(answers[body["params"]["name"]])}]}})
+
+    async def go():
+        renderer = KlingMCPRenderer(token="kling-test-token", transport=httpx.MockTransport(handler))
+        try:
+            job_id = await renderer.submit(b"png", "steam rises", 5)
+            return job_id, await renderer.poll(job_id)
+        finally:
+            await renderer.aclose()
+
+    job_id, state = asyncio.run(go())
+    assert job_id == "t1" and state == {"status": "done", "url": "https://v/t1.mp4", "credits": None, "error": ""}
+    assert [c[2] for c in calls] == ["file_upload", "image_to_video", "query_tasks"]
+    assert all(c[0] == "Bearer kling-test-token" and c[1] == "tools/call" for c in calls)
+    assert calls[1][3]["prompt"] == "steam rises" and calls[1][3]["duration"] == "5"
+    assert calls[1][3]["image"] == "https://files.example/frame.png"
+
+
+# ---- the two new MetaClient calls, request shapes only -----------------------------------------
+
+def client_with(settings, handler):
+    return MetaClient(replace(settings, mock=False), transport=httpx.MockTransport(handler))
+
+
+def test_images_edit_sends_references_as_data_urls(settings):
+    png = b"\x89PNG edited"
+    seen = {}
+
+    def handler(request):
+        seen["path"], seen["body"] = request.url.path, json.loads(request.content)
+        return httpx.Response(200, json={"data": [{"b64_json": base64.b64encode(png).decode()}]})
+
+    async def go():
+        client = client_with(settings, handler)
+        try:
+            return await client.images_edit("same woman, kitchen", [product_photo(), product_photo()])
+        finally:
+            await client.aclose()
+
+    image, meta = asyncio.run(go())
+    body = seen["body"]
+    assert image == png and seen["path"] == "/v1/images/edits"
+    assert body["model"] == "muse-image-1.0" and body["n"] == 1 and body["size"] == "1080x1920"
+    assert body["output_format"] == "png" and body["prompt"] == "same woman, kitchen"
+    assert len(body["images"]) == 2 and body["images"][0]["image_url"].startswith("data:image/jpeg;base64,")
+    assert meta["cost_usd"] == 0.01 and meta["usage"]["references"] == 2
+
+
+def test_responses_file_uploads_asks_with_a_schema_and_deletes(settings, tmp_path):
+    clip = tmp_path / "clip.mp4"
+    clip.write_bytes(b"not really mp4")
+    requests = []
+
+    def handler(request):
+        requests.append((request.method, request.url.path))
+        if request.url.path == "/v1/files":
+            text = request.content.decode("utf-8", "replace")
+            assert 'name="purpose"' in text and "user_data" in text and 'filename="clip.mp4"' in text
+            assert "video/mp4" in text
+            return httpx.Response(200, json={"id": "file_1", "purpose": "user_data"})
+        if request.url.path == "/v1/responses":
+            body = json.loads(request.content)
+            assert body["model"] == "muse-spark-1.3" and body["reasoning"] == {"effort": "minimal"}
+            content = body["input"][0]["content"]
+            assert content[0] == {"type": "input_file", "file_id": "file_1"} and content[1]["text"] == "judge it"
+            assert body["text"]["format"]["type"] == "json_schema" and body["text"]["format"]["name"] == "QcVerdict"
+            return httpx.Response(200, json={
+                "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"verdict": "accept"}'}]}],
+                "usage": {"input_tokens": 4000, "output_tokens": 200}})
+        if request.url.path == "/v1/files/file_1":
+            return httpx.Response(200, json={"deleted": True})
+        raise AssertionError(request.url.path)
+
+    async def go():
+        client = client_with(settings, handler)
+        try:
+            return await client.responses_file(str(clip), "judge it", {"title": "QcVerdict", "type": "object"}, "video/mp4")
+        finally:
+            await client.aclose()
+
+    result, meta = asyncio.run(go())
+    assert result == {"verdict": "accept"}
+    assert requests == [("POST", "/v1/files"), ("POST", "/v1/responses"), ("DELETE", "/v1/files/file_1")]
+    assert meta["cost_usd"] == pytest.approx((4000 * 1.25 + 200 * 4.25) / 1_000_000)
+    assert meta["usage"]["file_bytes"] == 14 and "test-key" not in json.dumps(meta)
+
+
+def test_the_file_is_deleted_even_when_the_question_fails(settings, tmp_path):
+    clip = tmp_path / "clip.mp4"
+    clip.write_bytes(b"x")
+    requests = []
+
+    def handler(request):
+        requests.append((request.method, request.url.path))
+        if request.url.path == "/v1/files":
+            return httpx.Response(200, json={"id": "file_2"})
+        if request.url.path == "/v1/responses":
+            return httpx.Response(400, json={"error": {"message": "unsupported file"}})
+        return httpx.Response(200, json={})
+
+    async def go():
+        client = client_with(settings, handler)
+        try:
+            await client.responses_file(str(clip), "q", {"type": "object"}, "video/mp4")
+        finally:
+            await client.aclose()
+
+    with pytest.raises(Exception, match="/responses"):
+        asyncio.run(go())
+    assert requests[-1] == ("DELETE", "/v1/files/file_2")
+
+
+# ---- routes ------------------------------------------------------------------------------------
+
+def test_studio_routes_run_a_service_and_show_the_log(settings):
+    with TestClient(create_app(settings)) as client:
+        listing = {"title": "Cháo hàu ăn liền", "description": "Đặc sản Hải Phòng. Hộp 120 g.", "price_vnd": 22000}
+        answer = client.post("/studio/script", json={"listing": listing, "brief": "ấm áp"})
+        assert answer.status_code == 200, answer.text
+        assert 4 <= len(answer.json()["beats"]) <= 8 and answer.json()["cta"]
+        assert client.post("/studio/nope", json={}).status_code == 404
+        assert client.post("/studio/script", json={"brief": 1}).status_code == 422
+        pick = client.post("/studio/qc", json={"shot": {"id": "s01", "seconds": 5, "action": "a", "frame_prompt": "f",
+                                                        "motion_prompt": "m"}, "clip_path": "x.mp4"})
+        assert pick.status_code == 200 and QcVerdict.model_validate(pick.json()).verdict == "accept"
+        tail = client.get("/studio/log").json()
+        assert [line["key"] for line in tail] == ["script", "qc"] and all(line["mock"] for line in tail)
+        assert tail[0]["role"] == "writer" and tail[0]["model"] == "muse-spark-1.3"
+
+
+def test_frame_pick_and_render_job_shapes():
+    pick = FramePick(shot_id="s01", candidates=["a.png", "b.png", "c.png"], picked=2)
+    assert pick.path == "c.png"
+    job = RenderJob(shot_id="s01", engine="mock", job_id="j", status="done", seconds=5)
+    assert job.clip_path is None and job.credits is None

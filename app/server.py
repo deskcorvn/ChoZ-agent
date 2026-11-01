@@ -7,12 +7,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 
 from app import config
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
 from app.pipeline import Agent
+from studio import SERVICES, PromptMissing, run_service
+from studio import log as studio_log
 
 MAX_PHOTO_BYTES = 15 * 1024 * 1024
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
@@ -112,6 +115,25 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     @app.get("/api/catalog")
     def list_catalog():
         return catalog.items()
+
+    # ---- studio (preview): one route per service, same client, JSON in and out -------------------
+
+    @app.post("/studio/{service}")
+    async def studio_service(service: str, payload: dict):
+        if service not in SERVICES:
+            raise HTTPException(404, f"unknown studio service; one of {', '.join(SERVICES)}")
+        try:
+            return await run_service(service, client, settings, payload)
+        except ValidationError as exc:
+            raise HTTPException(422, exc.errors()[:3]) from exc
+        except PromptMissing as exc:
+            raise HTTPException(501, str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/studio/log")
+    def studio_log_tail():
+        return studio_log.tail(200)
 
     app.mount("/files/runs", StaticFiles(directory=runs_dir), name="run-files")
     catalog.images.mkdir(parents=True, exist_ok=True)

@@ -83,6 +83,46 @@ Runs every product folder through the agent and writes `data/reports/batch-*.csv
 cost, transcript, fields, verdict, and — if the folder has an `expected.json` — whether price, stock and
 category were right. See `samples/README.md`.
 
+## Studio: from listing to a 30-second product video (preview)
+
+The same listing, one step further: a vertical 30-second spot a seller can post. The studio is nine small
+services in `studio/`, each a module with `run(client, settings, input) -> output` (pydantic in and out),
+one log line per model call in `studio/log.jsonl` (role, model, endpoint, ms, cost, decision), a CLI
+(`python -m studio <service> --in file.json [--out file.json] [--mock]`) and a route (`POST /studio/<service>`,
+`GET /studio/log`). `python -m studio demo samples/products/05-chao-hau-hop --mock` runs the whole chain
+on one sample product.
+
+```
+script → shotlist → refs → voice → frames → render → qc → edit → judge
+                                      └──────── ≤ 2 rounds per shot ────┘   (qc's director note rewrites the frame prompt)
+```
+
+| Service | In → out | Meta model (main path) |
+|---|---|---|
+| `script` | listing + brief → 4–8 voice-over beats (≤ 12 words), supers, CTA, claims with their source | Muse Spark 1.3, json_schema |
+| `shotlist` | script + continuity bible → 5–8 s shots, one action each, locked camera, frame + motion prompt | Muse Spark 1.3, json_schema |
+| `refs` | shot list → character in 3 angles, empty location, plain props (the product is the seller's photo, never repainted) | Muse Image (generations / edits) |
+| `voice` | script → one voice-over take (TTS plug-in) → read back, WER per beat, beat map | Muse Voice Transcribe |
+| `frames` | shot + refs → 3 painted 9:16 first frames → one picked, bad ones rejected before any render credit is spent | Muse Image edits + Muse Spark vision |
+| `render` | first frame + motion prompt → silent 5–8 s clip | — (plug-in, see below) |
+| `qc` | clip + acceptance criteria → per-criterion evidence, beats, usable window, accept / retry / reject | Muse Spark 1.3 with the clip as a file input |
+| `edit` | beat map + accepted takes + real packshot → edit plan (validated in Python) → 1080×1920 mp4, subtitles, AI label, −14 LUFS | Muse Spark 1.3, json_schema |
+| `judge` | finished mp4 → 14 technical checks, 6 criteria, timestamps, score | Muse Spark 1.3 with the file as input |
+
+**The render engine is a plug-in outside Meta.** `studio/render.py` defines a small `Renderer` interface
+(`submit(frame, prompt, seconds) → job_id`, `poll(job_id) → status | url`); `KlingMCPRenderer` targets Kling
+image-to-video over its MCP server (token from `KLING_MCP_TOKEN` only; no job is sent below `KLING_CREDIT_FLOOR`),
+and `MockRenderer` makes a Ken Burns clip from the first frame with ffmpeg (from `PATH` or `$FFMPEG`) so the
+chain runs without credits. An external second-opinion reviewer on frames and clips is optional (`second_opinion`)
+and off by default.
+
+**Status: skeleton.** Every service runs in mock mode with sample data and is covered by `tests/test_studio.py`;
+the prompts are marked `TODO(prompt)` and a live call without one is refused (HTTP 501) rather than billed.
+The two new client calls (`/images/edits`, `/files` + `/responses` with a video) are shaped from the docs and
+not yet exercised live. Measurements (shots accepted after round 1 / round 2, credits per clip, $ and seconds
+per spot, frames rejected before credits) will be read from `studio/log.jsonl` and added here once the chain
+has run on the live API.
+
 ## Cost
 
 List prices (Standard mode, dev.meta.ai, Oct 31, 2026): Muse Spark 1.3 $1.25 / $4.25 per 1M input / output
@@ -107,11 +147,15 @@ SAM 3.1's documented output, decoded with Meta's `meta_sam_parser`), and the age
   400, the call is retried without it.
 - Recognition quality for Vietnamese prices and sizes, and SAM 3.1 on cluttered phone photos — this is
   what `app.batch` on the sample products measures.
+- Studio (preview): the body of `POST /v1/images/edits` with reference images, and whether Muse Spark
+  accepts a video through `POST /v1/files` + `POST /v1/responses` (`input_file`). Request shapes are
+  tested against a mock transport only.
 
 ## Layout
 
 ```
 app/          agent (pipeline.py), Meta Model API client (meta_api.py), schemas, prompts, compose, server
+studio/       listing → 30-second video, nine services + Renderer plug-in (preview, mock only so far)
 web/          demo UI: a Zalo Mini App look-alike + agent log panel (plain HTML/CSS/JS)
 samples/      categories and sample products
 tests/        pytest, no network

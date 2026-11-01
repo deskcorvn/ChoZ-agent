@@ -6,6 +6,8 @@ Request shapes follow dev.meta.ai (read 31/10/2026):
 - SAM 3.1: POST /responses with stream=true; boxes and masks arrive as special-token text, decoded
   with Meta's `meta_sam_parser`.
 - Muse Image: POST /images/generations, `b64_json`.
+- Studio (preview, not yet verified live): POST /images/edits with reference images; POST /files +
+  POST /responses with `input_file` for a video, then DELETE /files/{id}.
 
 Every call returns `(result, meta)`; `meta` is what the agent log shows: endpoint, model, usage, cost.
 The key is only ever sent in the Authorization header and never logged.
@@ -19,6 +21,7 @@ import json
 import re
 import wave
 from dataclasses import dataclass
+from pathlib import Path
 
 import httpx
 import numpy as np
@@ -214,6 +217,57 @@ class MetaClient:
                 "usage": {"images": 1}, "cost_usd": prices.IMAGE_PER_IMAGE}
         return image, meta
 
+    async def images_edit(self, prompt: str, images: list[bytes], size: str = "1080x1920") -> tuple[bytes, dict]:
+        """Muse Image with reference images (studio first frames): POST /images/edits, one PNG back.
+
+        Body: model, n=1, size, output_format png, prompt, images as `{"image_url": data_url}`. Shape read
+        from dev.meta.ai on 1/11/2026; not yet exercised against the live API.
+        """
+        payload = {"model": self.s.image_model, "n": 1, "size": size, "output_format": "png", "prompt": prompt,
+                   "images": [{"image_url": data_url(img)} for img in images]}
+        body = await self._post("/images/edits", json=payload)
+        image = base64.b64decode(body["data"][0]["b64_json"])
+        meta = {"endpoint": "POST /v1/images/edits", "model": self.s.image_model,
+                "usage": {"images": 1, "references": len(images)}, "cost_usd": prices.IMAGE_PER_IMAGE}
+        return image, meta
+
+    async def responses_file(self, path: str, prompt: str, schema: dict, mime: str) -> tuple[dict, dict]:
+        """Muse Spark over a file (studio QC and judge on a video): upload, ask with a JSON schema, delete.
+
+        POST /files (purpose user_data) → POST /responses with `input_file` + `text.format` json_schema →
+        DELETE /files/{id}, even when the question fails. Cost from the response's `usage`; the upload
+        itself is not priced. Not yet exercised against the live API.
+        """
+        name = Path(path).name
+        with open(path, "rb") as handle:
+            uploaded = await self._post("/files", files={"purpose": (None, "user_data"),
+                                                         "file": (name, handle, mime)})
+        file_id = uploaded["id"]
+        try:
+            payload = {
+                "model": self.s.text_model,
+                "input": [{"role": "user", "content": [{"type": "input_file", "file_id": file_id},
+                                                       {"type": "input_text", "text": prompt}]}],
+                "text": {"format": {"type": "json_schema", "name": schema.get("title", "Answer"), "schema": schema}},
+            }
+            if self.s.reasoning_effort:
+                payload["reasoning"] = {"effort": self.s.reasoning_effort}
+            body = await self._post("/responses", json=payload)
+        finally:
+            await self._http.delete(f"/files/{file_id}")       # best effort: a leftover file is not an error
+        text = body.get("output_text")
+        if not text:
+            parts = [c.get("text", "") for item in body.get("output", []) if item.get("type") == "message"
+                     for c in item.get("content", []) if c.get("type") == "output_text"]
+            text = "".join(parts)
+        usage = body.get("usage") or {}
+        if "input_tokens" in usage:                              # Responses API names; price them as Chat's
+            usage = {**usage, "prompt_tokens": usage.get("input_tokens"), "completion_tokens": usage.get("output_tokens")}
+        meta = {"endpoint": "POST /v1/files + /v1/responses + DELETE /v1/files/{id}", "model": self.s.text_model,
+                "usage": {**usage, "file": name, "file_bytes": Path(path).stat().st_size},
+                "cost_usd": prices.text_cost(self.s.text_model, usage)}
+        return json.loads(text), meta
+
 
 # --------------------------------------------------------------------------------------------
 # Mock: same interface, deterministic, no network. Used when MODEL_API_KEY is not set, and in tests.
@@ -308,6 +362,27 @@ class MockMetaClient:
         buffer = io.BytesIO()
         image.filter(ImageFilter.GaussianBlur(2)).save(buffer, "PNG")
         return buffer.getvalue(), self._meta("POST /v1/images/generations", self.s.image_model, {"images": 1})
+
+    async def images_edit(self, prompt: str, images: list[bytes], size: str = "1080x1920") -> tuple[bytes, dict]:
+        """The first reference, scaled to fit, on a plain backdrop; a flat backdrop when there is none."""
+        await asyncio.sleep(0.05)
+        width, height = (int(v) for v in size.split("x"))
+        canvas = Image.new("RGB", (width, height), (230, 232, 236))
+        if images:
+            reference = Image.open(io.BytesIO(images[0])).convert("RGB")
+            reference.thumbnail((width // 2, height // 2))
+            canvas.paste(reference, ((width - reference.width) // 2, (height - reference.height) // 2))
+        buffer = io.BytesIO()
+        canvas.save(buffer, "PNG", optimize=True)
+        return buffer.getvalue(), self._meta("POST /v1/images/edits", self.s.image_model,
+                                             {"images": 1, "references": len(images)})
+
+    async def responses_file(self, path: str, prompt: str, schema: dict, mime: str) -> tuple[dict, dict]:
+        """No answer in the mock: the studio services build their own sample verdicts."""
+        await asyncio.sleep(0.05)
+        size = Path(path).stat().st_size if Path(path).is_file() else 0
+        return {}, self._meta("POST /v1/files + /v1/responses + DELETE /v1/files/{id}", self.s.text_model,
+                              {"file": Path(path).name, "file_bytes": size, "mime": mime})
 
 
 def make_client(settings: Settings) -> MetaClient | MockMetaClient:

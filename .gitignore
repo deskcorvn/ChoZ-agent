@@ -13,3 +13,6 @@ __pycache__/
 .ruff_cache/
 .claude/
 *.log
+
+# Studio step log (preview): regenerated on every run.
+studio/log.jsonl
