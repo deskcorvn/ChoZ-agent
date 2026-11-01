@@ -64,14 +64,23 @@ async def packshot(client, settings: Settings, photo: str, folder: Path, product
                         mock=client.mock) as step:
         raw = compose.normalise_photo(Path(photo).read_bytes())
         try:
-            phrase = listing_phrase or "the product package"           # SAM wants a short English noun phrase
-            segments, meta = await client.segment(raw, phrase)
-            step.apply(meta)
+            # SAM wants a short concrete English noun phrase. Measured 1 Nov 2026 on the cháo hàu box:
+            # "the product package" and "cup" find nothing; "instant porridge cup" and
+            # "round food container with lid" find the box. Try the listing's own phrase first.
+            phrases = [p for p in (listing_phrase, "the product package", "round food container with lid",
+                                   "food package") if p]
+            segments, used = [], ""
+            for phrase in phrases:
+                segments, meta = await client.segment(raw, phrase)
+                step.apply(meta)
+                if segments:
+                    used = phrase
+                    break
             if not segments:
                 raise ValueError("SAM found no object")
             best = max(segments, key=lambda s: s.area)
             compose.cutout(Image.open(io.BytesIO(raw)), best.mask).save(out)
-            step.decision = f"cut-out {best.area} px"
+            step.decision = f"cut-out {best.area} px ('{used}')"
         except Exception as exc:  # the demo must still finish: the photo stands in for the cut-out
             Image.open(io.BytesIO(raw)).convert("RGBA").save(out)
             step.decision = f"photo used as-is ({type(exc).__name__})"

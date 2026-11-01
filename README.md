@@ -109,6 +109,11 @@ script → shotlist → refs → voice → frames → render → qc → edit →
 | `edit` | beat map + accepted takes + real packshot → edit plan (validated in Python) → 1080×1920 mp4, subtitles, AI label, −14 LUFS | Muse Spark 1.3, json_schema |
 | `judge` | finished mp4 → 14 technical checks, 6 criteria, timestamps, score | Muse Spark 1.3 with the file as input |
 
+**AI disclosure and provenance.** Every Studio spot ends on a card that says "Video có sử dụng AI" (video uses AI), and the
+first frames, studio backgrounds and reference images are Muse Image output; the product on screen is always the
+seller's real pack, cut out by SAM 3.1, never redrawn. Re-encoding through a video engine and ffmpeg drops image
+metadata, so the label on the end card and this note are how provenance is kept (Meta Model API Acceptable Use Policy).
+
 **The render engine is a plug-in outside Meta.** `studio/render.py` defines a small `Renderer` interface
 (`submit(frame, prompt, seconds) → job_id`, `poll(job_id) → status | url`); `KlingMCPRenderer` targets Kling
 image-to-video over its MCP server (token from `KLING_MCP_TOKEN` only; no job is sent below `KLING_CREDIT_FLOOR`),
