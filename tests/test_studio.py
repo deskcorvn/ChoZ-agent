@@ -77,7 +77,7 @@ def test_the_mock_chain_runs_all_nine_services_on_a_sample_product(settings, stu
     assert (folder / "script.json").is_file() and (folder / "voice" / "voice.wav").is_file()
 
     lines = [json.loads(line) for line in studio_log.read_text(encoding="utf-8").splitlines()]
-    assert {line["key"] for line in lines} >= set(SERVICES)          # plus "packshot" (the SAM cut-out)
+    assert {line["key"] for line in lines} >= set(SERVICES) - {"banner"}   # banner is not part of the spot chain
     for line in lines:
         assert line["status"] == "done" and line["mock"] is True and line["cost_usd"] == 0.0, line
         assert line["role"] and line["model"] and line["endpoint"] and line["decision"] and line["ms"] >= 0
@@ -398,3 +398,35 @@ def test_edit_plan_shot_ids_follow_the_clip_path():
     take = QcVerdict(shot_id="s2", clip_path="F:/x/render/s2/a.mp4", verdict="accept", usable_start_s=0.0, usable_end_s=6.0)
     plan = EditPlan.model_construct(clips=[EditClip(shot_id="s00", clip_path="F:/x/render/s2/a.mp4", in_s=0.5, out_s=5.0, at_s=0.0)])
     assert edit.match_takes(plan, [take]).clips[0].shot_id == "s2"
+
+
+def test_banner_mock_renders_gif_with_listing_price(settings, tmp_path):
+    """The banner service on the mock client: a GIF of the real cut-out, price written from the listing."""
+    from PIL import Image as PILImage
+
+    from studio import banner
+
+    cut = PILImage.new("RGBA", (300, 400), (0, 0, 0, 0))
+    for x in range(60, 240):
+        for y in range(40, 380):
+            cut.putpixel((x, y), (200, 60, 40, 255))
+    cut.save(tmp_path / "cut.png")
+    client = MockMetaClient(settings)
+    inp = banner.BannerInput(listing={"title": "Bánh đa cua Khánh Thọ", "price_vnd": 22000, "category": "Thực phẩm"},
+                             packshot_path=str(tmp_path / "cut.png"), work_dir=str(tmp_path / "out"), size=360,
+                             seconds=2.0, fps=8)
+    out = asyncio.run(banner.run(client, settings, inp))
+    assert out.price_text == "22.000đ" and out.frames == 16
+    gif = PILImage.open(out.gif_path)
+    assert gif.n_frames == 16 and gif.size == (360, 360)
+
+
+def test_banner_plan_rejects_model_written_prices_and_superlatives():
+    from studio import banner
+
+    plan = banner.BannerPlan(headline="Ngon nhất Hải Phòng", subline="chỉ 22 nghìn", cta="Đặt ngay", accent="#aa2200",
+                             background_prompt="empty table, no text",
+                             beats=[banner.Beat(effect="product_rise", start_s=0, end_s=1),
+                                    banner.Beat(effect="cta_pulse", start_s=1, end_s=9)])
+    problems = banner.validate(plan, 4.0)
+    assert any("nhất" in p for p in problems) and any("price" in p for p in problems) and any("timing" in p for p in problems)

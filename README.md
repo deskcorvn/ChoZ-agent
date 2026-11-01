@@ -83,6 +83,29 @@ Runs every product folder through the agent and writes `data/reports/batch-*.csv
 cost, transcript, fields, verdict, and — if the folder has an `expected.json` — whether price, stock and
 category were right. See `samples/README.md`.
 
+```bash
+python -m app.stress samples/products --prohibited <folder with photo-1.* and note.txt>
+```
+
+The stress test fixes its expectations before running: every product with a blurred, a dark and a tilted
+photo (must still be listed with the right price, stock and category), the seller describing a different
+product (must be flagged), the seller stating a weight that is not on the pack (flagged when the photo shows
+the printed weight, `label_weight_g` in `expected.json`; no invented contradiction when it does not), and a
+prohibited item as is, blurred and dark (must be blocked). **Live, Nov 1, 2026: 33 of 33** — degraded photos
+15/15, different product 5/5, printed weight 2/2, no false alarm where no weight is printed 3/3, prescription
+antibiotic blocked 3/3, no valid product blocked (0 of 30); $0.82 for the 33 runs, 26 s each with four in
+parallel. The weight expectation was first set to "flagged" for all five products; three of the sample photos
+show no printed weight, so it was corrected and those rows re-scored (the model outputs did not change; the
+report in `data/stress/report.json` says so).
+
+## Shop banner (Meta only)
+
+`python -m studio banner --in banner.json` (listing, the SAM cut-out, the seller's photos): Muse Spark plans an
+animated square banner as data (headline, subline, call to action, accent colour from the pack, a timeline of
+effects from a fixed set), Muse Image paints an empty scene, and code animates it into `banner.gif` (540 px)
+and `banner.mp4`. The product is the seller's own pixels with a contact shadow; the price is written from the
+listing, never by the model; superlatives and model-written prices are rejected. About $0.012 and 25 s.
+
 ## Studio: from listing to a 30-second product video (preview)
 
 The same listing, one step further: a vertical 30-second spot a seller can post. The studio is nine small

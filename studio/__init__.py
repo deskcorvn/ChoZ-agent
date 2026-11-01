@@ -5,7 +5,7 @@ one `studio.log.Step` per model call. Chain: script → shotlist → refs → vo
 edit → judge. Meta models do the writing, painting, picking, checking and judging; the video engine
 (Kling over MCP) and the second-opinion reviewer are plug-ins behind small interfaces.
 
-Skeleton only: every service runs on the mock client with sample data; the prompts are `TODO(prompt)`.
+A tenth service, `banner`, makes an animated shop banner from the same listing with Meta models only.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from pathlib import Path
 
 from app.config import Settings
 
-SERVICES = ("script", "shotlist", "refs", "voice", "frames", "render", "qc", "edit", "judge")
+SERVICES = ("script", "shotlist", "refs", "voice", "frames", "render", "qc", "edit", "judge", "banner")
 
 
 class PromptMissing(NotImplementedError):
