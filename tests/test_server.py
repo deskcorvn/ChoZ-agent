@@ -58,3 +58,22 @@ def test_old_run_folders_are_purged_and_recent_ones_kept(tmp_path):
     os.utime(old, (past, past))
     assert purge_old_runs(tmp_path, 7) == 1 and not old.exists() and new.exists()
     assert purge_old_runs(tmp_path, 0) == 0
+
+
+def test_metrics_aggregate_the_run_logs(settings):
+    import asyncio
+
+    from fastapi.testclient import TestClient
+
+    from app.meta_api import MockMetaClient
+    from app.pipeline import Agent
+    from app.server import create_app
+    from tests.conftest import product_photo
+
+    agent = Agent(MockMetaClient(settings), settings.data_dir / "runs")
+    run = agent.create([product_photo()], None, "Áo thun liên hệ 0912 345 678, giá 120 nghìn, còn 5 cái")
+    asyncio.run(agent.process(run))
+    client = TestClient(create_app(settings))
+    m = client.get("/api/metrics").json()
+    assert m["runs"] == 1 and m["per_day"][0]["runs"] == 1 and m["guards"] == {"privacy": 1}
+    assert m["model_calls"] and "Agent metrics" in client.get("/metrics").text

@@ -9,11 +9,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from app import config
+from app import config, metrics
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
@@ -162,5 +162,13 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     @app.get("/")
     def index():
         return FileResponse(ROOT / "web" / "index.html", headers={"Cache-Control": "no-cache"})
+
+    @app.get("/api/metrics")
+    def api_metrics(days: int = 7):
+        return metrics.collect(runs_dir, days)
+
+    @app.get("/metrics")
+    def metrics_page():
+        return HTMLResponse(metrics.PAGE)
 
     return app

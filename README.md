@@ -219,6 +219,14 @@ by live runs; `LISTING_ROOM_POOL=0` turns it off) is reused; "restyle" still pai
 "from cache" with the model that painted it. Measured on the five sample products, Nov 1, 2026: **12.9 s and $0.0155 per
 listing** (was 17.8 s and $0.025), price 5/5, stock 4/4, category 5/5, every listing with its studio photo.
 
+## Observability
+
+Every run keeps a step log (model, endpoint, ms, cost from the API's usage, decision, raw output), shown live in the
+log panel. `GET /metrics` (and `/api/metrics`) folds the run logs into one view: runs per day, p50/p95 agent time,
+cost per run, status and verdict mix, model calls by model, guards fired, rules cited, failures by kind
+(network / auth / quota / server / request). On this machine on Nov 1: 126 runs over two days, 24 inputs with
+instructions ignored, 12 blocks.
+
 ## Privacy
 
 Where each piece of a seller's data goes and how long it is kept: [PRIVACY.md](PRIVACY.md). In short: the voice is deleted
