@@ -13,10 +13,16 @@ from studio.models import FRAME_PICK_SCHEMA, FRAME_SIZE, FramePick, FramesInput
 
 INPUT, OUTPUT, ROLE = FramesInput, FramePick, "cinematographer"
 
-# TODO(prompt): the picker's system prompt. Reject before rank: extra hands or fingers, text or logos,
-# a product that differs from the reference photo, a second person. Then rank by light, framing and
-# the action the shot needs. Answer in the FramePick schema with the candidate index.
-PICK_PROMPT = ""
+PICK_PROMPT = """Bạn là kiểm định viên tiền kỳ. Nhận mô tả cảnh (Shot) và N ảnh khung đầu ứng viên theo thứ tự.
+Loại trước, xếp hạng sau. LOẠI ngay (ghi vào rejected với lý do nhìn thấy) khi: số bàn tay khác yêu cầu
+(đếm từng bàn tay; cảnh chỉ tay phải đúng hai tay), ngón tay thừa/thiếu/biến dạng, có chữ/logo/nhãn trên
+đồ vật hoặc nền, có bao bì sản phẩm do AI vẽ, có người thứ hai, mặt/tóc/trang phục khác ảnh nhân vật tham
+chiếu, đồ vật nhân đôi (hai ấm), hành động đã xảy ra xong (nước đã đầy khi cảnh là rót).
+Xếp hạng phần còn lại theo: đúng bố cục và tư thế bắt đầu của frame_prompt, ánh sáng đúng light, bối cảnh
+Việt Nam, góc trống dành cho ghép bao bì nếu prompt yêu cầu, độ nét.
+Trả JSON theo schema FramePick: picked = chỉ số 0-based của ứng viên tốt nhất CÒN LẠI; nếu tất cả bị loại,
+picked = 0 và ghi rõ trong reasons rằng không bản nào dùng được, cùng câu cần đổi trong prompt.
+reasons: 2-4 dòng ngắn, mỗi dòng một bằng chứng cụ thể (vị trí trong khung). Chỉ nhận xét điều nhìn thấy."""
 
 
 async def second_opinion(candidates: list[Path], shot_prompt: str) -> str | None:

@@ -77,7 +77,7 @@ def test_the_mock_chain_runs_all_nine_services_on_a_sample_product(settings, stu
     assert (folder / "script.json").is_file() and (folder / "voice" / "voice.wav").is_file()
 
     lines = [json.loads(line) for line in studio_log.read_text(encoding="utf-8").splitlines()]
-    assert {line["key"] for line in lines} == set(SERVICES)
+    assert {line["key"] for line in lines} >= set(SERVICES)          # plus "packshot" (the SAM cut-out)
     for line in lines:
         assert line["status"] == "done" and line["mock"] is True and line["cost_usd"] == 0.0, line
         assert line["role"] and line["model"] and line["endpoint"] and line["decision"] and line["ms"] >= 0
@@ -91,7 +91,8 @@ def test_every_service_exposes_input_output_and_run():
         assert hasattr(module, "INPUT") and hasattr(module, "OUTPUT") and callable(module.run), name
 
 
-def test_a_live_client_without_a_prompt_is_refused_before_any_call(settings):
+def test_a_live_client_without_a_prompt_is_refused_before_any_call(settings, monkeypatch):
+    monkeypatch.setattr(script, "PROMPT", "")                           # as the skeleton shipped
     live = type("Live", (), {"mock": False})()
     with pytest.raises(PromptMissing, match="TODO\\(prompt\\)"):
         asyncio.run(script.run(live, settings, ScriptInput(listing={"title": "x"})))
@@ -287,3 +288,59 @@ def test_frame_pick_and_render_job_shapes():
     assert pick.path == "c.png"
     job = RenderJob(shot_id="s01", engine="mock", job_id="j", status="done", seconds=5)
     assert job.clip_path is None and job.credits is None
+
+
+def test_subtitles_are_written_as_ass_events_inside_the_safe_zone(tmp_path):
+    from studio.edit import ass_file
+    from studio.models import Subtitle
+    plan = EditPlan(clips=[EditClip(shot_id="s01", clip_path="x.mp4", in_s=0, out_s=2, at_s=0)],
+                    subtitles=[Subtitle(text="Đặt ngay trên Chợ Dét", start_s=0.5, end_s=2.0)],
+                    voice_path="v.wav", output_path=str(tmp_path / "o.mp4"))
+    text = ass_file(plan, tmp_path / "s.ass").read_text(encoding="utf-8")
+    assert "Dialogue: 0,0:00:00.50,0:00:02.00,Sub" in text
+    assert "Chợ Z" in text and "Chợ Dét" not in text          # the TTS spelling never reaches the screen
+    assert "MarginV" in text and ",330,1" in text                  # bottom margin keeps it clear of the app UI
+
+
+def test_the_end_card_carries_the_real_packshot_and_the_ai_label(tmp_path):
+    from PIL import Image
+
+    from studio.edit import end_card
+    pack = tmp_path / "pack.png"
+    Image.new("RGBA", (200, 300), (200, 30, 30, 255)).save(pack)
+    plan = EditPlan(clips=[EditClip(shot_id="s01", clip_path="x.mp4", in_s=0, out_s=2, at_s=0)],
+                    voice_path="v.wav", packshot_path=str(pack), output_path=str(tmp_path / "o.mp4"))
+    card = Image.open(end_card(plan, "Cháo hàu ăn liền", "22.000đ / hộp", "Đặt ngay trên Chợ Z", tmp_path / "card.png"))
+    assert card.size == (1080, 1920)
+    assert card.getpixel((540, int(1920 * 0.17) + 100)) == (200, 30, 30)       # the packshot's own pixels, centred
+    assert plan.end_card == "Hình ảnh tạo bằng AI"
+
+
+def test_the_mock_voice_has_one_tone_per_beat_and_a_beat_map(settings, tmp_path, monkeypatch):
+    from studio import voice
+    from studio.models import VoiceInput
+    monkeypatch.setenv("FFMPEG", "")
+    script_ = Script(product="x", beats=["Sáng nào cũng vội", "Có bát cháo nóng", "Hai mươi hai nghìn", "Đặt ngay trên Chợ Dét"],
+                     cta="Đặt ngay trên Chợ Z")
+    check = asyncio.run(voice.run(MockMetaClient(settings), settings, VoiceInput(script=script_, work_dir=str(tmp_path))))
+    assert check.wer == 0.0 and len(check.lines) == 4 and check.seconds > 3
+    assert [line.beat_index for line in check.lines] == [0, 1, 2, 3]
+    assert all(b.end_s > b.start_s for b in check.lines) and check.lines[-1].end_s <= check.seconds + 0.01
+
+
+def test_the_mock_voice_beat_map_comes_from_the_pauses_when_ffmpeg_is_there(settings, tmp_path):
+    from studio import voice
+    from studio.models import VoiceInput
+    if not ffmpeg_path():
+        pytest.skip("ffmpeg not on PATH or $FFMPEG")
+    script_ = Script(product="x", beats=["Sáng nào cũng vội", "Có bát cháo nóng mà không phải nấu",
+                                         "Hai mươi hai nghìn một hộp", "Đặt ngay trên Chợ Dét"], cta="Đặt ngay trên Chợ Z")
+    check = asyncio.run(voice.run(MockMetaClient(settings), settings, VoiceInput(script=script_, work_dir=str(tmp_path))))
+    gaps = [b.start_s - a.end_s for a, b in zip(check.lines, check.lines[1:])]
+    assert all(0.3 <= g <= 0.6 for g in gaps), gaps                 # the 0.45 s pauses were found, not guessed
+
+
+def test_wer_ignores_punctuation_case_and_asr_stutters():
+    from studio.voice import wer
+    assert wer("Đổ nước sôi, đậy nắp.", "đổ đổ nước sôi đậy nắp") == 0.0
+    assert 0 < wer("cháo hàu ăn liền", "cháu họ ăn liền") <= 0.5

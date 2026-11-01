@@ -13,10 +13,22 @@ from studio.models import QC_SCHEMA, Beat, CheckItem, QcInput, QcVerdict
 
 INPUT, OUTPUT, ROLE = QcInput, QcVerdict, "inspector"
 
-# TODO(prompt): the inspector's prompt. For each acceptance criterion: ok or not, with the second it
-# was seen. Beats: the seconds where something happens (hand reaches, steam, lid opens). Usable window:
-# the longest stretch with no glitch. Verdict accept / retry (with a director note) / reject.
-PROMPT = ""
+PROMPT = """Bạn là kiểm định viên hậu kỳ cho quảng cáo làm bằng AI. Xem clip đính kèm (5-8 giây, câm) và so với
+mô tả cảnh (Shot: hành động duy nhất, máy, ánh sáng, motion_prompt) cùng danh sách tiêu chí nhận (Criteria).
+Trả JSON theo schema QcVerdict:
+- checks: mỗi tiêu chí một mục, ok=true CHỈ khi nhìn thấy rõ; evidence ghi giây (ví dụ "2.4s: nước bắt đầu
+  rót") hoặc "không thấy". Luôn kiểm thêm: cùng một góc máy suốt clip (không cắt, không nhảy khung), số bàn
+  tay đúng, không chữ/logo/bao bì AI, mặt và tóc nhân vật không đổi giữa đầu và cuối, đồ vật không nhân đôi
+  hay biến dạng, không người thứ hai.
+- beats: mốc giây của từng hành động nhìn thấy (bắt đầu rót, nhấc ấm, cười, đặt bát...) để dựng cắt theo lời.
+- usable_start_s / usable_end_s: khoảng dài nhất liên tục cùng một góc máy và không lỗi; clip hỏng hoàn toàn
+  thì cả hai = 0.
+- verdict: "accept" khi mọi tiêu chí ok và khoảng dùng được ≥ 60% thời lượng; "retry" khi hành động đúng
+  nhưng có lỗi sửa được bằng prompt (hơi nước, biểu cảm nhẹ, chữ nhỏ, đổi góc máy ở cuối); "reject" khi mặt
+  đổi, tay sai, hoặc hành động không xảy ra.
+- director_note (tiếng Anh, 1-3 câu): đúng câu cần thêm/bớt trong frame_prompt hoặc motion_prompt cho vòng sau
+  (ví dụ "Add: exactly two hands in frame. Remove the second action."); rỗng khi accept.
+Không đoán điều không nhìn thấy; không chấm theo ý thích."""
 
 
 async def second_opinion(clip_path: Path, accept: list[str]) -> str | None:

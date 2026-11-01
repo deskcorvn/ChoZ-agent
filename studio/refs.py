@@ -11,12 +11,21 @@ INPUT, OUTPUT, ROLE = RefsInput, Refs, "art"
 
 ANGLES = ("front", "three-quarter", "profile")
 
-# TODO(prompt): one template per role. Character: neutral background, same clothes in every angle,
-# no text. Location: empty, no people. Prop: alone on a plain surface. The product is never painted:
-# it comes from the seller's photo.
-CHARACTER_PROMPT = ""
-LOCATION_PROMPT = ""
-PROP_PROMPT = ""
+CHARACTER_PROMPT = (
+    "Reference sheet of one person for a video character: {character}. {angle} view, head and shoulders, "
+    "looking straight ahead with a neutral calm face, hair worn down and tucked behind the left ear, the same "
+    "clothes and the same small earrings in every view, plain light-grey studio background, flat even light, "
+    "no shadows on the background. Vietnamese person with Vietnamese features. Photorealistic, full-frame "
+    "camera, natural colour, sharp. No text, no logos, no watermark, no props, no second person.")
+LOCATION_PROMPT = (
+    "Empty location reference, nobody in frame: {location}. Vertical 9:16, eye level, the whole room layout "
+    "visible, furniture and objects in their places, Vietnamese home as it really is in the 2020s (not Japanese, "
+    "Korean, Chinese or Thai interiors). Every object plain and unmarked. Soft natural light. Photorealistic, "
+    "full-frame camera, natural colour. No people, no text, no logos, no packaging, no watermark.")
+PROP_PROMPT = (
+    "Product-photo reference of one prop: {prop}, alone on a plain wooden table, plain surface, no labels, "
+    "no printing, no text, no logos, soft window light, 45-degree angle, photorealistic, natural colour, "
+    "no people, no hands, no watermark.")
 
 
 async def _paint(client, step: log.Step, prompt: str, path: Path, mock: bool) -> None:

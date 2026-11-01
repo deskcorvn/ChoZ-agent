@@ -14,9 +14,16 @@ QC_ITEMS = ("9:16 frame", "no black frames", "no frozen frames", "no extra hands
             "loudness about -14 LUFS", "real packshot shown", "AI label present", "length 25-35 s", "no abrupt cut")
 CRITERIA = ("hook in first 3 s", "one clear message", "claims supported", "continuity", "pacing", "call to action")
 
-# TODO(prompt): the judge's prompt: the 14 items as pass/fail with the second seen, the 6 criteria 0-10
-# with timestamps, a one-line summary. The script, when given, is the reference for the claims.
-PROMPT = ""
+PROMPT = f"""Bạn là giám khảo quảng cáo dọc (TikTok, Reels, Zalo Video) ở Việt Nam và kiểm định viên hậu kỳ.
+Xem video đính kèm (hình và tiếng; lời dẫn tiếng Việt) rồi trả JSON theo schema JudgeReport:
+- qc_items: đúng 14 mục sau, theo thứ tự, name giữ nguyên chữ: {list(QC_ITEMS)}. ok=true chỉ khi nhìn/nghe
+  thấy; evidence ghi giây (mm:ss) và điều thấy; không thấy bằng chứng thì ok=false, evidence "không thấy".
+- criteria: đúng 6 tiêu chí, name giữ nguyên: {list(CRITERIA)}; score 0-10 (5 = quảng cáo trung bình, 9-10 chỉ
+  cho bản xuất sắc); at_s = các giây làm căn cứ; note một câu. "claims supported": đối chiếu lời dẫn với
+  Script nếu có (claims và source); claim không có nguồn hoặc "nhất/đầu tiên/duy nhất" là lỗi nặng.
+- total: trung bình 6 tiêu chí, trừ 1 điểm cho mỗi mục qc_items sai (không dưới 0).
+- summary: một câu tiếng Việt cho người dựng: điểm mạnh nhất và việc cần sửa trước, kèm mốc giây.
+Chỉ chấm điều nhìn/nghe thấy trong video."""
 
 
 def _sample(inp: JudgeInput) -> JudgeReport:
