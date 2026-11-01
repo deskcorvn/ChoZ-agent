@@ -271,6 +271,14 @@ cost per run, status and verdict mix, model calls by model, guards fired, rules 
 (network / auth / quota / server / request). On this machine on Nov 1: 126 runs over two days, 24 inputs with
 instructions ignored, 12 blocks.
 
+**Audit log.** Every decision is appended to `data/audit/audit.jsonl`: the check's verdict, rules and guards; each
+publish with the rules the seller acknowledged and who confirmed it (the app, or the person at an MCP client); each
+refused publish and its reason; each seller delete. Lines are hash-chained (each holds the previous line's SHA-256), so
+`python -m app.audit verify` finds any line edited, removed or reordered. It sits outside the run folders, so the
+7-day purge and a seller's delete keep the record that something happened, and it holds ids and decisions only, never
+the seller's words, photos or numbers. It is tamper-evident, not tamper-proof: whoever controls the disk can rewrite
+the whole chain, so ship it off the machine if that matters.
+
 ## Privacy
 
 Where each piece of a seller's data goes and how long it is kept: [PRIVACY.md](PRIVACY.md). In short: the voice is deleted

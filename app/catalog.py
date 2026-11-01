@@ -6,7 +6,7 @@ import shutil
 import time
 from pathlib import Path
 
-from app import guard
+from app import audit, guard
 from app.pipeline import Run
 from app.schema import Listing
 
@@ -36,6 +36,18 @@ class Catalog:
         return True
 
     def publish(self, run: Run, run_dir: Path, edits: dict) -> dict:
+        try:
+            item = self._publish(run, run_dir, edits)
+        except ValueError as exc:
+            audit.append(audit.path_for(self.path.parent), "publish_refused", run.id, status=run.status,
+                         verdict=(run.verification or {}).get("verdict"), reason=str(exc)[:120])
+            raise
+        audit.append(audit.path_for(self.path.parent), "published", run.id, verdict=item.get("verification"),
+                     acknowledged=item.get("acknowledged", []), masked=item.get("masked", []),
+                     confirmed_by=edits.get("confirmed_by", "seller (app)"))
+        return item
+
+    def _publish(self, run: Run, run_dir: Path, edits: dict) -> dict:
         if run.status == "blocked":
             raise ValueError("the check blocked this item; it cannot be listed")
         if run.status != "ready":

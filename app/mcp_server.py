@@ -130,7 +130,8 @@ def build(settings: config.Settings | None = None, client=None) -> MCPServer:
         if warned and not answer.data.read_warning:
             raise ToolError("the seller did not confirm the warning; not published")
         try:
-            item = catalog.publish(run, settings.data_dir / "runs" / run.id, {"acknowledge": warned})
+            item = catalog.publish(run, settings.data_dir / "runs" / run.id,
+                                   {"acknowledge": warned, "confirmed_by": "seller (MCP elicitation)"})
         except ValueError as exc:     # missing price/stock and similar: the reason goes back
             raise ToolError(str(exc)) from exc
         return {**item, "confirmed_by": "seller (MCP elicitation)"}

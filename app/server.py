@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from app import config, metrics
+from app import audit, config, metrics
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
@@ -217,7 +217,10 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
             raise HTTPException(409, "the agent is still working on this listing")
         shutil.rmtree(folder, ignore_errors=True)
         agent.runs.pop(run_id, None)
-        return {"deleted": run_id, "catalog_item_removed": catalog.remove(run_id), "folder_removed": not folder.exists()}
+        result = {"deleted": run_id, "catalog_item_removed": catalog.remove(run_id), "folder_removed": not folder.exists()}
+        audit.append(audit.path_for(settings.data_dir), "deleted_by_seller", run_id,
+                     catalog_item_removed=result["catalog_item_removed"])
+        return result
 
     @app.get("/api/catalog")
     def list_catalog():

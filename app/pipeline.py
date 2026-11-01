@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 from pydantic import ValidationError
 
-from app import compose, guard, policy, prompts
+from app import audit, compose, guard, policy, prompts
 from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
 # A plausible product cut-out covers between 2 % and 95 % of the photo. Measured on 111 live cut-outs (31 Oct - 1 Nov):
@@ -114,6 +114,14 @@ class Agent:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    def _audit(self, run: Run, event: str) -> None:
+        """Record the decision (ids, verdict, rules, guards, cost; no seller content) in the hash-chained audit log."""
+        v = run.verification or {}
+        guards = sorted({s.key for s in run.steps if s.key in ("privacy", "injection")})
+        audit.append(audit.path_for(self.runs_dir.parent), event, run.id, status=run.status, verdict=v.get("verdict"),
+                     rules=sorted(v.get("rule_ids") or []), guards=guards, cost_usd=run.totals().get("cost_usd"),
+                     error=(run.error or "").split(":")[0] or None)
+
     def _save(self, run: Run) -> None:
         (self._dir(run) / "run.json").write_text(json.dumps(run.public(), ensure_ascii=False, indent=2, default=str),
                                                  encoding="utf-8")
@@ -204,6 +212,7 @@ class Agent:
             run.status, run.error = "failed", f"{type(exc).__name__}: {exc}"[:500]
         run.stop_work()
         self._save(run)
+        self._audit(run, "checked")
         return run
 
     async def _process(self, run: Run) -> None:
@@ -435,4 +444,5 @@ class Agent:
             run.status, run.error = "failed", f"{type(exc).__name__}: {exc}"[:500]
         run.stop_work()
         self._save(run)
+        self._audit(run, "answered")
         return run
