@@ -197,3 +197,13 @@ def test_a_block_cancels_the_image_steps_instead_of_waiting_for_them(settings):
     by_key = {s.key: s.status for s in run.steps}
     assert by_key["segment"] == "skipped" and by_key["background"] == "skipped" and by_key["compose"] == "skipped"
     assert run.studio_image is None
+
+
+def test_empty_product_phrase_falls_back_instead_of_failing_the_run():
+    """Live, 1 Nov 2026: Spark left product_phrase_en empty for a prescription antibiotic; the run must still
+    reach the verifier (which blocks it) rather than fail validation."""
+    from app.schema import Listing
+
+    listing = Listing.model_validate({"title": "Thuốc kháng sinh", "description": "x", "category_id": "fashion_men",
+                                      "product_phrase_en": "", "background_prompt_en": "a table"})
+    assert listing.product_phrase_en == "product"

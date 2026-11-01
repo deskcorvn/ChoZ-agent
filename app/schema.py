@@ -37,8 +37,17 @@ class Listing(BaseModel):
     stock: int | None = Field(default=None, ge=0)
     unit: str | None = None
     missing: list[str] = []
-    product_phrase_en: str = Field(min_length=2, max_length=60)
+    product_phrase_en: str = Field(max_length=60)
     background_prompt_en: str
+
+    @field_validator("product_phrase_en")
+    @classmethod
+    def _phrase_or_fallback(cls, value: str) -> str:
+        # Measured 1 Nov 2026: for a prescription antibiotic Spark returned an empty phrase (it declines to name
+        # the item for the cut-out), and the whole run failed validation instead of reaching the check that blocks
+        # it. An empty phrase is not a reason to stop; SAM gets a generic one and the verifier still decides.
+        value = value.strip()
+        return value if len(value) >= 2 else "product"
 
     @field_validator("category_id")
     @classmethod
