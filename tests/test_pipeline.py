@@ -222,3 +222,10 @@ def test_a_full_room_pool_is_reused_instead_of_painting(settings):
     process(agent, run)
     step = next(s for s in run.steps if s.key == "background")
     assert step.model.startswith("cache") and step.cost_usd == 0 and run.studio_image
+
+
+def test_the_seller_voice_is_deleted_once_it_is_text(settings):
+    agent = agent_for(settings)
+    run = agent.create([product_photo()], wav_bytes(), "")
+    process(agent, run)
+    assert not (agent.runs_dir / run.id / "speech.wav").exists() and run.transcript

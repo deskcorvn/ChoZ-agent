@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import shutil
+import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -21,6 +25,20 @@ MAX_PHOTO_BYTES = 15 * 1024 * 1024
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 
 
+def purge_old_runs(runs_dir: Path, days: float) -> int:
+    """Retention: run folders (photos, transcripts, logs) older than `days` are deleted at startup.
+    Published catalog items keep their own copy of the studio photo. `days <= 0` keeps everything."""
+    if days <= 0:
+        return 0
+    cutoff = time.time() - days * 86400
+    removed = 0
+    for folder in runs_dir.iterdir():
+        if folder.is_dir() and folder.stat().st_mtime < cutoff:
+            shutil.rmtree(folder, ignore_errors=True)
+            removed += 1
+    return removed
+
+
 class RevalidatedFiles(StaticFiles):
     """The UI's own files: always ask the server (cheap with ETag), so an update is never hidden by
     the browser cache. Found 31/10/2026: a reload kept running the previous app.js."""
@@ -36,6 +54,7 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
     client = client or make_client(settings)
     runs_dir = settings.data_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
+    purge_old_runs(runs_dir, float(os.environ.get("LISTING_RETENTION_DAYS", "7")))
     agent = Agent(client, runs_dir)
     catalog = Catalog(settings.data_dir)
     tasks: set[asyncio.Task] = set()

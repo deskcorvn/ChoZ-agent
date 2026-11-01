@@ -44,3 +44,17 @@ def test_ui_files_are_revalidated_so_updates_show_up(settings):
     with TestClient(create_app(settings)) as client:
         for path in ("/", "/web/app.js", "/web/style.css"):
             assert client.get(path).headers["cache-control"] == "no-cache", path
+
+
+def test_old_run_folders_are_purged_and_recent_ones_kept(tmp_path):
+    import os
+    import time
+
+    from app.server import purge_old_runs
+
+    old, new = tmp_path / "old", tmp_path / "new"
+    old.mkdir(); new.mkdir()
+    past = time.time() - 10 * 86400
+    os.utime(old, (past, past))
+    assert purge_old_runs(tmp_path, 7) == 1 and not old.exists() and new.exists()
+    assert purge_old_runs(tmp_path, 0) == 0

@@ -223,6 +223,9 @@ class Agent:
                                                     self.client.transcribe(wav_path.read_bytes()),
                                                     f"{wav_path.stat().st_size // 1024} KB WAV")
             step.output["transcript"] = run.transcript
+            if os.environ.get("LISTING_KEEP_AUDIO", "0") != "1":
+                wav_path.unlink()          # data minimisation: the voice is not needed once it is text
+                step.output["audio"] = "deleted after transcription"
         seller_words = " ".join(part for part in (run.transcript, run.note) if part)
 
         # 2. Photos + words → listing

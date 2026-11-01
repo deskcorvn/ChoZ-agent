@@ -219,6 +219,12 @@ by live runs; `LISTING_ROOM_POOL=0` turns it off) is reused; "restyle" still pai
 "from cache" with the model that painted it. Measured on the five sample products, Nov 1, 2026: **12.9 s and $0.0155 per
 listing** (was 17.8 s and $0.025), price 5/5, stock 4/4, category 5/5, every listing with its studio photo.
 
+## Privacy
+
+Where each piece of a seller's data goes and how long it is kept: [PRIVACY.md](PRIVACY.md). In short: the voice is deleted
+right after transcription, run folders are purged after `LISTING_RETENTION_DAYS` (default 7), contact data is masked
+before a listing is stored, the server binds to `127.0.0.1` by default and the Meta key never leaves it.
+
 ## Tests
 
 ```bash
