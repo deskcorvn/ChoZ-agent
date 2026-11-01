@@ -250,13 +250,21 @@ class Agent:
         # 1. Voice → text
         wav_path = folder / "speech.wav"
         if wav_path.exists():
-            run.transcript, step = await self._step(run, "transcribe", "Voice → text",
-                                                    self.client.transcribe(wav_path.read_bytes()),
-                                                    f"{wav_path.stat().st_size // 1024} KB WAV")
-            step.output["transcript"] = run.transcript
+            try:
+                run.transcript, step = await self._step(run, "transcribe", "Voice → text",
+                                                        self.client.transcribe(wav_path.read_bytes()),
+                                                        f"{wav_path.stat().st_size // 1024} KB WAV")
+                step.output["transcript"] = run.transcript
+            except Exception as exc:   # degrade, don't fail: the photos and any typed words still make a listing
+                kind = getattr(exc, "kind", type(exc).__name__)
+                self._local(run, "fallback", "Voice not transcribed: going on with the photos and typed words",
+                            f"transcription failed ({kind})",
+                            {"kind": kind, "typed_words": bool(run.note.strip()),
+                             "then": "price/stock come from the typed words or the one follow-up question"}, "warn")
             if os.environ.get("LISTING_KEEP_AUDIO", "0") != "1":
-                wav_path.unlink()          # data minimisation: the voice is not needed once it is text
-                step.output["audio"] = "deleted after transcription"
+                wav_path.unlink()          # data minimisation: the voice is not needed once it is text (or failed)
+                if run.steps and run.steps[-1].key == "transcribe":
+                    run.steps[-1].output["audio"] = "deleted after transcription"
         seller_words = " ".join(part for part in (run.transcript, run.note) if part)
 
         # 2. Photos + words → listing
@@ -419,10 +427,19 @@ class Agent:
         try:
             words = text.strip()
             if audio:
-                heard, step = await self._step(run, "transcribe-answer", "Voice → text (answer)",
-                                               self.client.transcribe(audio), f"{len(audio) // 1024} KB WAV")
-                step.output["transcript"] = heard
-                words = f"{heard} {words}".strip()
+                try:
+                    heard, step = await self._step(run, "transcribe-answer", "Voice → text (answer)",
+                                                   self.client.transcribe(audio), f"{len(audio) // 1024} KB WAV")
+                    step.output["transcript"] = heard
+                    words = f"{heard} {words}".strip()
+                except Exception as exc:
+                    kind = getattr(exc, "kind", type(exc).__name__)
+                    self._local(run, "fallback", "Answer not transcribed", f"transcription failed ({kind})",
+                                {"kind": kind, "typed_words": bool(words)}, "warn")
+                    if not words:      # nothing to read: keep the question open so the seller can say or type it again
+                        run.stop_work()
+                        self._save(run)
+                        return run
             facts_raw, step = await self._step(
                 run, "answer", "Answer → price / stock",
                 self.client.chat_json(prompts.SALE_FACTS, f"Question: {run.question}\nAnswer: {words}", [],

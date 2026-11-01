@@ -266,6 +266,16 @@ Photos are read only from `LISTING_MCP_PHOTO_ROOT`. Live, Nov 2: `create_listing
 "hộp 150 gam" returned warn W1 with the message for the seller, the verified quotes behind price and stock, and
 `next_step`; 11.7 s, $0.013.
 
+## When a model call fails
+
+Every Meta call is retried once on a timeout, a dropped connection, HTTP 429 or 5xx, with jitter, and a failure is
+classified (network / auth / quota / server / request) in the log and on `/metrics`. If Voice Transcribe still fails,
+the listing is not lost: the agent goes on with the photos and any typed words (a "Voice not transcribed" step in
+the log) and asks its one question for what is missing; a failed spoken answer keeps the question open so the
+seller can say or type it again. If Muse Image fails, a pooled studio room is used; if SAM's mask is implausible,
+the original photo is kept rather than a bad cut-out. A failed Spark call fails the run with its kind, because
+without it there is no listing to check.
+
 ## Observability
 
 Every run keeps a step log (model, endpoint, ms, cost from the API's usage, decision, raw output), shown live in the

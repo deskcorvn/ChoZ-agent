@@ -119,6 +119,7 @@ h2 + .progress, .spinner + h2 { text-align: center; }
 .progress li::before { content: "○ "; color: var(--muted); }
 .progress li.done::before { content: "✓ "; color: var(--ok); }
 .progress li.failed::before { content: "✕ "; color: var(--bad); }
+.progress li.warn::before { content: "! "; color: var(--warn); }
 
 .bubble { border-radius: 16px; padding: 14px 16px; font-size: 16px; line-height: 1.4; }
 .bubble.agent { background: #eaf2ff; border-top-left-radius: 4px; }
@@ -170,6 +171,7 @@ label.ack input { width: auto; margin: 0; }
 .step.failed .step-status { color: #f87171; }
 .step.running .step-status { color: #93c5fd; }
 .step.skipped .step-status { color: var(--log-muted); }
+.step.warn .step-status { color: #fbbf24; }
 .step-title { font-weight: 600; color: #fff; }
 .model { background: #1e3a8a; color: #dbeafe; border-radius: 6px; padding: 1px 6px; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
 .model.mock { background: #5c3c00; color: #ffd98a; }

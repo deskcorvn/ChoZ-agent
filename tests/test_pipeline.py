@@ -273,3 +273,32 @@ def test_a_quote_that_is_not_in_the_sellers_words_is_marked_unverified():
                                       "evidence": {"price_quote": "giá 99 nghìn", "stock_quote": "còn 5 cái"}})
     p = provenance(listing, "áo thun giá 120 nghìn, còn 5 cái")
     assert p["price_vnd"]["verified"] is False and p["stock"]["verified"] is True
+
+
+class DeafClient(MockMetaClient):
+    """Transcribe is down (quota); everything else works."""
+
+    async def transcribe(self, wav):
+        from app.meta_api import MetaAPIError
+        raise MetaAPIError("POST /v1/asr/transcribe", 429, "quota")
+
+
+def test_voice_failure_degrades_to_typed_words(settings, tmp_path):
+    agent = Agent(DeafClient(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], wav_bytes(), "Áo thun cotton nam, giá 120 nghìn, còn 5 cái")
+    asyncio.run(agent.process(run))
+    assert run.status == "ready" and run.listing["price_vnd"] == 120000
+    fallback = next(s for s in run.steps if s.key == "fallback")
+    assert fallback.status == "warn" and fallback.output["kind"] == "quota"
+    assert not (tmp_path / "runs" / run.id / "speech.wav").exists()
+
+
+def test_voice_failure_without_words_keeps_the_question_open(settings, tmp_path):
+    agent = Agent(DeafClient(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, còn 5 cái")
+    asyncio.run(agent.process(run))
+    assert run.status == "needs_answer"
+    asyncio.run(agent.answer(run, wav_bytes(), ""))
+    assert run.status == "needs_answer" and run.steps[-1].key == "fallback"
+    asyncio.run(agent.answer(run, None, "120 nghìn"))
+    assert run.status == "ready" and run.listing["price_vnd"] == 120000

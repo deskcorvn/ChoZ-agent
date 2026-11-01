@@ -279,7 +279,7 @@ function renderLog(run) {
     li.className = `step ${s.status}`;
     const top = document.createElement('div'); top.className = 'step-top';
     const icon = document.createElement('span'); icon.className = 'step-status';
-    icon.textContent = { done: '✓', failed: '✕', running: '…', skipped: '–' }[s.status] || '?';
+    icon.textContent = { done: '✓', failed: '✕', running: '…', skipped: '–', warn: '!' }[s.status] || '?';
     const title = document.createElement('span'); title.className = 'step-title'; title.textContent = s.title;
     top.append(icon, title);
     if (s.model) {
