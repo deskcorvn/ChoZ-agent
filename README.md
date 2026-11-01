@@ -98,6 +98,13 @@ parallel. The weight expectation was first set to "flagged" for all five product
 show no printed weight, so it was corrected and those rows re-scored (the model outputs did not change; the
 report in `data/stress/report.json` says so).
 
+**On Khánh Thọ's whole catalogue (Nov 1, 2026).** 19 photos of 10 products from the brand's own folder (not
+redistributed here), the seller's words read from the brand's price list: price 13/13, stock 19/19, category 19/19;
+for the 5 products the price list does not cover the seller gave no price and the agent asked for it 6/6;
+15.9 s and $0.025 per listing. One test label was wrong (a "bún cá rô" pack filed as "bánh đa cá rô"); the agent
+titled it from the pack and warned that the words differ. The price list itself says the oyster porridge box is
+150 g while the pack prints 120 g: a seller copying it is the 150 g case the verifier catches.
+
 ## Shop banner (Meta only)
 
 `python -m studio banner --in banner.json` (listing, the SAM cut-out, the seller's photos): Muse Spark plans an
