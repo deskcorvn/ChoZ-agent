@@ -14,6 +14,16 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | category | 19/19 | 100 % | 83–100 % |
 | no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
 
+### gate
+
+5 live runs · p50 13.6 s · p95 15.2 s · mean $0.0156 per listing · files: batch-20261102-014112.csv
+
+| Check | Right | Rate | Wilson 95 % |
+|---|---|---|---|
+| price from the seller's words | 5/5 | 100 % | 57–100 % |
+| stock | 4/4 | 100 % | 51–100 % |
+| category | 5/5 | 100 % | 57–100 % |
+
 ### Five sample products with the room cache (Nov 1)
 
 5 live runs · p50 12.9 s · p95 15.1 s · mean $0.0155 per listing · files: batch-20261101-232037.csv

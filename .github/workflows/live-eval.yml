@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.12"
       - if: env.MODEL_API_KEY != ''
-        run: pip install -r requirements.txt
+        run: pip install --require-hashes -r requirements.lock
       - name: Live batch on the five samples
         if: env.MODEL_API_KEY != ''
         run: python -m app.batch samples/products
