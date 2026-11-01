@@ -19,7 +19,7 @@ from pathlib import Path
 from PIL import Image
 from pydantic import ValidationError
 
-from app import compose, guard, prompts
+from app import compose, guard, policy, prompts
 from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
 
@@ -276,6 +276,15 @@ class Agent:
                                              note="; ".join(signals + [verification.instructions_found])[:300]))
             self._local(run, "injection", "Injection guard (local): instructions in the input ignored",
                         "seller's words + photos", {"in_words": signals, "in_photos": verification.instructions_found})
+            verification.rule_ids.append("W3")
+        # Grounding: every rule the verifier cites must exist in the written policy; a block must cite a P rule.
+        verification.rules, unknown = policy.cited(verification.rule_ids)
+        if unknown:
+            verification.checks.append(Check(claim="cited rules not in the policy", status="contradicted",
+                                             note=", ".join(unknown)))
+        if verification.verdict == "block" and not any(r["id"].startswith("P") for r in verification.rules):
+            verification.checks.append(Check(claim="block without a cited P rule", status="contradicted",
+                                             note=verification.prohibited_reason[:200]))
         run.verification = verification.model_dump()
         verified[1].output["verification"] = run.verification
 

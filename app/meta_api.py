@@ -346,7 +346,7 @@ class MockMetaClient:
         if name == "Verification":
             return {"verdict": "pass", "prohibited": False, "prohibited_reason": "",
                     "checks": [{"claim": "item type", "status": "consistent", "note": "mock"}],
-                    "summary_vi": "Mô tả khớp với ảnh (mock).", "instructions_found": ""}, meta
+                    "summary_vi": "Mô tả khớp với ảnh (mock).", "instructions_found": "", "rule_ids": []}, meta
         if name == "SaleFacts":
             answer = text.split("Answer:", 1)[-1]
             return {"price_vnd": mock_price(answer), "stock": mock_stock(answer)}, meta

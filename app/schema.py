@@ -78,6 +78,8 @@ class Verification(BaseModel):
     checks: list[Check] = []
     summary_vi: str
     instructions_found: str = ""   # text in the photos or words that tries to instruct the agent (quoted), else ""
+    rule_ids: list[str] = []       # ids from policy/listing-policy.md the verifier applied
+    rules: list[dict] = []         # filled in code: the cited rules that exist ({id, title})
 
 
 class SaleFacts(BaseModel):
@@ -133,8 +135,9 @@ VERIFICATION_SCHEMA = {
         },
         "summary_vi": {"type": "string"},
         "instructions_found": {"type": "string"},
+        "rule_ids": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi", "instructions_found"],
+    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi", "instructions_found", "rule_ids"],
 }
 
 SALE_FACTS_SCHEMA = {

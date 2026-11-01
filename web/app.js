@@ -182,7 +182,10 @@ function fillPreview(run) {
   const v = run.verification || { verdict: 'warn', summary_vi: 'Chưa kiểm tra.' };
   $('verdict').className = `verdict ${v.verdict}`;
   const summary = v.summary_vi.charAt(0).toUpperCase() + v.summary_vi.slice(1);
-  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary;
+  // The written rule behind a warning or a block (policy/listing-policy.md), e.g. "Quy định P1 · Prescription medicine".
+  const rules = (v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => `${r.id} · ${r.title}`).join(', ');
+  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
+    + (rules && v.verdict !== 'pass' ? ` (Quy định ${rules})` : '');
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   $('publish').disabled = run.status === 'blocked';
   $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';
