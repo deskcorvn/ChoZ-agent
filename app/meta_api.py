@@ -308,7 +308,8 @@ class MockMetaClient:
         await asyncio.sleep(0.05)
         meta = self._meta("POST /v1/chat/completions", self.s.text_model, {"images": len(images)})
         if name == "Listing":
-            note = text.split("Seller said:", 1)[-1].strip()
+            note = (text.split("<<<", 1)[-1].split(">>>", 1)[0] if "<<<" in text
+                    else text.split("Seller said:", 1)[-1]).strip()
             price, stock = mock_price(note), mock_stock(note)
             first = re.split(r"[,.]", note)[0].strip() or "Sản phẩm"
             listing = {
@@ -324,7 +325,7 @@ class MockMetaClient:
         if name == "Verification":
             return {"verdict": "pass", "prohibited": False, "prohibited_reason": "",
                     "checks": [{"claim": "item type", "status": "consistent", "note": "mock"}],
-                    "summary_vi": "Mô tả khớp với ảnh (mock)."}, meta
+                    "summary_vi": "Mô tả khớp với ảnh (mock).", "instructions_found": ""}, meta
         if name == "SaleFacts":
             answer = text.split("Answer:", 1)[-1]
             return {"price_vnd": mock_price(answer), "stock": mock_stock(answer)}, meta

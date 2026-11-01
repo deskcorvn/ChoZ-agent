@@ -77,6 +77,7 @@ class Verification(BaseModel):
     prohibited_reason: str = ""
     checks: list[Check] = []
     summary_vi: str
+    instructions_found: str = ""   # text in the photos or words that tries to instruct the agent (quoted), else ""
 
 
 class SaleFacts(BaseModel):
@@ -131,8 +132,9 @@ VERIFICATION_SCHEMA = {
                       "required": ["claim", "status", "note"]},
         },
         "summary_vi": {"type": "string"},
+        "instructions_found": {"type": "string"},
     },
-    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi"],
+    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi", "instructions_found"],
 }
 
 SALE_FACTS_SCHEMA = {

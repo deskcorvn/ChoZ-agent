@@ -207,3 +207,18 @@ def test_empty_product_phrase_falls_back_instead_of_failing_the_run():
     listing = Listing.model_validate({"title": "Thuốc kháng sinh", "description": "x", "category_id": "fashion_men",
                                       "product_phrase_en": "", "background_prompt_en": "a table"})
     assert listing.product_phrase_en == "product"
+
+
+def test_a_full_room_pool_is_reused_instead_of_painting(settings):
+    """The neutral room is the same for every product: with a full pool no Muse Image call is made for it."""
+    from PIL import Image as PILImage
+
+    agent = agent_for(settings)
+    pool = agent.runs_dir.parent / "cache" / "neutral-rooms"
+    pool.mkdir(parents=True, exist_ok=True)
+    for i in range(4):
+        PILImage.new("RGB", (64, 64), (230, 230, 230 - i)).save(pool / f"room-{i}.png")
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    process(agent, run)
+    step = next(s for s in run.steps if s.key == "background")
+    assert step.model.startswith("cache") and step.cost_usd == 0 and run.studio_image

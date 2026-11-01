@@ -7,8 +7,10 @@ what a listing cannot go live without (price, stock).
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import io
 import json
+import os
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -17,8 +19,8 @@ from pathlib import Path
 from PIL import Image
 from pydantic import ValidationError
 
-from app import compose, prompts
-from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Listing, SaleFacts, Verification
+from app import compose, guard, prompts
+from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
 
 @dataclass
@@ -116,6 +118,29 @@ class Agent:
         self._save(run)
         return result, step
 
+    # ── neutral-room cache ─────────────────────────────────────────────────────────────────────────────
+    def _pool_dir(self) -> Path:
+        return self.runs_dir.parent / "cache" / "neutral-rooms"
+
+    def _pooled_room(self, run: Run) -> Path | None:
+        size = int(os.environ.get("LISTING_ROOM_POOL", "4"))
+        rooms = sorted(self._pool_dir().glob("room-*.png")) if size > 0 else []
+        if len(rooms) < size:
+            return None
+        return rooms[int(run.id, 16) % len(rooms)]          # deterministic per run, spread over the pool
+
+    async def _cached(self, path: Path):
+        return path.read_bytes(), {"model": f"cache ({self.client.s.image_model})", "endpoint": "local file",
+                                   "cost_usd": 0.0, "usage": {"cached_room": path.name}}
+
+    async def _painted_and_pooled(self, painting):
+        image, meta = await painting
+        if not self.client.mock:                             # never pool mock rooms
+            folder = self._pool_dir()
+            folder.mkdir(parents=True, exist_ok=True)
+            (folder / f"room-{hashlib.sha1(image).hexdigest()[:12]}.png").write_bytes(image)
+        return image, meta
+
     def _local(self, run: Run, key: str, title: str, describe_input: str, output, status: str = "done") -> Step:
         step = Step(key=key, title=title, status=status, input=describe_input, output=output)
         run.steps.append(step)
@@ -161,10 +186,19 @@ class Agent:
 
     async def _process(self, run: Run) -> None:
         # Muse Image is the slowest call (10-26 s measured) and its neutral room needs nothing from the
-        # other steps, so it starts first and runs alongside all of them.
-        painting = self.client.generate_image(prompts.STUDIO_BACKGROUND.format(scene=prompts.NEUTRAL_SCENE))
-        background = asyncio.create_task(self._step(
-            run, "background", "Paint empty studio (no product, no text)", painting, "neutral studio, started first"))
+        # other steps, so it starts first and runs alongside all of them. The neutral room is the same for every
+        # product, so a small pool of rooms Muse Image already painted is reused (it was ~40 % of the cost of a
+        # listing); "restyle" still paints a room for this product.
+        cached = self._pooled_room(run)
+        inner = None
+        if cached is not None:
+            painting = self._cached(cached)
+            title = "Studio room from cache (painted earlier by Muse Image)"
+        else:
+            inner = self.client.generate_image(prompts.STUDIO_BACKGROUND.format(scene=prompts.NEUTRAL_SCENE))
+            painting = self._painted_and_pooled(inner)
+            title = "Paint empty studio (no product, no text)"
+        background = asyncio.create_task(self._step(run, "background", title, painting, "neutral studio, started first"))
         try:
             await self._listing_and_photo(run, background)
         finally:
@@ -172,6 +206,8 @@ class Agent:
                 background.cancel()
                 await asyncio.gather(background, return_exceptions=True)
                 painting.close()               # no-op if it ran; otherwise it was never awaited
+                if inner is not None:
+                    inner.close()
                 for step in run.steps:
                     if step.key == "background" and step.status == "running":
                         step.status, step.error = "skipped", "cancelled: an earlier step failed"
@@ -192,7 +228,7 @@ class Agent:
         # 2. Photos + words → listing
         raw, step = await self._step(
             run, "listing", "Photos + words → listing (JSON schema)",
-            self.client.chat_json(prompts.LISTING, f"Seller said: {seller_words}", photos, "Listing", LISTING_SCHEMA),
+            self.client.chat_json(prompts.LISTING, guard.seller_data(seller_words), photos, "Listing", LISTING_SCHEMA),
             f"{len(photos)} photo(s) + {len(seller_words)} chars")
         try:
             listing = Listing.model_validate(raw)
@@ -202,6 +238,11 @@ class Agent:
         listing.missing = listing.missing_for_sale()
         run.listing = listing.model_dump()
         step.output["listing"] = run.listing
+        masked, kinds = guard.mask_listing(run.listing)
+        if kinds:   # contact data never reaches a public listing (see guard.py)
+            run.listing = masked
+            self._local(run, "privacy", "Privacy guard (local): contact data masked", "title, description, attributes",
+                        {"masked": kinds})
 
         # 3. In parallel (with the background already painting): verify against the photos and the
         #    seller's words, and cut the product out.
@@ -209,7 +250,7 @@ class Agent:
         verify = self._step(
             run, "verify", "Check listing against photos",
             self.client.chat_json(prompts.VERIFY,
-                                  f"Seller said: {seller_words}\n\nListing to check:\n"
+                                  guard.seller_data(seller_words) + "\n\nListing to check:\n"
                                   + json.dumps(listing_for_check, ensure_ascii=False),
                                   photos, "Verification", VERIFICATION_SCHEMA),
             "listing + seller's words + photos")
@@ -224,6 +265,17 @@ class Agent:
             await asyncio.gather(segment_task, return_exceptions=True)
             raise
         verification = Verification.model_validate(verified[0])
+        signals = guard.injection_signals(seller_words)
+        if signals or verification.instructions_found.strip():
+            # Inputs that try to steer the agent are logged and never allowed to end on a plain pass.
+            if verification.verdict == "pass":
+                verification.verdict = "warn"
+                verification.summary_vi = ("Lời nói hoặc ảnh có câu ra lệnh cho hệ thống; tin đăng không làm theo, "
+                                           "bạn kiểm tra lại giúp nhé.")
+            verification.checks.append(Check(claim="instructions in the input", status="contradicted",
+                                             note="; ".join(signals + [verification.instructions_found])[:300]))
+            self._local(run, "injection", "Injection guard (local): instructions in the input ignored",
+                        "seller's words + photos", {"in_words": signals, "in_photos": verification.instructions_found})
         run.verification = verification.model_dump()
         verified[1].output["verification"] = run.verification
 
