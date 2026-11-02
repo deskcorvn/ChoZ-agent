@@ -109,8 +109,10 @@ class Run:
         return run
 
     def public(self) -> dict:
+        from app import versions
         data = asdict(self)
         data["totals"] = self.totals()
+        data["versions"] = versions.current()
         return data
 
 

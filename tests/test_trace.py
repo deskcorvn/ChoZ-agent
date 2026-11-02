@@ -30,3 +30,19 @@ def test_a_run_is_an_otlp_trace_with_genai_attributes(settings):
     assert attrs(chat)["gen_ai.provider.name"] == "meta" and attrs(chat)["gen_ai.request.model"] == "muse-spark-1.3"
     assert all(int(c["endTimeUnixNano"]) >= int(c["startTimeUnixNano"]) for c in spans)
     assert "0912" not in str(body) and "Cháo hàu ăn liền Khánh Thọ loại hộp, giá" not in str(body)
+
+
+def test_every_run_is_stamped_with_what_produced_it():
+    from app import prompts, versions
+    from app.pipeline import Run
+    v = Run(id="abc", mode="mock").public()["versions"]
+    assert set(v) == {"prompt_listing", "prompt_verify", "prompt_answer", "policy", "catalog"}
+    assert all(len(x) == 10 for x in v.values())
+    versions.current.cache_clear()
+    old = prompts.LISTING
+    try:
+        prompts.LISTING = old + " "
+        assert versions.current()["prompt_listing"] != v["prompt_listing"]      # any edit changes the stamp
+    finally:
+        prompts.LISTING = old
+        versions.current.cache_clear()

@@ -379,6 +379,11 @@ muse-image-1.0`, `transcribe …`, `segment sam-3.1` (CLIENT spans with `gen_ai.
 `OTEL_EXPORTER_OTLP_ENDPOINT` and every finished run is pushed to Jaeger, Tempo, Langfuse or any OTLP collector.
 Like the audit log, traces carry ids, models, tokens, timings, costs and decisions, never prompts, photos or words.
 
+**Versioned instructions and knowledge.** Every run, its trace and every batch report carry short hashes of the
+listing, check and answer prompts, the written rules and the catalog (`app/versions.py`), so any number in
+evals/RESULTS.md can be tied to the exact instructions and knowledge that produced it, and a changed prompt is
+visible in the data, not only in git.
+
 **Audit log.** Every decision is appended to `data/audit/audit.jsonl`: the check's verdict, rules and guards; each
 publish with the rules the seller acknowledged and who confirmed it (the app, or the person at an MCP client); each
 refused publish and its reason; each seller delete. Lines are hash-chained (each holds the previous line's SHA-256), so

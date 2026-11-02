@@ -65,6 +65,8 @@ def spans(run: dict) -> list[dict]:
                   _attr("gen_ai.conversation.id", run["id"]), _attr("choz.status", run.get("status", "")),
                   _attr("choz.cost_usd", float((run.get("totals") or {}).get("cost_usd") or 0)),
                   _attr("choz.model_calls", int((run.get("totals") or {}).get("model_calls") or 0))]
+    for key, value in (run.get("versions") or {}).items():
+        root_attrs.append(_attr(f"choz.version.{key}", value))
     if v:
         root_attrs += [_attr("choz.verdict", v.get("verdict", "")), _attr("choz.rules", sorted(set(v.get("rule_ids") or [])))]
     out = [{"traceId": trace_id, "spanId": root_id, "name": f"invoke_workflow {SERVICE}", "kind": 1,

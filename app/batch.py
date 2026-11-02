@@ -57,6 +57,7 @@ async def run_folder(folder: Path, settings: config.Settings | None = None) -> t
                         "verdict": (run.verification or {}).get("verdict", ""),
                         "studio_photo": bool(run.studio_image), "error": run.error,
                         "catalog_match": (listing.get("catalog") or {}).get("match", ""),
+                        "versions": " ".join(f"{k}={v}" for k, v in run.public()["versions"].items()),
                         "rules": " ".join(sorted(set((run.verification or {}).get("rule_ids") or [])))})
             if "catalog_id" in expected or GOLD:                 # grounding: same product, or rightly none
                 from app.rag_eval import gold_for
