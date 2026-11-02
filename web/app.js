@@ -193,9 +193,10 @@ function fillPreview(run) {
     P6: 'hàng giả', P7: 'ảnh khác sản phẩm', W1: 'theo nhãn in trên bao bì', W2: 'thông tin ảnh không khớp',
     W3: 'chữ lạ ra lệnh trong ảnh/lời nói', W4: 'sai danh mục',
     W5: 'ảnh không phải của bạn', W6: 'ảnh do AI tạo', R1: 'đã có người xem lại', C4: 'tên hàng cấm' };
-  const rules = (v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => `${r.id} · ${RULES_VI[r.id] || r.title}`).join(', ');
+  // Sellers see the rule by its plain name; the rule codes stay in the log panel and the audit log.
+  const rules = [...new Set((v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => RULES_VI[r.id] || r.title))].join(', ');
   $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
-    + (rules && v.verdict !== 'pass' ? ` (Quy định ${rules})` : '');
+    + (rules && v.verdict !== 'pass' ? ` (theo quy định: ${rules})` : '');
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   // A warning must be read before publishing (human in the loop); the server enforces the same rule.
   const needsAck = v.verdict === 'warn' && run.status !== 'blocked';
@@ -210,7 +211,8 @@ function fillPreview(run) {
     upheld: `Người duyệt giữ quyết định chặn: ${appeal.reason || ''}`,
     overturned: `Người duyệt cho phép đăng: ${appeal.reason || ''}` }[appeal.status] || '';
   $('ack').onchange = () => { $('publish').disabled = !$('ack').checked; };
-  $('preview-error').textContent = run.status === 'blocked' ? 'Sản phẩm này không được đăng: ' + (v.prohibited_reason || '') : '';
+  $('preview-error').textContent = run.status === 'blocked'
+    ? 'Sản phẩm này không được đăng. Bạn có thể xoá tin, hoặc nhờ người duyệt xem lại nếu bạn thấy chặn nhầm.' : '';
 }
 
 $('restyle').addEventListener('click', async () => {
@@ -315,9 +317,19 @@ function renderLog(run) {
     // Progress list on the phone mirrors the log.
     return li;
   }));
+  // The phone shows the seller plain Vietnamese steps; the log panel keeps the technical titles, models and costs.
+  const SELLER_STEP = { prepare: 'Chuẩn bị ảnh', transcribe: 'Nghe lời bạn nói', background: 'Chuẩn bị phòng chụp',
+    listing: 'Soạn tin từ ảnh và lời nói', verify: 'Kiểm tra tin với ảnh', segment: 'Tách sản phẩm khỏi nền',
+    compose: 'Ghép ảnh đẹp', privacy: 'Ẩn số điện thoại, liên kết', injection: 'Bỏ qua câu ra lệnh lạ',
+    origin: 'Kiểm tra nguồn ảnh', backstop: 'Kiểm tra hàng cấm', fallback: 'Không nghe rõ, dùng chữ bạn gõ',
+    'transcribe-answer': 'Nghe câu trả lời', answer: 'Cập nhật giá, số lượng', restyle: 'Vẽ phòng chụp mới' };
   $('progress').replaceChildren(...run.steps.map((s) => {
-    const li = document.createElement('li'); li.className = s.status; li.textContent = s.title; return li;
+    const li = document.createElement('li'); li.className = s.status;
+    li.textContent = SELLER_STEP[s.key] || s.title; return li;
   }));
+  if (run.status === 'running') {
+    $('eta').textContent = `Thường mất khoảng 20 giây · đã ${Math.round(run.totals.seconds)} giây`;
+  }
   const t = run.totals;
   $('totals').innerHTML = '';
   for (const [label, value] of [['time', `${t.seconds} s`], ['model calls', t.model_calls],

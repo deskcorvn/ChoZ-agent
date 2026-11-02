@@ -380,7 +380,9 @@ class Agent:
                                            "bạn kiểm tra lại giúp nhé.")
             verification.checks.append(Check(claim="instructions in the input", status="contradicted",
                                              note="; ".join(signals + [verification.instructions_found])[:300]))
-            self._local(run, "injection", "Injection guard (local): instructions in the input ignored",
+            found_by = " + ".join(x for x, hit in (("Spark read it on the photo", verification.instructions_found.strip()),
+                                                   ("a local rule caught it in the words", signals)) if hit)
+            self._local(run, "injection", f"Instructions in the input ignored (W3): {found_by}",
                         "seller's words + photos", {"in_words": signals, "in_photos": verification.instructions_found})
             verification.rule_ids.append("W3")
         # Grounding: every rule the verifier cites must exist in the written policy; a block must cite a P rule.

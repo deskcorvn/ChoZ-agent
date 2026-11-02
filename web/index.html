@@ -15,7 +15,7 @@
     </header>
 
     <div class="screen" id="screen-capture">
-      <h1>Đăng sản phẩm trong 30 giây</h1>
+      <h1>Đăng sản phẩm bằng 1 ảnh và 1 câu nói</h1>
       <p class="hint">Chụp 1–3 ảnh, rồi giữ nút và nói: tên hàng, size, giá, số lượng.</p>
       <div class="slots" id="slots"></div>
       <input id="photo-input" type="file" accept="image/*" capture="environment" multiple hidden>
@@ -33,6 +33,7 @@
     <div class="screen" id="screen-working" hidden>
       <div class="spinner" aria-hidden="true"></div>
       <h2>Trợ lý đang soạn tin…</h2>
+      <p class="hint" id="eta">Thường mất khoảng 20 giây.</p>
       <ol class="progress" id="progress"></ol>
     </div>
 

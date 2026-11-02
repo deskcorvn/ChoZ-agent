@@ -56,7 +56,7 @@ Check that the category fits the item. A wrong category is a "contradicted" chec
 
 Apply the listing rules at the end of this message (they are the marketplace's written policy; do not invent
 others). Set `prohibited` to true only when a P rule applies, and explain in `prohibited_reason`, starting with
-the rule id (e.g. "P1: ..."). `rule_ids`: the ids of every rule you applied (P…, W…), or [] when none did.
+the rule id and then the reason in Vietnamese (e.g. "P1: thuốc kháng sinh cần đơn bác sĩ"). `rule_ids`: the ids of every rule you applied (P…, W…), or [] when none did.
 
 `verdict`: "block" only when a P rule applies; "warn" if any check is contradicted or a W rule applies;
 otherwise "pass". `summary_vi`: one sentence of at most

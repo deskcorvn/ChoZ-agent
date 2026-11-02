@@ -131,8 +131,9 @@ h2 + .progress, .spinner + h2 { text-align: center; }
 .verdict.pass { background: #e8f6ee; color: var(--ok); }
 .verdict.warn { background: #fff4e0; color: var(--warn); }
 .verdict.block { background: #fdeaea; color: var(--bad); }
-label.ack { display: flex; flex-direction: row; gap: 8px; align-items: center; font-size: 14px; color: var(--warn); margin: 4px 0 8px; }
-label.ack input { width: auto; margin: 0; }
+label.ack { display: flex; flex-direction: row; gap: 12px; align-items: center; font-size: 16px; font-weight: 600;
+  color: var(--warn); background: #fff4e0; padding: 14px; border-radius: 12px; margin: 4px 0 8px; cursor: pointer; }
+label.ack input { width: 26px; height: 26px; margin: 0; flex: none; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { background: #f1f3f6; border-radius: 999px; padding: 4px 10px; font-size: 13px; }
 
