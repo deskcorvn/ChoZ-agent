@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 from pydantic import ValidationError
 
-from app import audit, compose, guard, kb, origin, policy, prompts
+from app import audit, compose, guard, kb, origin, policy, prompts, trace
 from app.schema import LISTING_SCHEMA, SALE_FACTS_SCHEMA, VERIFICATION_SCHEMA, Check, Listing, SaleFacts, Verification
 
 # A plausible product cut-out covers between 2 % and 95 % of the photo. Measured on 111 live cut-outs (31 Oct - 1 Nov):
@@ -243,6 +243,7 @@ class Agent:
         run.stop_work()
         self._save(run)
         self._audit(run, "checked")
+        trace.export(run.public())
         return run
 
     async def _process(self, run: Run) -> None:
@@ -615,4 +616,5 @@ class Agent:
         run.stop_work()
         self._save(run)
         self._audit(run, "answered")
+        trace.export(run.public())
         return run

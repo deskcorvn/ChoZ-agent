@@ -359,6 +359,14 @@ cost per run, status and verdict mix, model calls by model, guards fired, rules 
 (network / auth / quota / server / request). On this machine on Nov 1: 126 runs over two days, 24 inputs with
 instructions ignored, 12 blocks.
 
+**Traces (OpenTelemetry).** Each run is also an OpenTelemetry trace in the GenAI semantic conventions:
+`invoke_workflow choz-listing-agent` with one child span per step: `chat muse-spark-1.3`, `generate_content
+muse-image-1.0`, `transcribe …`, `segment sam-3.1` (CLIENT spans with `gen_ai.provider.name`, `gen_ai.request.model`,
+`gen_ai.usage.input_tokens` / `output_tokens` / `cache_read.input_tokens`, `error.type`), `retrieval catalog`, and
+`execute_tool …` for the local guards. `GET /api/runs/{id}/trace` returns it as OTLP/JSON; set
+`OTEL_EXPORTER_OTLP_ENDPOINT` and every finished run is pushed to Jaeger, Tempo, Langfuse or any OTLP collector.
+Like the audit log, traces carry ids, models, tokens, timings, costs and decisions, never prompts, photos or words.
+
 **Audit log.** Every decision is appended to `data/audit/audit.jsonl`: the check's verdict, rules and guards; each
 publish with the rules the seller acknowledged and who confirmed it (the app, or the person at an MCP client); each
 refused publish and its reason; each seller delete. Lines are hash-chained (each holds the previous line's SHA-256), so

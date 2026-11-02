@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from app import audit, config, guard, metrics, policy, sellers
+from app import audit, config, guard, metrics, policy, sellers, trace
 from app.catalog import Catalog
 from app.config import ROOT, Settings
 from app.meta_api import make_client
@@ -215,6 +215,13 @@ def create_app(settings: Settings | None = None, client=None) -> FastAPI:
         if (run_id not in agent.runs and not folder.is_dir()) or not mine(run_id):
             raise HTTPException(404, "unknown run")
         return folder
+
+    @app.get("/api/runs/{run_id}/trace")
+    def run_trace(run_id: str):
+        """The run as an OpenTelemetry trace (OTLP/JSON, GenAI semantic conventions); no prompts, photos or words."""
+        if table and role_of.get(sellers.current.get()) == "operator":
+            return trace.otlp(load_any(run_id).public())
+        return trace.otlp(get_run(run_id).public())
 
     @app.get("/api/runs/{run_id}/export")
     def export_run(run_id: str):
