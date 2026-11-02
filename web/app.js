@@ -233,7 +233,7 @@ function fillPreview(run) {
   if (hist.id) {
     const [y, mo, dd] = (hist.published_at || '').slice(0, 10).split('-');
     const today = new Date().toISOString().slice(0, 10) === (hist.published_at || '').slice(0, 10);
-    $('history-text').textContent = `Bạn đã đăng sản phẩm này ${today ? 'sáng nay' : `ngày ${+dd}/${+mo}/${y}`}`
+    $('history-text').textContent = `Bạn đã đăng sản phẩm này ${today ? 'hôm nay' : `ngày ${+dd}/${+mo}/${y}`}`
       + (hist.price_vnd ? ` (giá ${vnd(hist.price_vnd)}, còn ${hist.stock ?? '?'})` : '') + '. Cập nhật tin cũ thay vì đăng tin mới.';
     $('update-old').checked = true;
     if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('use-price').hidden = true; }; $('catalog').hidden = false; }
