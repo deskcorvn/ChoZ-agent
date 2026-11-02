@@ -136,6 +136,10 @@ label.history input { width: 20px; height: 20px; margin: 0; flex: none; }
   background: #e8f4f2; border-radius: 10px; padding: 8px 10px; }
 .catalog[hidden] { display: none; }
 .chip-btn { border: 1px solid #0f766e; background: #fff; color: #0f766e; border-radius: 999px; padding: 4px 10px; font: inherit; font-weight: 600; cursor: pointer; }
+#publish { position: sticky; bottom: 12px; z-index: 2; box-shadow: 0 6px 18px rgba(0, 80, 200, .25); }
+details.more { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: #fff; }
+details.more summary { cursor: pointer; font-size: 14px; color: var(--muted); }
+.danger.quiet { color: var(--muted); font-size: 13px; margin-top: 18px; }
 .verdict-detail { display: block; margin-top: 4px; font-size: 13px; opacity: .85; }
 .advice { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--ink, #1f2937); }
 .advice:empty { display: none; }

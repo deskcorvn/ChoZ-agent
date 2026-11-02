@@ -61,8 +61,10 @@
         <label>Còn<input id="f-stock" type="number" min="0"><small class="src" id="src-stock"></small></label>
       </div>
       <label>Danh mục<input id="f-category" type="text" readonly></label>
-      <div class="chips" id="chips"></div>
-      <label>Mô tả<textarea id="f-description" rows="5"></textarea></label>
+      <details class="more"><summary>Thuộc tính và mô tả</summary>
+        <div class="chips" id="chips"></div>
+        <label>Mô tả<textarea id="f-description" rows="5"></textarea></label>
+      </details>
       <label class="ack" id="ack-row" hidden><input type="checkbox" id="ack"> Tôi đã đọc cảnh báo và đồng ý đăng</label>
       <button class="primary" id="publish" type="button">Đăng lên Chợ Z</button>
       <button class="ghost" id="restart" type="button">Làm lại</button>
@@ -71,7 +73,7 @@
         <button class="ghost" id="appeal" type="button">Yêu cầu người duyệt xem lại</button>
         <p class="fine" id="appeal-status"></p>
       </div>
-      <button class="ghost danger" id="delete-run" type="button">Xoá ảnh và dữ liệu của tin này</button>
+      <button class="ghost danger quiet" id="delete-run" type="button">Xoá ảnh và dữ liệu của tin này</button>
       <p class="error" id="preview-error"></p>
     </div>
 

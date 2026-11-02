@@ -92,6 +92,13 @@ function holdToTalk(button, onDone, onError) {
       };
       recorder.start();
       button.classList.add('recording');
+      const label = button.querySelector('.mic-label');
+      const idle = label ? label.textContent : '';
+      const t0 = Date.now();
+      const tick = setInterval(() => {
+        if (!recorder) { clearInterval(tick); if (label) label.textContent = idle; return; }
+        if (label) label.textContent = `Đang nghe… ${Math.floor((Date.now() - t0) / 1000)} giây · thả tay để gửi`;
+      }, 250);
     } catch (err) { recorder = null; onError(err); }
   };
   const stop = () => { if (recorder && recorder.state === 'recording') recorder.stop(); };
@@ -193,7 +200,7 @@ function fillPreview(run) {
   const HEADLINE = { pass: '✓ Tin đăng khớp với ảnh.', warn: '! Trợ lý đã chỉnh tin, bạn xem lại trước khi đăng.',
     block: '✕ Sản phẩm này không đăng được trên Chợ Z.' };
   $('verdict').replaceChildren(document.createTextNode(HEADLINE[v.verdict] || summary));
-  if (HEADLINE[v.verdict] && summary) {
+  if (v.verdict === 'pass' && summary) {
     const detail = document.createElement('small'); detail.className = 'verdict-detail'; detail.textContent = summary;
     $('verdict').append(detail);
   }
@@ -207,9 +214,9 @@ function fillPreview(run) {
     P5: 'Nội dung người lớn không được đăng.',
     P6: 'Hàng có dấu hiệu giả thương hiệu không được đăng.',
     P7: 'Ảnh là một món hàng khác với tin đăng.',
-    W1: 'Tin ghi theo thông tin in trên bao bì. Nếu bao bì đúng, bạn không cần làm gì.',
+    W1: 'Khối lượng hoặc kích cỡ in trên bao bì khác với lời nói hoặc bảng giá; tin ghi theo bao bì. Bạn xem lại rồi đánh dấu đã đọc để đăng.',
     W2: 'Một vài thông tin không khớp với ảnh đã được sửa. Bạn xem lại tin nhé.',
-    W3: 'Ảnh hoặc lời nói có câu ra lệnh cho hệ thống. Trợ lý đã bỏ qua, giá và tin vẫn theo lời bạn.',
+    W3: 'Trên ảnh hoặc trong lời nói có dòng chữ lạ đòi đổi giá hay duyệt tin. Trợ lý không làm theo; giá và tin vẫn theo lời bạn.',
     W4: 'Danh mục đã được chỉnh cho đúng món hàng.',
     W5: 'Ảnh có vẻ lấy của người khác (dấu bản quyền, ảnh chụp màn hình). Bạn chụp giúp ảnh món hàng bạn có.',
     W6: 'Ảnh mang dấu ảnh do AI tạo. Bạn chụp giúp ảnh thật của món hàng.',
@@ -370,7 +377,8 @@ function renderLog(run) {
     listing: 'Soạn tin từ ảnh và lời nói', verify: 'Kiểm tra tin với ảnh', segment: 'Tách sản phẩm khỏi nền',
     compose: 'Ghép ảnh đẹp', privacy: 'Ẩn số điện thoại, liên kết', injection: 'Bỏ qua câu ra lệnh lạ',
     origin: 'Kiểm tra nguồn ảnh', backstop: 'Kiểm tra hàng cấm', fallback: 'Không nghe rõ, dùng chữ bạn gõ',
-    'transcribe-answer': 'Nghe câu trả lời', answer: 'Cập nhật giá, số lượng', restyle: 'Vẽ phòng chụp mới' };
+    'transcribe-answer': 'Nghe câu trả lời', answer: 'Cập nhật giá, số lượng', restyle: 'Vẽ phòng chụp mới',
+    retrieve: 'Tìm sản phẩm trong danh mục', match: 'Đối chiếu với danh mục', memory: 'Xem tin cũ của bạn' };
   $('progress').replaceChildren(...run.steps.map((s) => {
     const li = document.createElement('li'); li.className = s.status;
     li.textContent = SELLER_STEP[s.key] || s.title; return li;
