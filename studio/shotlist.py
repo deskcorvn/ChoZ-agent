@@ -37,6 +37,9 @@ Quy tắc cảnh (học từ 41 clip Kling đã kiểm 1/11/2026):
   nhân vật (đã có trong khung đầu).
 - ref_roles: tập con của ["character", "location", "prop", "product"]; "product" chỉ cho cảnh cần thấy
   sản phẩm thật (bao bì sẽ được GHÉP khi dựng, không để AI vẽ; đừng tả bao bì trong prompt).
+- Đồ ăn/uống: cảnh ăn, múc, nếm PHẢI thấy món đã nấu trong bát/cốc, tả cụ thể bằng tiếng Anh theo tên
+  sản phẩm (cháo hàu → "a white bowl of hot rice porridge with oysters, chopped spring onion and fried
+  shallots, steam rising"); không bát rỗng, không thìa rỗng. Ghi món đó vào props của bible.
 - Không chữ, không logo, không bao bì trong bất kỳ prompt nào; không người thứ hai."""
 
 _LIGHT = {"morning": "soft window light from the left", "noon": "bright overhead daylight",

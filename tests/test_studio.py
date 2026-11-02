@@ -106,6 +106,19 @@ def test_the_shots_keep_the_time_of_day_the_voice_over_names(settings):
     assert shotlist.time_from_script(["Cháo hàu ngon"]) == ""
 
 
+def test_the_judge_score_uses_measured_loudness_and_length_not_the_models_guess():
+    from studio.judge import MEASURED, QC_ITEMS, with_measurements
+    from studio.models import CheckItem, Criterion, JudgeReport
+    report = JudgeReport(video_path="x.mp4", summary="", total=3.2,
+                         qc_items=[CheckItem(name=n, ok=n not in MEASURED, evidence="không thấy") for n in QC_ITEMS],
+                         criteria=[Criterion(name="pacing", score=7.0, note="")])
+    measured = {MEASURED[0]: CheckItem(name=MEASURED[0], ok=True, evidence="measured -14.3 LUFS"),
+                MEASURED[1]: CheckItem(name=MEASURED[1], ok=False, evidence="measured 11.8 s")}
+    fixed = with_measurements(report, measured)
+    assert [i.evidence for i in fixed.qc_items if i.name in MEASURED] == ["measured -14.3 LUFS", "measured 11.8 s"]
+    assert fixed.total == 6.0                       # 7.0 minus one measured failure (length)
+
+
 def test_every_service_exposes_input_output_and_run():
     from studio import service
     for name in SERVICES:

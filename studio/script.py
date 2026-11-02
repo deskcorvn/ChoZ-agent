@@ -6,14 +6,14 @@ from pathlib import Path
 
 from app.config import Settings
 from studio import log, require_prompt
-from studio.models import SCRIPT_SCHEMA, Claim, Script, ScriptInput
+from studio.models import MIN_SPOT_WORDS, SCRIPT_SCHEMA, Claim, Script, ScriptInput
 
 INPUT, OUTPUT, ROLE = ScriptInput, Script, "writer"
 
 PROMPT = """Bạn là biên kịch quảng cáo dọc 30 giây cho người bán nhỏ trên Chợ Z (Việt Nam).
 Từ listing (JSON) và ảnh sản phẩm, viết Script (JSON theo schema):
 - product: tên sản phẩm đúng như listing.
-- beats: 4-8 ý lời dẫn, MỖI Ý TỐI ĐA 12 TỪ, một ý một câu, đọc liền mạch như một người kể; ý đầu là
+- beats: 6-8 ý lời dẫn, MỖI Ý 8-12 TỪ, TỔNG 70-90 TỪ (đọc vừa đủ 27 giây), một ý một câu, đọc liền mạch như một người kể; ý đầu là
   câu hỏi hoặc tình huống đời thường (hook), ý cuối trước CTA là giá đúng như listing (viết số thành chữ:
   "hai mươi hai nghìn"). Không viết tên thương hiệu nước ngoài, không viết "Z" (đọc là "Dét"); viết
   "Chợ Dét" trong beats để giọng đọc đúng, còn supers/cta viết "Chợ Z".
@@ -61,6 +61,15 @@ async def run(client, settings: Settings, inp: ScriptInput) -> Script:
             raw, meta = await client.chat_json(prompt, user, photos, "Script", SCRIPT_SCHEMA)
             step.apply(meta)
             script = Script.model_validate(raw)
-        step.decision = f"{len(script.beats)} beats, {len(script.claims)} claims"
+            words = sum(len(b.split()) for b in script.beats)
+            if words < MIN_SPOT_WORDS:          # too short for a 30 s spot (a live run read 27 words in 8.8 s)
+                again = (f"{user}\n\nBản trước chỉ có {words} từ lời dẫn, đọc chưa tới 10 giây. Viết lại: 6-8 ý, "
+                         f"mỗi ý 8-12 từ, tổng 70-90 từ, giữ nguyên các claim có nguồn.")
+                raw, meta = await client.chat_json(prompt, again, photos, "Script", SCRIPT_SCHEMA)
+                step.apply(meta)
+                script = Script.model_validate(raw)
+                step.output["first_try_words"] = words
+        step.decision = (f"{len(script.beats)} beats, {sum(len(b.split()) for b in script.beats)} words, "
+                         f"{len(script.claims)} claims")
         step.output["script"] = script.model_dump()
         return script

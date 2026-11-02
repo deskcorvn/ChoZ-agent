@@ -11,6 +11,9 @@ from pydantic import BaseModel, Field, field_validator
 
 MAX_WORDS_PER_BEAT = 12
 SPOT_SECONDS = 30.0            # the product video is a 30-second vertical spot
+# VieNeu read 27 words in 8.8 s on 2 Nov 2026 (about 3 words a second): a 30 s spot with a 3 s end card needs
+# about 75 spoken words. A script below this is sent back once with its word count.
+MIN_SPOT_WORDS = 65
 FRAME_SIZE = "1080x1920"       # 9:16 first frames and final mp4
 
 
