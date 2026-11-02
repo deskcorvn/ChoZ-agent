@@ -611,7 +611,9 @@ class Agent:
                 listing.stock = facts.stock
                 listing.provenance["stock"] = {"source": "seller's answer", "quote": words, "verified": True}
             listing.missing = listing.missing_for_sale()
-            run.listing = listing.model_dump()
+            # keep what the agent attached outside the model's schema (catalog match, seller memory)
+            kept = {k: run.listing[k] for k in ("catalog", "history") if k in (run.listing or {})}
+            run.listing = {**listing.model_dump(), **kept}
             run.status = "ready"     # one question only; anything still missing is typed in on the preview
         except Exception as exc:
             run.status, run.error = "failed", f"{type(exc).__name__}: {exc}"[:500]

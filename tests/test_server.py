@@ -253,7 +253,10 @@ def test_seller_memory_recalls_and_updates_instead_of_duplicating(settings):
         assert hist["id"] == first["id"] and hist["price_vnd"] == 22000 and hist["how"] == "catalog"
         assert "Lần trước bạn bán 22.000đ" in again["question"]
         again = client.post(f"/api/runs/{again['id']}/answer", data={"text": "22 nghìn"}).json()
+        assert again["listing"]["history"]["id"] == first["id"]                  # answering keeps memory and match
+        assert again["listing"]["catalog"]["match"] == "kt-chao-hau-hop"
         item = client.post(f"/api/runs/{again['id']}/publish", json={"update_of": first["id"], "acknowledge": True}).json()
         assert item["id"] == first["id"] and item["stock"] == 40 and item["versions"] == 2
+        assert item["catalog_id"] == "kt-chao-hau-hop"
         shop = client.get("/api/catalog").json()
         assert [i["id"] for i in shop] == [first["id"]]                            # one listing, updated
