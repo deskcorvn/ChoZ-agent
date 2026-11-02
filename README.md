@@ -202,6 +202,13 @@ since retrieving them could only drop one. No embeddings: the Meta Model API has
 catalog lexical retrieval already reaches the right record. The same run also surfaced that 10 of the 19 producer
 photos carry a generator's mark (IPTC trainedAlgorithmicMedia, some with C2PA), so W6 warned on them.
 
+**Seller memory.** The agent remembers what each seller already published (their own listings only, scoped by
+seller). A new listing of the same product (same catalog record, or a nearly identical title when there is no
+record) shows "Bạn đã đăng sản phẩm này ngày … (giá 22.000đ, còn 80)" with "update the old listing" ticked, so the
+shop keeps one listing with a version count instead of duplicates; the follow-up question recalls the seller's
+own last price ("Lần trước bạn bán 22.000đ"), which beats the producer's suggestion. Nothing is filled in without
+the seller's answer or tap. Tested end to end (`tests/test_server.py`).
+
 **Written rules, cited.** `policy/listing-policy.md` holds the catalog's listing rules (P = not listable, W = listable
 with a warning, C = enforced in code). The verifier gets the file verbatim and must return the rule ids it applied; code
 keeps only ids that exist in the file, flags a block that cites no P rule, and the preview shows the rule next to the

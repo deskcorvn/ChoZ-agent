@@ -236,3 +236,24 @@ def test_operator_overturn_makes_it_publishable_with_a_warning(settings, monkeyp
         assert out["status"] == "ready" and out["verification"]["verdict"] == "warn" and "R1" in out["verification"]["rule_ids"]
         assert client.post(f"/api/runs/{rid}/publish", headers=seller, json={}).status_code == 409        # must read it
         assert client.post(f"/api/runs/{rid}/publish", headers=seller, json={"acknowledge": True}).status_code == 200
+
+
+def test_seller_memory_recalls_and_updates_instead_of_duplicating(settings):
+    with TestClient(create_app(settings)) as client:
+        def listing(note):
+            created = client.post("/api/runs", files=[("photos", ("a.jpg", product_photo(), "image/jpeg"))],
+                                  data={"note": note}).json()
+            return wait(client, created["id"])
+        first = listing("Cháo hàu ăn liền Khánh Thọ loại hộp, giá 22 nghìn, còn 80 hộp")
+        assert first["listing"]["catalog"]["match"] == "kt-chao-hau-hop" and "history" not in first["listing"]
+        assert first["verification"]["verdict"] == "warn"     # the mock files it under "other"; the catalog says food
+        client.post(f"/api/runs/{first['id']}/publish", json={"acknowledge": True})
+        again = listing("Cháo hàu ăn liền Khánh Thọ loại hộp, còn 40 hộp")        # no price this time
+        hist = again["listing"]["history"]
+        assert hist["id"] == first["id"] and hist["price_vnd"] == 22000 and hist["how"] == "catalog"
+        assert "Lần trước bạn bán 22.000đ" in again["question"]
+        again = client.post(f"/api/runs/{again['id']}/answer", data={"text": "22 nghìn"}).json()
+        item = client.post(f"/api/runs/{again['id']}/publish", json={"update_of": first["id"], "acknowledge": True}).json()
+        assert item["id"] == first["id"] and item["stock"] == 40 and item["versions"] == 2
+        shop = client.get("/api/catalog").json()
+        assert [i["id"] for i in shop] == [first["id"]]                            # one listing, updated

@@ -65,21 +65,36 @@ class Catalog:
         if missing:
             raise ValueError(f"still missing: {', '.join(missing)}")
         self.images.mkdir(parents=True, exist_ok=True)
+        # Memory: the seller chose to update the listing they published before instead of adding a duplicate.
+        item_id, updates = run.id, None
+        if edits.get("update_of"):
+            old = next((i for i in self.items() if i["id"] == edits["update_of"]), None)
+            if old is None or old.get("seller", "") != run.seller:
+                raise ValueError("no earlier listing of yours to update")
+            item_id, updates = old["id"], old
         image = run.studio_image or run.photos[0]
         target = self.images / f"{run.id}{Path(image).suffix}"
         shutil.copyfile(run_dir / image, target)
-        item = {"id": run.id, "seller": run.seller, "published_at": time.strftime("%Y-%m-%d %H:%M:%S"), "image": target.name,
+        if updates and updates.get("image") != target.name:
+            (self.images / updates["image"]).unlink(missing_ok=True)
+        item = {"id": item_id, "seller": run.seller, "published_at": time.strftime("%Y-%m-%d %H:%M:%S"), "image": target.name,
                 "verification": (run.verification or {}).get("verdict"), **listing.model_dump(
                     exclude={"missing", "product_phrase_en", "background_prompt_en", "evidence", "provenance"})}
+        catalog_id = ((run.listing or {}).get("catalog") or {}).get("id")
+        if catalog_id:
+            item["catalog_id"] = catalog_id
+        if updates:
+            item["updated_from_run"] = run.id
+            item["versions"] = int(updates.get("versions", 1)) + 1
         if kinds:
             item["masked"] = kinds
         if verification.get("verdict") == "warn":
             item["acknowledged"] = [r["id"] for r in verification.get("rules") or []] or ["warning"]
-        items = [i for i in self.items() if i["id"] != run.id] + [item]
+        items = [i for i in self.items() if i["id"] != item_id] + [item]
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
         # Verify the outcome, not the intent: read the catalog back and compare what a buyer will see.
-        stored = next((i for i in self.items() if i["id"] == run.id), None)
+        stored = next((i for i in self.items() if i["id"] == item_id), None)
         if stored is None or any(stored.get(k) != item[k] for k in ("title", "price_vnd", "stock", "category", "image")):
             raise ValueError("the catalog did not store the listing as sent; nothing was published")
         run.status = "published"

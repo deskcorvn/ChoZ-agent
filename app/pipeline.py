@@ -356,6 +356,7 @@ class Agent:
             raise
         verification = Verification.model_validate(verified[0])
         self._ground(run, verification, candidates, catalog)
+        self._remember(run)
         hits = guard.prohibited_terms(seller_words, run.listing.get("title", ""), run.listing.get("description", ""))
         if hits:
             # C4: a named prohibited item blocks in code, whatever the model decided.
@@ -536,12 +537,39 @@ class Agent:
                     + (f"{info.get('name')} ({match})" if match != "none" else "no catalog record"),
                     "retrieved candidates + verifier decision", {**info, "checks": [c.model_dump() for c in checks]})
 
+    def _remember(self, run: Run) -> None:
+        """Seller memory: the same seller's latest published listing of this product (same catalog record, or a title
+        that is nearly the same), so the agent can offer to update it and recall the seller's own last price."""
+        path = self.runs_dir.parent / "catalog.json"
+        if not path.is_file():
+            return
+        listing = run.listing or {}
+        cat_id = (listing.get("catalog") or {}).get("id")
+        mine = [i for i in json.loads(path.read_text(encoding="utf-8")) if i.get("seller", "") == run.seller]
+        title = set(kb.fold(listing.get("title", "")).split())
+
+        def similar(item: dict) -> float:
+            other = set(kb.fold(item.get("title", "")).split())
+            return len(title & other) / max(len(title | other), 1)
+        same = [(i, "catalog") for i in mine if cat_id and i.get("catalog_id") == cat_id]
+        same = same or [(i, "title") for i in mine if not cat_id and similar(i) >= 0.6]
+        if not same:
+            return
+        item, how = max(same, key=lambda x: x[0].get("published_at", ""))
+        history = {k: item.get(k) for k in ("id", "title", "price_vnd", "stock", "published_at")}
+        history["how"] = how
+        run.listing = {**listing, "history": history}
+        self._local(run, "memory", f"Seller memory (local): listed before on {item.get('published_at', '')[:10]}",
+                    "this seller's published listings", history)
+
     def _decide(self, run: Run, listing: Listing, verification: Verification) -> None:
         if verification.verdict == "block":
             run.status = "blocked"
         elif listing.missing and not run.asked:
             suggested = ((run.listing or {}).get("catalog") or {}).get("suggested_price_vnd")
-            run.status, run.question, run.asked = "needs_answer", prompts.follow_up_question(listing.missing, suggested), True
+            last = ((run.listing or {}).get("history") or {}).get("price_vnd")
+            run.status, run.question, run.asked = ("needs_answer",
+                                                   prompts.follow_up_question(listing.missing, suggested, last), True)
         else:
             run.status = "ready"
 

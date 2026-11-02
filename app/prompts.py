@@ -95,10 +95,11 @@ STUDIO_BACKGROUND = ("{scene} Square product-photo composition, empty centre rea
                      "no text, no letters, no logos, no watermark.")
 
 
-def follow_up_question(missing: list[str], suggested_price: int | None = None) -> str:
+def follow_up_question(missing: list[str], suggested_price: int | None = None, last_price: int | None = None) -> str:
     """The one question the agent may ask. Fixed wording: it is read aloud in the demo and must not drift. When the
     product matched the catalog, the producer's suggested price is mentioned; the answer is still the seller's own."""
-    hint = f" (Nhà sản xuất đề xuất {suggested_price:,}đ.)".replace(",", ".") if suggested_price else ""
+    hint = (f" (Lần trước bạn bán {last_price:,}đ.)" if last_price else
+            f" (Nhà sản xuất đề xuất {suggested_price:,}đ.)" if suggested_price else "").replace(",", ".")
     if "price_vnd" in missing and "stock" in missing:
         return "Bạn bán giá bao nhiêu và còn bao nhiêu sản phẩm?" + hint
     if "price_vnd" in missing:

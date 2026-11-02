@@ -219,6 +219,15 @@ function fillPreview(run) {
     $('use-price').textContent = retail ? `Dùng giá ${vnd(retail)}` : '';
     $('use-price').onclick = () => { $('f-price').value = retail; $('use-price').hidden = true; };
   }
+  // Seller memory: this product was listed before; by default the old listing is updated, not duplicated.
+  const hist = l.history || {};
+  $('history').hidden = !hist.id;
+  if (hist.id) {
+    $('history-text').textContent = `Bạn đã đăng sản phẩm này ngày ${(hist.published_at || '').slice(0, 10)}`
+      + (hist.price_vnd ? ` (giá ${vnd(hist.price_vnd)}, còn ${hist.stock ?? '?'})` : '') + '. Cập nhật tin cũ thay vì đăng tin mới.';
+    $('update-old').checked = true;
+    if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('use-price').hidden = true; }; $('catalog').hidden = false; }
+  }
   const ids = [...new Set([...(v.rule_ids || []), ...(v.rules || []).map((r) => r.id)])].filter((id) => ADVICE[id]);
   $('advice').replaceChildren(...(v.verdict === 'pass' ? [] : ids).map((id) => {
     const li = document.createElement('li'); li.className = id[0] === 'P' ? 'block' : 'warn';
@@ -263,6 +272,8 @@ $('publish').addEventListener('click', async () => {
   const num = (id) => $(id).value === '' ? null : Number($(id).value);
   const edits = { title: $('f-title').value, description: $('f-description').value,
                   price_vnd: num('f-price'), stock: num('f-stock'), acknowledge: $('ack').checked };
+  const hist = (state.run.listing || {}).history;
+  if (hist && hist.id && $('update-old').checked) edits.update_of = hist.id;
   try {
     const item = await api(`/api/runs/${state.run.id}/publish`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(edits) });

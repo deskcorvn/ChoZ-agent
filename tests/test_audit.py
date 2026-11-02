@@ -43,8 +43,10 @@ def test_the_app_records_check_publish_refusal_and_delete_without_seller_content
     assert [e["event"] for e in events] == ["checked", "publish_refused", "published", "deleted_by_seller"]
     assert events[0]["verdict"] == "warn" and events[0]["rules"].count("W3") == 1 and "injection" in events[0]["guards"]
     assert events[2]["acknowledged"] == ["W3"] and events[2]["confirmed_by"] == "seller (app)"
-    text = log.read_text(encoding="utf-8")
-    assert "0912" not in text and "120000" not in text and "Áo thun" not in text        # ids and decisions only
+    def values(event):                    # every value except the hashes, which are random hex
+        return [v for k, v in event.items() if k not in ("hash", "prev")]
+    flat = json.dumps([values(e) for e in events], ensure_ascii=False)
+    assert "0912" not in flat and "120000" not in flat and "Áo thun" not in flat          # ids and decisions only
     assert audit.verify(log)[0]
 
 
