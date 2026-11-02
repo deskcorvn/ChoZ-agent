@@ -1,7 +1,10 @@
 """shotlist: `Script` + continuity bible → `ShotList` (5-8 s shots, one action each, locked camera). Muse Spark."""
 from __future__ import annotations
 
+import re
+
 from app.config import Settings
+from app.kb import fold
 from studio import log, require_prompt
 from studio.models import SHOTLIST_SCHEMA, Bible, Shot, ShotList, ShotListInput
 
@@ -10,7 +13,9 @@ INPUT, OUTPUT, ROLE = ShotListInput, ShotList, "director"
 PROMPT = """Bạn là đạo diễn hình cho quảng cáo dọc 9:16 làm bằng AI (ảnh tĩnh trước, image-to-video sau).
 Từ Script và Bible (nhân vật, địa điểm, đạo cụ, giờ trong ngày) viết ShotList (JSON theo schema).
 Bible rỗng thì tự đặt: một người Việt Nam ~30 tuổi, trang phục giản dị, một bếp hoặc bàn ăn căn hộ Việt
-Nam (gạch men, bát hoa lam Bát Tràng, ghế nhựa), buổi sáng; ghi bible đã chọn vào trường bible.
+Nam (gạch men, bát hoa lam Bát Tràng, ghế nhựa); ghi bible đã chọn vào trường bible. Giờ trong ngày
+(time_of_day) GIỮ ĐÚNG như Bible, vì nó lấy từ lời dẫn: lời dẫn nói "tối muộn" thì mọi cảnh là buổi tối,
+đèn trong nhà, ngoài cửa sổ trời tối; không cảnh nào được ghi "morning".
 
 Quy tắc cảnh (học từ 41 clip Kling đã kiểm 1/11/2026):
 - Một cảnh cho mỗi beat (beat_index), 5-8 giây, MỘT hành động duy nhất; không "rồi", "then", không
@@ -35,14 +40,26 @@ Quy tắc cảnh (học từ 41 clip Kling đã kiểm 1/11/2026):
 - Không chữ, không logo, không bao bì trong bất kỳ prompt nào; không người thứ hai."""
 
 _LIGHT = {"morning": "soft window light from the left", "noon": "bright overhead daylight",
-          "evening": "warm low sun from the right"}
+          "evening": "warm low sun from the right", "night": "warm ceiling lamp indoors, dark window behind"}
+
+# The voice-over and the pictures must tell the same time of day (a live run on 2 Nov 2026 said "tối muộn"
+# over morning light because the bible defaulted to morning). Folded words, so "toi muon" counts too.
+_TIMES = (("night", r"\b(toi|dem|khuya|bua toi)\b"), ("noon", r"\b(trua|bua trua)\b"),
+          ("morning", r"\b(buoi sang|bua sang|sang nay|sang som)\b"))
+
+
+def time_from_script(beats: list[str]) -> str:
+    """The time of day the voice-over names first ("" when it names none)."""
+    text = fold(" ".join(beats))
+    hits = [(m.start(), name) for name, pattern in _TIMES for m in [re.search(pattern, text)] if m]
+    return min(hits)[1] if hits else ""
 
 
 def _sample(inp: ShotListInput) -> ShotList:
     bible = inp.bible if inp.bible.character else Bible(
         character="a woman in her thirties, plain white shirt", location="a tidy Vietnamese kitchen table",
-        props=["a white bowl", "a wooden spoon"], time_of_day="morning")
-    light = _LIGHT.get(bible.time_of_day, _LIGHT["morning"])
+        props=["a white bowl", "a wooden spoon"], time_of_day=inp.bible.time_of_day or "morning")
+    light = _LIGHT.get(bible.time_of_day or "morning", _LIGHT["morning"])
     shots = []
     for i, beat in enumerate(inp.script.beats[:6]):
         shots.append(Shot(
@@ -56,6 +73,9 @@ def _sample(inp: ShotListInput) -> ShotList:
 
 
 async def run(client, settings: Settings, inp: ShotListInput) -> ShotList:
+    if not inp.bible.time_of_day:
+        inp = inp.model_copy(update={"bible": inp.bible.model_copy(
+            update={"time_of_day": time_from_script(inp.script.beats) or "morning"})})
     describe = f"{len(inp.script.beats)} beats; bible {'given' if inp.bible.character else 'default'}"
     async with log.step("shotlist", "Script → shot list (JSON schema)", ROLE, describe, mock=client.mock) as step:
         if client.mock:
@@ -67,6 +87,9 @@ async def run(client, settings: Settings, inp: ShotListInput) -> ShotList:
             raw, meta = await client.chat_json(prompt, user, [], "ShotList", SHOTLIST_SCHEMA)
             step.apply(meta)
             shotlist = ShotList.model_validate(raw)
-        step.decision = f"{len(shotlist.shots)} shots, {shotlist.seconds:.0f} s"
+        if shotlist.bible.time_of_day != inp.bible.time_of_day:   # the script's time wins over the model's
+            shotlist = shotlist.model_copy(update={"bible": shotlist.bible.model_copy(
+                update={"time_of_day": inp.bible.time_of_day})})
+        step.decision = f"{len(shotlist.shots)} shots, {shotlist.seconds:.0f} s, {inp.bible.time_of_day}"
         step.output["shotlist"] = shotlist.model_dump()
         return shotlist

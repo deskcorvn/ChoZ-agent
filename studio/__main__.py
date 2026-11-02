@@ -22,6 +22,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--in", dest="inp", help="input JSON file (service's input model)")
     parser.add_argument("--out", help="output JSON file (service) or folder (demo); default: stdout / data/studio")
     parser.add_argument("--mock", action="store_true", help="use the mock client even when a key is set")
+    parser.add_argument("--character", action="append", default=None,
+                        help="demo: a face photo to use as the character instead of painting one (repeatable)")
     args = parser.parse_args(argv)
 
     settings = config.load()
@@ -39,7 +41,8 @@ def main(argv: list[str] | None = None) -> int:
             if args.service == "demo":
                 if not args.target:
                     parser.error("demo needs a product folder")
-                return await run_demo(client, settings, Path(args.target), Path(args.out) if args.out else None)
+                return await run_demo(client, settings, Path(args.target), Path(args.out) if args.out else None,
+                                      characters=args.character)
             if not args.inp:
                 parser.error(f"{args.service} needs --in file.json")
             payload = json.loads(Path(args.inp).read_text(encoding="utf-8"))

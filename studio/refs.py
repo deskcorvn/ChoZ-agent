@@ -1,4 +1,8 @@
-"""refs: `ShotList` → reference images (character in 3 angles, empty location, plain props). Muse Image."""
+"""refs: `ShotList` → reference images (character in 3 angles, empty location, plain props). Muse Image.
+
+A face can be supplied instead of painted (`character_photos`): the same person in every shot and every
+product, from a licensed source the owner chose. Those files are used as they are and never copied into git.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -42,7 +46,12 @@ async def run(client, settings: Settings, inp: RefsInput) -> Refs:
     async with log.step("refs", "Shot list → reference images", ROLE, describe, mock=client.mock) as step:
         images: list[RefImage] = []
         source = "mock" if client.mock else "muse-image"
-        if "character" in roles:
+        supplied = [p for p in inp.character_photos if Path(p).is_file()]
+        if "character" in roles and supplied:
+            for i, photo in enumerate(supplied):
+                images.append(RefImage(role="character", angle=ANGLES[0] if i == 0 else f"supplied-{i + 1}",
+                                       path=str(photo), source="supplied"))
+        elif "character" in roles:
             for angle in ANGLES:
                 path = folder / f"character-{angle}.png"
                 prompt = "" if client.mock else require_prompt("refs", CHARACTER_PROMPT).format(
@@ -63,6 +72,6 @@ async def run(client, settings: Settings, inp: RefsInput) -> Refs:
             images.append(RefImage(role="product", path=str(photo), source="photo"))
         if client.mock:
             step.model, step.endpoint = settings.image_model, "POST /v1/images/generations"
-        step.decision = f"{len(images)} reference images"
+        step.decision = f"{len(images)} reference images" + (f", character supplied ({len(supplied)})" if supplied else "")
         step.output["refs"] = [i.model_dump() for i in images]
         return Refs(images=images)

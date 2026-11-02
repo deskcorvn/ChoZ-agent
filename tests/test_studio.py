@@ -84,6 +84,28 @@ def test_the_mock_chain_runs_all_nine_services_on_a_sample_product(settings, stu
     assert log.tail(3) == lines[-3:]
 
 
+def test_a_supplied_face_is_the_character_in_every_shot_and_nothing_is_painted_for_it(settings, studio_log, tmp_path):
+    face = tmp_path / "face.png"
+    face.write_bytes(product_photo())
+    out = asyncio.run(run_demo(MockMetaClient(settings), settings, PRODUCT, out_dir=tmp_path / "w",
+                               renderer=FakeRenderer(tmp_path), characters=[str(face)]))
+    assert out["status"] == "done", out
+    characters = Refs.model_validate(out["refs"]).for_role("character")
+    assert [(c.path, c.source) for c in characters] == [(str(face), "supplied")]
+    assert not (Path(out["work_dir"]) / "refs" / "character-front.png").exists()
+
+
+def test_the_shots_keep_the_time_of_day_the_voice_over_names(settings):
+    from studio import shotlist
+    from studio.models import ShotListInput
+    beats = ["Tối muộn bụng đói mà ngại nấu nướng không?", "Có hộp cháo hàu ăn liền.",
+             "Vị đặc sản Hải Phòng.", "Một hộp hai mươi hai nghìn."]
+    the_script = Script(product="Cháo hàu", beats=beats, supers=["22 nghìn"], cta="Đặt trên Chợ Z", claims=[])
+    shots = asyncio.run(shotlist.run(MockMetaClient(settings), settings, ShotListInput(script=the_script)))
+    assert shots.bible.time_of_day == "night" and all("lamp" in shot.light for shot in shots.shots)
+    assert shotlist.time_from_script(["Cháo hàu ngon"]) == ""
+
+
 def test_every_service_exposes_input_output_and_run():
     from studio import service
     for name in SERVICES:

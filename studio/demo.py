@@ -87,8 +87,13 @@ async def packshot(client, settings: Settings, photo: str, folder: Path, product
     return str(out)
 
 
+def character_photos() -> list[str]:
+    """`$STUDIO_CHARACTER`: face photo(s) to use as the character, separated by the OS path separator."""
+    return [p for p in os.environ.get("STUDIO_CHARACTER", "").split(os.pathsep) if p.strip()]
+
+
 async def run_demo(client, settings: Settings, product_dir: Path, out_dir: Path | None = None,
-                   renderer: render.Renderer | None = None) -> dict:
+                   renderer: render.Renderer | None = None, characters: list[str] | None = None) -> dict:
     folder = work_dir(settings, str(out_dir) if out_dir else None, product_dir.name)
     listing, photos = listing_from_folder(product_dir)
     outputs: dict = {"product": product_dir.name, "work_dir": str(folder)}
@@ -111,7 +116,9 @@ async def run_demo(client, settings: Settings, product_dir: Path, out_dir: Path 
     save("script", the_script)
     the_shots = resume("shotlist", ShotList) or await shotlist.run(client, settings, ShotListInput(script=the_script))
     save("shotlist", the_shots)
-    the_refs = resume("refs", Refs) or await refs.run(client, settings, RefsInput(shotlist=the_shots, photos=photos, work_dir=str(folder)))
+    faces = characters if characters is not None else character_photos()
+    the_refs = resume("refs", Refs) or await refs.run(client, settings, RefsInput(
+        shotlist=the_shots, photos=photos, character_photos=faces, work_dir=str(folder)))
     save("refs", the_refs)
     the_voice = await voice.run(client, settings, VoiceInput(script=the_script, work_dir=str(folder), tts=tts_engine()))
     save("voice", the_voice)

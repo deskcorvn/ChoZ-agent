@@ -78,7 +78,7 @@ class Bible(BaseModel):
     character: str = ""
     location: str = ""
     props: list[str] = []
-    time_of_day: str = "morning"
+    time_of_day: str = ""                            # "" = the time the script names (shotlist.time_from_script)
 
 
 class ShotListInput(BaseModel):
@@ -112,6 +112,7 @@ class ShotList(BaseModel):
 class RefsInput(BaseModel):
     shotlist: ShotList
     photos: list[str] = []                           # the real product, for the packshot
+    character_photos: list[str] = []                 # licensed face photos (e.g. CC0) used instead of painting one
     work_dir: str | None = None
 
 
@@ -119,7 +120,7 @@ class RefImage(BaseModel):
     role: str                                        # character | location | prop | product
     angle: str = ""                                  # front | three-quarter | profile | ""
     path: str
-    source: Literal["muse-image", "photo", "mock"] = "muse-image"
+    source: Literal["muse-image", "photo", "supplied", "mock"] = "muse-image"
 
 
 class Refs(BaseModel):
