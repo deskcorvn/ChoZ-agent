@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 from app.config import Settings
+from app.kb import fold
 from studio import log, require_prompt
 from studio.models import MIN_SPOT_WORDS, SCRIPT_SCHEMA, Claim, Script, ScriptInput
 
@@ -25,6 +26,24 @@ Từ listing (JSON) và ảnh sản phẩm, viết Script (JSON theo schema):
 - Cấm: "nhất", "số một", "đầu tiên", "duy nhất", "100%", số gam/khối lượng không có trong listing hoặc
   nhãn, chứng nhận (OCOP, ISO) không có nguồn, so sánh với đối thủ, lời hứa sức khỏe.
 - language: "vi". Giọng thân tình, miền Bắc, không hô hào."""
+
+
+# How to prepare or use a product is a claim like any other: a live script on 2 Nov 2026 said "chỉ cần thêm nước
+# sôi" and "mở nắp chờ vài phút" with no source. Words that state preparation, checked against the listing and the
+# script's own sourced claims (folded, so "nuoc soi" counts too).
+PREPARATION = ("nuoc soi", "do nuoc", "chan nuoc", "phut", "ngam", "dun ", "lo vi song", "mo nap", "day nap", "pha ")
+
+
+def unsupported_beats(script: Script, listing: dict) -> list[str]:
+    """Beats that state a preparation step found neither in the listing nor in a sourced claim."""
+    known = fold(" ".join([str(listing.get("description") or ""), str(listing.get("title") or "")] +
+                          [f"{c.text} {c.evidence}" for c in script.claims]))
+    found = []
+    for beat in script.beats:
+        text = fold(beat) + " "
+        if any(word in text and word not in known + " " for word in PREPARATION):
+            found.append(beat)
+    return found
 
 
 def _sample(inp: ScriptInput) -> Script:
@@ -69,6 +88,15 @@ async def run(client, settings: Settings, inp: ScriptInput) -> Script:
                 step.apply(meta)
                 script = Script.model_validate(raw)
                 step.output["first_try_words"] = words
+            unsupported = unsupported_beats(script, inp.listing)
+            if unsupported:                     # one rewrite; what is still unsourced is reported, not hidden
+                again = (f"{user}" + "\n" + "\n" + "Các ý sau nói cách pha/dùng mà listing và claims không có nguồn: "
+                         f"{unsupported}. Viết lại, bỏ các ý đó hoặc thêm claim có nguồn (label/seller), giữ 6-8 ý, 70-90 từ.")
+                raw, meta = await client.chat_json(prompt, again, photos, "Script", SCRIPT_SCHEMA)
+                step.apply(meta)
+                script = Script.model_validate(raw)
+                step.output["unsupported_first_try"] = unsupported
+                step.output["unsupported"] = unsupported_beats(script, inp.listing)
         step.decision = (f"{len(script.beats)} beats, {sum(len(b.split()) for b in script.beats)} words, "
                          f"{len(script.claims)} claims")
         step.output["script"] = script.model_dump()

@@ -119,6 +119,20 @@ def test_the_judge_score_uses_measured_loudness_and_length_not_the_models_guess(
     assert fixed.total == 6.0                       # 7.0 minus one measured failure (length)
 
 
+def test_a_preparation_step_without_a_source_is_caught_in_the_script():
+    from studio.models import Claim
+    from studio.script import unsupported_beats
+    listing = {"title": "Cháo hàu ăn liền đặc sản Hải Phòng", "description": "hộp 150 gam, giá 22 nghìn một hộp"}
+    beats = ["Sáng nay bận rộn bạn đã kịp ăn sáng chưa nhỉ?", "Hương vị đặc sản Hải Phòng quen thuộc dễ ăn lắm.",
+             "Cháo ăn liền tiện lợi chỉ cần thêm nước sôi thôi.", "Mở nắp chờ vài phút là có bữa ngon rồi."]
+    script = Script(product="Cháo hàu", beats=beats, cta="Đặt trên Chợ Z",
+                    claims=[Claim(text="Đặc sản Hải Phòng", source="label", evidence="ĐẶC SẢN HẢI PHÒNG")])
+    assert unsupported_beats(script, listing) == beats[2:]       # the live run's two unsourced lines (2 Nov 2026)
+    printed = script.model_copy(update={"claims": [Claim(text="Đổ nước sôi, mở nắp, đậy nắp chờ 3 phút", source="label",
+                                                         evidence="HDSD in trên nắp")]})
+    assert unsupported_beats(printed, listing) == []
+
+
 def test_every_service_exposes_input_output_and_run():
     from studio import service
     for name in SERVICES:
