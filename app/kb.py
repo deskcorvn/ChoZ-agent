@@ -212,9 +212,40 @@ def default() -> KnowledgeBase:
 WEIGHT = re.compile(r"(\d{2,4})\s*(?:g|gr|gam|gram)\b", re.I)
 
 
+DIGITS = {"không": 0, "một": 1, "mốt": 1, "hai": 2, "ba": 3, "bốn": 4, "tư": 4, "năm": 5, "lăm": 5, "sáu": 6,
+          "bảy": 7, "tám": 8, "chín": 9}
+SPOKEN_WEIGHT = re.compile(r"((?:(?:không|một|mốt|hai|ba|bốn|tư|năm|lăm|sáu|bảy|tám|chín|mười|mươi|trăm|linh|lẻ)\s+){1,6})"
+                           r"(?:gam|gram|gờ ram|g)", re.I)
+
+
+def vi_number(words_: str) -> int | None:
+    """Spoken Vietnamese 1-999: 'một trăm năm mươi' → 150, 'một trăm hai lăm' → 125, 'tám mươi' → 80."""
+    value, cur, seen = 0, 0, False
+    for t in words_.lower().split():
+        if t in DIGITS:
+            if cur:                      # 'hai lăm' after 'trăm': tens and units without 'mươi'
+                value += cur * 10
+            cur, seen = DIGITS[t], True
+        elif t == "mười":
+            value, cur, seen = value + 10, 0, True
+        elif t == "mươi":
+            value, cur = value + cur * 10, 0
+        elif t == "trăm":
+            value, cur = value + cur * 100, 0
+        elif t in ("linh", "lẻ"):
+            continue
+    return value + cur if seen else None
+
+
 def weight_in(texts: list[str]) -> int | None:
+    """Grams named in the text: digits ('120g', '150 gam') or spoken Vietnamese ('một trăm năm mươi gam')."""
     for t in texts:
         m = WEIGHT.search(t or "")
         if m:
             return int(m.group(1))
+        m = SPOKEN_WEIGHT.search(t or "")
+        if m:
+            n = vi_number(m.group(1))
+            if n:
+                return n
     return None

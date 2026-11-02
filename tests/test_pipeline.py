@@ -374,3 +374,12 @@ def test_a_match_that_was_not_retrieved_is_ignored(settings, tmp_path):
     from app import kb
     agent._ground(run, v, [], kb.default())
     assert run.listing["catalog"]["match"] == "none" and any("not retrieved" in c.note for c in v.checks)
+
+
+def test_weights_spoken_in_vietnamese():
+    from app.kb import vi_number, weight_in
+    assert vi_number("một trăm năm mươi") == 150 and vi_number("một trăm hai lăm") == 125
+    assert vi_number("một trăm hai mươi") == 120 and vi_number("tám mươi") == 80 and vi_number("hai trăm") == 200
+    assert weight_in(["Cháo hàu, hộp một trăm năm mươi gam, giá hai mươi hai nghìn"]) == 150
+    assert weight_in(["hộp một trăm năm mươi gram"]) == 150 and weight_in(["Hộp 120g"]) == 120
+    assert weight_in(["giá hai mươi hai nghìn một hộp"]) is None
