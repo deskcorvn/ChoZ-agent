@@ -188,7 +188,15 @@ function fillPreview(run) {
   const v = run.verification || { verdict: 'warn', summary_vi: 'Chưa kiểm tra.' };
   $('verdict').className = `verdict ${v.verdict}`;
   const summary = v.summary_vi.charAt(0).toUpperCase() + v.summary_vi.slice(1);
-  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary;
+  // The headline is fixed per verdict, so the same situation always reads the same; the model's own sentence
+  // follows as the detail, and the fixed per-rule lines below say what happened and what to do.
+  const HEADLINE = { pass: '✓ Tin đăng khớp với ảnh.', warn: '! Trợ lý đã chỉnh tin, bạn xem lại trước khi đăng.',
+    block: '✕ Sản phẩm này không đăng được trên Chợ Z.' };
+  $('verdict').replaceChildren(document.createTextNode(HEADLINE[v.verdict] || summary));
+  if (HEADLINE[v.verdict] && summary) {
+    const detail = document.createElement('small'); detail.className = 'verdict-detail'; detail.textContent = summary;
+    $('verdict').append(detail);
+  }
   // One fixed line per rule that applied: what happened and what to do, in plain Vietnamese, the same every time.
   // The rule codes stay in the log panel and the audit log, not on the seller's screen.
   const ADVICE = {
@@ -223,7 +231,9 @@ function fillPreview(run) {
   const hist = l.history || {};
   $('history').hidden = !hist.id;
   if (hist.id) {
-    $('history-text').textContent = `Bạn đã đăng sản phẩm này ngày ${(hist.published_at || '').slice(0, 10)}`
+    const [y, mo, dd] = (hist.published_at || '').slice(0, 10).split('-');
+    const today = new Date().toISOString().slice(0, 10) === (hist.published_at || '').slice(0, 10);
+    $('history-text').textContent = `Bạn đã đăng sản phẩm này ${today ? 'sáng nay' : `ngày ${+dd}/${+mo}/${y}`}`
       + (hist.price_vnd ? ` (giá ${vnd(hist.price_vnd)}, còn ${hist.stock ?? '?'})` : '') + '. Cập nhật tin cũ thay vì đăng tin mới.';
     $('update-old').checked = true;
     if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('use-price').hidden = true; }; $('catalog').hidden = false; }
