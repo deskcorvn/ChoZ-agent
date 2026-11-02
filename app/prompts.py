@@ -13,6 +13,13 @@ Rules:
 - Write `title` and `description` in natural, friendly Vietnamese a market seller would use. No emoji,
   no exaggerated claims, no claims you cannot see or the seller did not say. Do not call the item new,
   genuine, imported, handmade or best quality unless the seller said so.
+- Every sentence of the description must be backed by the photo (including text printed on the pack) or by
+  the seller's words. Do NOT add taste, texture, freshness, ingredients, health benefits, who or when it suits
+  ("phù hợp bữa sáng", "mang đi làm"), preparation ("chỉ cần chế nước sôi") or storage, unless that is printed
+  on the pack or the seller said it. A slogan printed on the pack may be quoted as printed (e.g. "ngon tròn vị").
+  Two or three short factual sentences are better than a long one with guesses.
+- "Đặc sản Hải Phòng" on a pack names a regional dish, not where it was made: write it as such (e.g. attribute
+  "Đặc sản: Hải Phòng"), and use "Xuất xứ" / "Nơi sản xuất" only when the pack or the seller states it.
 - Price, stock, sizes, colours for sale, origin, and material come ONLY from the seller's words, or
   from text clearly printed on the product. Never guess a price or a stock count from the photos.
 - If the seller did not give the price, set `price_vnd` to null and add "price_vnd" to `missing`.

@@ -202,6 +202,18 @@ since retrieving them could only drop one. No embeddings: the Meta Model API has
 catalog lexical retrieval already reaches the right record. The same run also surfaced that 10 of the 19 producer
 photos carry a generator's mark (IPTC trainedAlgorithmicMedia, some with C2PA), so W6 warned on them.
 
+**Does the text say only what is true?** Field checks cannot see an invented sentence, so the listings are also
+judged claim by claim (`evals/faithfulness.py`, the RAGAS faithfulness idea): Claude, a different model family from
+the Muse Spark that wrote them, splits title, description and attributes into atomic claims and labels each as
+shown in the photo, said by the seller, in the catalog record, or unsupported. On 24 live listings the first
+measurement found 30 unsupported claims in 244 (88 % supported, 5 of 24 listings clean): usage tips ("phù hợp
+bữa sáng"), taste and texture ("sợi dai", "đậm vị"), preparation the pack does not print, and "Xuất xứ: Hải
+Phòng" read from "Đặc sản Hải Phòng", which names a dish, not a factory. The listing prompt now requires every
+sentence to be backed by the photo or the seller and treats regional dish names as such. Re-run on the same 24
+products: 247 of 252 claims supported (98 %), 19 of 24 listings clean; the 5 left are mild ("tiện mang theo").
+Fields, catalog matching (18/19) and the regression gate were unchanged. Reports: `evals/faithfulness-before.md`,
+`evals/faithfulness.md`.
+
 **Seller memory.** The agent remembers what each seller already published (their own listings only, scoped by
 seller). A new listing of the same product (same catalog record, or a nearly identical title when there is no
 record) shows "Bạn đã đăng sản phẩm này ngày … (giá 22.000đ, còn 80)" with "update the old listing" ticked, so the

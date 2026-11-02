@@ -15,6 +15,29 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | catalog: same product matched, or rightly none | 0/0 | – | – |
 | no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
 
+### Catalogue again after the faithfulness fix to the listing prompt (Nov 2)
+
+19 live runs · p50 12.8 s · p95 20.1 s · mean $0.0167 per listing · files: batch-20261102-085317.csv
+
+| Check | Right | Rate | Wilson 95 % |
+|---|---|---|---|
+| price from the seller's words | 13/13 | 100 % | 77–100 % |
+| stock | 19/19 | 100 % | 83–100 % |
+| category | 19/19 | 100 % | 83–100 % |
+| catalog: same product matched, or rightly none | 18/19 | 95 % | 75–99 % |
+| no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
+
+### Five samples after the faithfulness fix: the regression gate passed (Nov 2)
+
+5 live runs · p50 12.6 s · p95 15.7 s · mean $0.0170 per listing · files: batch-20261102-085422.csv
+
+| Check | Right | Rate | Wilson 95 % |
+|---|---|---|---|
+| price from the seller's words | 5/5 | 100 % | 57–100 % |
+| stock | 4/4 | 100 % | 51–100 % |
+| category | 5/5 | 100 % | 57–100 % |
+| catalog: same product matched, or rightly none | 5/5 | 100 % | 57–100 % |
+
 ### Regression gate after the W5 and W6 policy changes, five samples (Nov 2)
 
 5 live runs · p50 13.6 s · p95 15.2 s · mean $0.0156 per listing · files: batch-20261102-014112.csv

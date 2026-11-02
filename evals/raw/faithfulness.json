@@ -1,0 +1,1658 @@
+[
+ {
+  "run": "23db4b14c98a",
+  "title": "Bánh đa hải sản ăn liền dạng gói",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa hải sản",
+    "support": "photo",
+    "note": "Pack prints 'Bánh đa Hải Sản'; seller also says it."
+   },
+   {
+    "field": "title",
+    "claim": "Ăn liền",
+    "support": "photo",
+    "note": "'Ăn Liền' is printed on the pack."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng gói",
+    "support": "photo",
+    "note": "The photo shows a single pack; seller says 'loại gói'."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì màu đỏ vàng",
+    "support": "photo",
+    "note": "The packaging is visibly red and yellow."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì in hình hải sản",
+    "support": "photo",
+    "note": "Mantis shrimp and shrimp are pictured on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì in chữ ăn liền",
+    "support": "photo",
+    "note": "'Ăn Liền' text is visible on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Shop còn 50 gói",
+    "support": "seller_words",
+    "note": "Seller says 'còn năm mươi gói'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Quy cách: Gói",
+    "support": "photo",
+    "note": "The photo shows a pack; seller says 'loại gói'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Hương vị: Hải sản",
+    "support": "photo",
+    "note": "'Hải Sản' is printed on the pack."
+   }
+  ]
+ },
+ {
+  "run": "f273df5cc554",
+  "title": "Bún riêu cua ăn liền Khánh Thọ dạng cốc",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bún riêu cua ăn liền",
+    "support": "photo",
+    "note": "Bao bì in 'BÚN RIÊU CUA ĂN LIỀN'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "photo",
+    "note": "Logo 'KHÁNH THỌ' in trên cốc; người bán cũng nêu."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng cốc",
+    "support": "photo",
+    "note": "Ảnh cho thấy sản phẩm dạng cốc; người bán nói 'loại cốc'."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Nhận định chung, hiển nhiên với sản phẩm ăn liền dạng cốc."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "In 'ĐẶC SẢN HẢI PHÒNG' trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi hương vị truyền thống",
+    "support": "photo",
+    "note": "In 'HƯƠNG VỊ TRUYỀN THỐNG' trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "photo",
+    "note": "Logo trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: cốc",
+    "support": "photo",
+    "note": "Hình dạng cốc thấy rõ; người bán xác nhận."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Chữ in trên bao bì; đây là lời quảng cáo của nhà sản xuất, không xác minh được xuất xứ thực tế."
+   }
+  ]
+ },
+ {
+  "run": "3365a469e5c4",
+  "title": "Bún riêu cua ăn liền Khánh Thọ cốc 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bún riêu cua ăn liền",
+    "support": "photo",
+    "note": "Bao bì in 'Bún riêu cua ăn liền'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán nói 'Khánh Thọ'; bao bì không thấy rõ tên này."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng cốc",
+    "support": "photo",
+    "note": "Ảnh cho thấy cốc; người bán cũng nói 'loại cốc'."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "Bao bì in 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Dạng cốc tiện lợi",
+    "support": "photo",
+    "note": "Ảnh cho thấy dạng cốc; 'tiện lợi' là mô tả chung."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Bao bì in 'Đặc sản Hải Phòng'."
+   },
+   {
+    "field": "description",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "Bao bì in 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Cốc có nắp nhựa trong",
+    "support": "photo",
+    "note": "Ảnh cho thấy nắp nhựa trong suốt."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán nêu tên thương hiệu."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Bao bì in 'Đặc sản Hải Phòng'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng đóng gói: cốc",
+    "support": "photo",
+    "note": "Ảnh cho thấy cốc."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng: 120g",
+    "support": "photo",
+    "note": "Bao bì in 120g."
+   }
+  ]
+ },
+ {
+  "run": "b0d2ebb25d22",
+  "title": "Bún riêu cua ăn liền Khánh Thọ loại gói",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bún riêu cua",
+    "support": "photo",
+    "note": "Printed on pack"
+   },
+   {
+    "field": "title",
+    "claim": "Ăn liền",
+    "support": "photo",
+    "note": "\"Ăn liền\" printed on pack"
+   },
+   {
+    "field": "title",
+    "claim": "Brand Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller names the brand; it is not visible on the pack"
+   },
+   {
+    "field": "title",
+    "claim": "Loại gói (packet format)",
+    "support": "photo",
+    "note": "Shown as a packet and also stated by the seller"
+   },
+   {
+    "field": "description",
+    "claim": "Packet format is convenient (tiện lợi)",
+    "support": "photo",
+    "note": "Generic statement for an instant packet"
+   },
+   {
+    "field": "description",
+    "claim": "Packaging shows an image of a bowl of bún riêu cua",
+    "support": "photo",
+    "note": "A bowl image is visible on the pack"
+   },
+   {
+    "field": "description",
+    "claim": "Packaging states 100% nguyên liệu tươi ngon",
+    "support": "photo",
+    "note": "Printed on the pack; the listing reports it as pack text"
+   },
+   {
+    "field": "description",
+    "claim": "Sold per packet as pictured",
+    "support": "photo",
+    "note": "A single packet is shown"
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "From the seller's words"
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack"
+   },
+   {
+    "field": "attribute",
+    "claim": "Quy cách: Dạng gói",
+    "support": "photo",
+    "note": "A packet is visible"
+   }
+  ]
+ },
+ {
+  "run": "17676d482e9b",
+  "title": "Bánh đa cá rô đồng Khánh Thọ gói 125g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cá rô đồng",
+    "support": "photo",
+    "note": "Printed on pack: Bánh Đa Cá Rô Đồng Ăn Liền."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller says Khánh Thọ; catalog brand also Khánh Thọ. Pack text partly obscured."
+   },
+   {
+    "field": "title",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "Seller states 125 gam; catalog weight 125 g. Not visible on pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bánh đa ăn liền",
+    "support": "photo",
+    "note": "'Ăn Liền' printed on pack."
+   },
+   {
+    "field": "description",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "description",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "description",
+    "claim": "Có kèm gói cá rô đồng rim",
+    "support": "photo",
+    "note": "Label on pack reads '...Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì màu đỏ vàng",
+    "support": "photo",
+    "note": "Pack is visibly red and yellow."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng: 125g",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Bánh đa ăn liền",
+    "support": "photo",
+    "note": "Printed on pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Vị: Cá rô đồng rim",
+    "support": "photo",
+    "note": "Pack names cá rô đồng and the 'Cá Rô Đồng Rim' sachet."
+   }
+  ]
+ },
+ {
+  "run": "b74dc0b22b50",
+  "title": "Bún cá rô đồng ăn liền KT vị cá rim",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bún cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Pack prints 'Bún Cá Rô Đồng Ăn Liền'; seller calls it 'bánh đa' but the photo shows the printed name."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu KT",
+    "support": "photo",
+    "note": "The 'kt' logo is printed on the pack. Seller says 'Khánh Thọ'."
+   },
+   {
+    "field": "title",
+    "claim": "Vị cá rim",
+    "support": "photo",
+    "note": "Pack prints 'Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "description",
+    "claim": "Bún cá rô đồng ăn liền hiệu KT",
+    "support": "photo",
+    "note": "Product name and kt logo are printed on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Vị cá rô đồng rim như in trên bao bì",
+    "support": "photo",
+    "note": "Pack prints 'Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "description",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "Seller states 'một trăm hai lăm gam'. No weight is visible on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì đỏ vàng",
+    "support": "photo",
+    "note": "The packaging is visibly red and yellow."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: KT",
+    "support": "photo",
+    "note": "The kt logo is printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Bún ăn liền",
+    "support": "photo",
+    "note": "Pack prints 'Bún ... Ăn Liền'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Vị: Cá rô đồng rim",
+    "support": "photo",
+    "note": "Pack prints 'Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng: 125g",
+    "support": "seller_words",
+    "note": "The weight comes from the seller."
+   }
+  ]
+ },
+ {
+  "run": "8cc2afd9d7b7",
+  "title": "Bánh đa cá rô đồng ăn liền Khánh Thọ gói 125g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Bao bì in 'Bánh Đa Cá Rô Đồng Ăn Liền'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán nói Khánh Thọ; catalog cũng ghi brand Khánh Thọ. Trên bao bì chỉ thấy một phần chữ 'Khánh' bị che."
+   },
+   {
+    "field": "title",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "Người bán nói một trăm hai lăm gam; catalog weight_g 125."
+   },
+   {
+    "field": "description",
+    "claim": "Trong gói có gói cá rô đồng rim",
+    "support": "photo",
+    "note": "Nhãn dán trên bao bì có dòng '...Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì màu đỏ vàng",
+    "support": "photo",
+    "note": "Bao bì đỏ và vàng nhìn thấy rõ."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì có hình tô bánh đa cá",
+    "support": "photo",
+    "note": "Ảnh tô bánh đa với cá và rau in trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán và catalog đều ghi Khánh Thọ."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Bánh đa ăn liền",
+    "support": "photo",
+    "note": "Bao bì in 'Ăn Liền'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Vị: Cá rô đồng",
+    "support": "photo",
+    "note": "Tên sản phẩm in trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng: 125g",
+    "support": "seller_words",
+    "note": "Người bán nói 125 gam; catalog cũng ghi 125."
+   }
+  ]
+ },
+ {
+  "run": "ff8150e77c37",
+  "title": "Bánh đa cá rô đồng ăn liền Khánh Thọ hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Tên in rõ trên hộp."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán nói Khánh Thọ; catalog cũng ghi brand Khánh Thọ."
+   },
+   {
+    "field": "title",
+    "claim": "Đóng dạng hộp",
+    "support": "photo",
+    "note": "Ảnh cho thấy hộp tròn."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "In trên hộp 'Khối lượng tịnh: 120g'; catalog có giá trị xung đột 150g từ bảng giá nhưng nhãn hộp ghi 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Dạng hộp tiện lợi",
+    "support": "photo",
+    "note": "Dạng hộp thấy trong ảnh; 'tiện lợi' là mô tả chung."
+   },
+   {
+    "field": "description",
+    "claim": "Hộp 120g",
+    "support": "photo",
+    "note": "In trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Vỏ hộp ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Nắp hộp in 'Đặc sản Hải Phòng'."
+   },
+   {
+    "field": "description",
+    "claim": "Ăn nhanh gọn",
+    "support": "photo",
+    "note": "Hiển nhiên với sản phẩm ăn liền in trên hộp."
+   },
+   {
+    "field": "description",
+    "claim": "Dễ bảo quản",
+    "support": "unsupported",
+    "note": "Không có thông tin bảo quản trên ảnh, lời người bán hay catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "In trên hộp."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "In trên nắp hộp."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Người bán và catalog nêu."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: ăn liền",
+    "support": "photo",
+    "note": "'Ăn liền' in trên hộp."
+   }
+  ]
+ },
+ {
+  "run": "fac0a756da70",
+  "title": "Bánh đa cá rô đồng ăn liền Khánh Thọ hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Printed large on the pack front."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller names Khánh Thọ; catalog brand also Khánh Thọ. The pack logo is not legible as this name."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "Round tub/box visible; seller also says loại hộp."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "Pack reads 'Khối lượng tịnh: 120g'. The catalog has a conflicting 150g from the price list, but the pack label supports 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Bánh đa cá rô đồng ăn liền Khánh Thọ dạng hộp",
+    "support": "photo",
+    "note": "Product name and box are visible. The brand comes from the seller."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Generic for an instant boxed product."
+   },
+   {
+    "field": "description",
+    "claim": "Khối lượng tịnh 120g một hộp",
+    "support": "photo",
+    "note": "Printed net weight on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "The lid shows 'ĐẶC SẢN HẢI PHÒNG'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại sản phẩm: Bánh đa ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Hương vị: Cá rô đồng",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller words and catalog brand."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "Printed on the pack. The catalog has a conflicting 150g from the price list."
+   },
+   {
+    "field": "attribute",
+    "claim": "Quy cách: Hộp",
+    "support": "photo",
+    "note": "Box visible."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "The lid reads 'Đặc sản Hải Phòng'."
+   }
+  ]
+ },
+ {
+  "run": "c144f9e9a3fb",
+  "title": "Cháo hải sản ăn liền Khánh Thọ dạng hộp",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Cháo hải sản",
+    "support": "photo",
+    "note": "Pack prints 'CHÁO HẢI SẢN'; seller also says it."
+   },
+   {
+    "field": "title",
+    "claim": "Ăn liền",
+    "support": "photo",
+    "note": "Pack prints 'ĂN LIỀN'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "photo",
+    "note": "Logo 'KHÁNH THỌ' is on the pack; seller also names it."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "Photo shows a bowl/tub container; seller says 'loại hộp'."
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Pack prints 'ĐẶC SẢN HẢI PHÒNG'."
+   },
+   {
+    "field": "description",
+    "claim": "Hàng bán theo hộp",
+    "support": "seller_words",
+    "note": "Seller says 'loại hộp, còn ba mươi hộp'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "photo",
+    "note": "Brand logo is visible on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Printed on the pack as 'Đặc sản Hải Phòng'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: hộp ăn liền",
+    "support": "photo",
+    "note": "The container is shown and 'ĂN LIỀN' is printed on it."
+   }
+  ]
+ },
+ {
+  "run": "7d32301cab25",
+  "title": "Cháo Hàu Ăn Liền Khánh Thọ Hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Cháo hàu ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack: CHÁO HÀU ĂN LIỀN."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "The seller names Khánh Thọ, and the catalog brand matches. The logo in the photo is partly cut off."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "The photo shows a bowl-type container, and the seller also says 'loại hộp'."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "The pack label reads 'Khối lượng tịnh: 120g'. The catalog price list conflicts with 150g, but the pack label is authoritative."
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Printed on the pack: ĐẶC SẢN HẢI PHÒNG."
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì ghi thơm ngon tròn vị",
+    "support": "photo",
+    "note": "The slogan '...ngon tròn vị' is partly visible on the pack and is attributed to the packaging."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi cho bữa ăn nhanh",
+    "support": "photo",
+    "note": "This is a generic statement about an instant product labeled ĂN LIỀN."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Stated by the seller and matches the catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: hộp",
+    "support": "photo",
+    "note": "The container is visible in the photo, and the seller says 'loại hộp'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Printed on the pack."
+   }
+  ]
+ },
+ {
+  "run": "adccf7da4a2c",
+  "title": "Cháo hàu ăn liền Khánh Thọ hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Cháo hàu ăn liền",
+    "support": "photo",
+    "note": "Pack prints 'CHÁO HÀU ĂN LIỀN'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "The seller names Khánh Thọ, and the catalog agrees. The logo on the pack is cut off."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "The photo shows a cup/bowl container, and the seller says 'loại hộp'."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "Pack prints 'Khối lượng tịnh: 120g'. The catalog has a conflicting 150g from the price list, but the pack label supports 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Dạng hộp tiện lợi",
+    "support": "photo",
+    "note": "This is a generic statement about an instant cup product shown as such."
+   },
+   {
+    "field": "description",
+    "claim": "Khối lượng tịnh 120g",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Trên hộp ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Pack prints 'ĐẶC SẢN HẢI PHÒNG'."
+   },
+   {
+    "field": "description",
+    "claim": "Trên hộp ghi thơm ngon tròn vị",
+    "support": "photo",
+    "note": "The slogan is partially visible on the pack ('...ngon tròn vị'). The listing attributes it to the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Stated by the seller and in the catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Cháo hàu ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Pack prints 'ĐẶC SẢN HẢI PHÒNG'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "Printed on the pack. The catalog price list conflicts with 150g."
+   },
+   {
+    "field": "attribute",
+    "claim": "Quy cách: hộp",
+    "support": "photo",
+    "note": "Visible in the photo, and also stated by the seller and the catalog."
+   }
+  ]
+ },
+ {
+  "run": "707f53dc5246",
+  "title": "Bánh đa cua đồng ăn liền gói riêu cua",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "In trên bao bì: BÁNH ĐA CUA ĐỒNG ĂN LIỀN"
+   },
+   {
+    "field": "title",
+    "claim": "Có gói riêu cua",
+    "support": "photo",
+    "note": "Bao bì in 'Gói riêu cua'"
+   },
+   {
+    "field": "description",
+    "claim": "Dạng gói",
+    "support": "photo",
+    "note": "Ảnh cho thấy dạng gói; người bán cũng nói 'loại gói'"
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Nhận định chung về sản phẩm ăn liền, người mua không dựa vào"
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì có ghi gói riêu cua",
+    "support": "photo",
+    "note": "Chữ 'Gói riêu cua' hiển thị trên bao bì"
+   },
+   {
+    "field": "description",
+    "claim": "Shop bán theo gói",
+    "support": "seller_words",
+    "note": "Người bán nói giá mười lăm nghìn một gói"
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng sản phẩm: Ăn liền",
+    "support": "photo",
+    "note": "In trên bao bì"
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Gói riêu cua",
+    "support": "photo",
+    "note": "In trên bao bì"
+   }
+  ]
+ },
+ {
+  "run": "905d231d474f",
+  "title": "Bánh đa cua đồng ăn liền gói riêu cua",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on pack: \"Bánh đa cua đồng ăn liền\"."
+   },
+   {
+    "field": "title",
+    "claim": "Có gói riêu cua",
+    "support": "photo",
+    "note": "Green ribbon on pack reads \"Gói riêu cua\"."
+   },
+   {
+    "field": "description",
+    "claim": "Sản phẩm dạng gói",
+    "support": "photo",
+    "note": "Shown as a bag in the photo; also stated by the seller (\"loại gói\")."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi có gói riêu cua bên trong",
+    "support": "photo",
+    "note": "\"Gói riêu cua\" is printed on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Hình minh họa tô bánh đa cua trên mặt gói",
+    "support": "photo",
+    "note": "A bowl with crab and noodles is visible on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: gói riêu cua",
+    "support": "photo",
+    "note": "Printed on pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng đóng gói: gói ăn liền",
+    "support": "photo",
+    "note": "Pack shown, and \"ăn liền\" is printed on it."
+   }
+  ]
+ },
+ {
+  "run": "30f2dc284dc9",
+  "title": "Bánh đa cua đồng ăn liền dạng gói",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Chữ 'BÁNH ĐA CUA ĐỒNG ĂN LIỀN' in trên bao bì."
+   },
+   {
+    "field": "title",
+    "claim": "Sản phẩm ở dạng gói",
+    "support": "photo",
+    "note": "Ảnh cho thấy một gói; người bán cũng nói 'loại gói'."
+   },
+   {
+    "field": "description",
+    "claim": "Sản phẩm tiện lợi",
+    "support": "photo",
+    "note": "Nhận định chung cho sản phẩm ăn liền dạng gói."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì in hình tô bánh đa cua",
+    "support": "photo",
+    "note": "Hình tô bánh đa có con cua thấy rõ trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì có chữ 'gói riêu cua'",
+    "support": "photo",
+    "note": "Dải xanh in chữ 'Gói riêu cua'."
+   },
+   {
+    "field": "description",
+    "claim": "Hàng bán theo từng gói",
+    "support": "seller_words",
+    "note": "Người bán nói 'mười lăm nghìn một gói'."
+   },
+   {
+    "field": "description",
+    "claim": "Gói nhỏ gọn",
+    "support": "unsupported",
+    "note": "Ảnh không cho thấy kích thước của gói; khối lượng 125 g chỉ có trong catalog, không được nêu trong mô tả."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại sản phẩm: Bánh đa ăn liền",
+    "support": "photo",
+    "note": "In trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Hương vị: Cua đồng",
+    "support": "photo",
+    "note": "Chữ 'CUA ĐỒNG' in trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Bao bì: Dạng gói",
+    "support": "photo",
+    "note": "Ảnh cho thấy dạng gói; người bán cũng xác nhận."
+   }
+  ]
+ },
+ {
+  "run": "43ac9f66ba48",
+  "title": "Bánh đa cua đồng ăn liền gói riêu cua",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Tên in trên bao bì."
+   },
+   {
+    "field": "title",
+    "claim": "Gói riêu cua",
+    "support": "photo",
+    "note": "Dải xanh trên bao bì ghi 'Gói riêu cua'."
+   },
+   {
+    "field": "description",
+    "claim": "Bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Tên in trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Dạng gói",
+    "support": "photo",
+    "note": "Ảnh cho thấy dạng gói; người bán cũng nói 'loại gói'."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Nhận định chung, hiển nhiên với sản phẩm ăn liền."
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì ghi gói riêu cua",
+    "support": "photo",
+    "note": "Có in trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Nhãn KTT",
+    "support": "photo",
+    "note": "Logo 'ktt' in trên bao bì; catalog ghi thương hiệu là Khánh Thọ."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: gói riêu cua",
+    "support": "photo",
+    "note": "Có in trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: KTT",
+    "support": "photo",
+    "note": "Logo in trên bao bì; catalog ghi tên thương hiệu đầy đủ là Khánh Thọ."
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng đóng gói: gói",
+    "support": "photo",
+    "note": "Thấy trong ảnh; người bán và catalog cũng xác nhận."
+   }
+  ]
+ },
+ {
+  "run": "d3bf5b58c6c5",
+  "title": "Bánh đa cua đồng ăn liền Khánh Thọ loại hộp",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on pack."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "photo",
+    "note": "Brand printed on lid; also seller and catalog."
+   },
+   {
+    "field": "title",
+    "claim": "Loại hộp",
+    "support": "photo",
+    "note": "Cup/tub visible; seller also says hộp."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Generic for an instant cup product."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi là món Hải Phòng",
+    "support": "photo",
+    "note": "\"HẢI PHÒNG\" printed on pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì in hình tô bánh đa",
+    "support": "photo",
+    "note": "Bowl image visible on pack."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi \"ngon tròn vị\"",
+    "support": "photo",
+    "note": "Slogan visible on the banner."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "photo",
+    "note": "Printed on pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Pack names Hải Phòng and the lid reads \"Đặc sản Hải Phòng\"."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại bao bì: hộp",
+    "support": "photo",
+    "note": "Visible; also seller and catalog."
+   }
+  ]
+ },
+ {
+  "run": "05fbdf2ad88e",
+  "title": "Bánh đa cua đồng ăn liền Khánh Thọ dạng hộp",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Hộp in 'Bánh đa cua đồng ăn liền'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "photo",
+    "note": "Nắp hộp in 'Khánh Thọ'; người bán và catalog cũng nêu."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "Ảnh cho thấy bao bì dạng hộp/tô có nắp."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi",
+    "support": "photo",
+    "note": "Nhận xét chung, hiển nhiên với sản phẩm ăn liền đóng hộp."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Nắp in dòng chữ viết tay 'Đặc sản Hải Phòng'; thân hộp in 'Hải Phòng'."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì có chữ 'ngon tròn vị'",
+    "support": "photo",
+    "note": "Băng chữ trên thân hộp ghi '... ngon tròn vị'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "photo",
+    "note": "In trên nắp hộp."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Bao bì ghi 'Đặc sản Hải Phòng'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Quy cách: hộp",
+    "support": "photo",
+    "note": "Thấy trong ảnh; người bán và catalog cũng nêu."
+   }
+  ]
+ },
+ {
+  "run": "0247aad85117",
+  "title": "Phở Chay Đông Trùng Hạ Thảo Ăn Liền Hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là phở chay đông trùng hạ thảo",
+    "support": "photo",
+    "note": "In trên bao bì: PHỞ CHAY ĐÔNG TRÙNG HẠ THẢO."
+   },
+   {
+    "field": "title",
+    "claim": "Phở ăn liền",
+    "support": "photo",
+    "note": "In trên bao bì: ĂN LIỀN."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "Ảnh cho thấy dạng hộp/tô; người bán cũng nói 'loại hộp'."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "In trên bao bì: Khối lượng tịnh 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Phở chay đông trùng hạ thảo ăn liền dạng hộp",
+    "support": "photo",
+    "note": "Tên sản phẩm và dạng hộp đều thấy trong ảnh."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi khối lượng tịnh 120g",
+    "support": "photo",
+    "note": "Thấy in trên bao bì."
+   },
+   {
+    "field": "description",
+    "claim": "Bao bì ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "In trên bao bì: ĐẶC SẢN HẢI PHÒNG."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện lợi để dự trữ trong nhà",
+    "support": "unsupported",
+    "note": "Không có trong ảnh hay lời người bán; không có thông tin hạn sử dụng hoặc cách bảo quản."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "In trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "In trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng đóng gói: hộp",
+    "support": "photo",
+    "note": "Thấy trong ảnh; người bán cũng nói 'loại hộp'."
+   }
+  ]
+ },
+ {
+  "run": "c5ba69e62258",
+  "title": "Bánh đa cá rô đồng ăn liền Khánh Thọ gói 125g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Product name printed on the pack."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "The seller names Khánh Thọ, and the catalog brand matches; the name on the pack is only partly visible."
+   },
+   {
+    "field": "title",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "The seller states 125 gam, and the catalog weight_g is 125; no weight is visible on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Làm từ cá rô đồng thật",
+    "support": "seller_words",
+    "note": "The seller states this."
+   },
+   {
+    "field": "description",
+    "claim": "Trong gói có gói cá rô đồng rim",
+    "support": "photo",
+    "note": "The sticker on the pack reads '...Gói Cá Rô Đồng Rim'."
+   },
+   {
+    "field": "description",
+    "claim": "Đạt OCOP bốn sao",
+    "support": "seller_words",
+    "note": "The seller states this; the logo on the pack is not legible enough to confirm the star rating."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "The seller states the brand, and the catalog matches."
+   },
+   {
+    "field": "attribute",
+    "claim": "Trọng lượng: 125 g",
+    "support": "seller_words",
+    "note": "The seller states it, and the catalog matches."
+   },
+   {
+    "field": "attribute",
+    "claim": "Chứng nhận: OCOP 4 sao",
+    "support": "seller_words",
+    "note": "The seller states this."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thành phần: Cá rô đồng",
+    "support": "seller_words",
+    "note": "The seller says the product is made from real cá rô đồng."
+   }
+  ]
+ },
+ {
+  "run": "0acf8a0475f8",
+  "title": "Bánh đa cá rô đồng ăn liền Khánh Thọ loại hộp",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Bánh đa cá rô đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller and catalog state the brand Khánh Thọ; the brand name is not clearly legible on the pack."
+   },
+   {
+    "field": "title",
+    "claim": "Loại hộp",
+    "support": "photo",
+    "note": "The photo shows a bowl-shaped box, and the seller also says 'loại hộp'."
+   },
+   {
+    "field": "description",
+    "claim": "Khối lượng tịnh 120g",
+    "support": "photo",
+    "note": "'Khối lượng tịnh: 120g' is printed on the pack. The catalog price list conflicts with 150g, but the pack label supports 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Trên vỏ ghi đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "'ĐẶC SẢN HẢI PHÒNG' is printed on the lid."
+   },
+   {
+    "field": "description",
+    "claim": "Hộp có nắp nhựa trong",
+    "support": "photo",
+    "note": "A clear plastic lid is visible in the photo."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện mang theo",
+    "support": "unsupported",
+    "note": "This portability benefit is not stated by the seller or printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "Printed on the pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Printed on the lid."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại bao bì: hộp",
+    "support": "photo",
+    "note": "Visible in the photo, and also stated by the seller and catalog."
+   }
+  ]
+ },
+ {
+  "run": "64e392d9a055",
+  "title": "Bánh đa cua đồng ăn liền Khánh Thọ 125g có gói riêu cua",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on pack: 'Bánh đa cua đồng ăn liền'."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "seller_words",
+    "note": "The seller and the catalog name Khánh Thọ. The pack shows only the 'ktt' logo."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 125g",
+    "support": "seller_words",
+    "note": "The net weight on the pack is not legible. The seller and the catalog state 125g."
+   },
+   {
+    "field": "title",
+    "claim": "Có gói riêu cua",
+    "support": "photo",
+    "note": "Printed on pack: 'Gói riêu cua'."
+   },
+   {
+    "field": "description",
+    "claim": "Bánh đa cua đồng ăn liền Khánh Thọ",
+    "support": "seller_words",
+    "note": "The product type is printed on the pack. The brand comes from the seller."
+   },
+   {
+    "field": "description",
+    "claim": "Gói 125g",
+    "support": "seller_words",
+    "note": "The seller states 125 gam."
+   },
+   {
+    "field": "description",
+    "claim": "Bên trong có gói riêu cua",
+    "support": "photo",
+    "note": "Printed on pack, and the seller also mentions it."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng: 125g",
+    "support": "seller_words",
+    "note": "Seller and catalog."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại: Bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "Printed on pack."
+   },
+   {
+    "field": "attribute",
+    "claim": "Gói gia vị: gói riêu cua",
+    "support": "photo",
+    "note": "Printed on pack."
+   }
+  ]
+ },
+ {
+  "run": "9512cc94b7ae",
+  "title": "Bánh Đa Cua Đồng Ăn Liền Hải Phòng Khánh Thọ Dạng Hộp",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Sản phẩm là bánh đa cua đồng ăn liền",
+    "support": "photo",
+    "note": "In trên hộp: 'Bánh đa cua đồng ăn liền'."
+   },
+   {
+    "field": "title",
+    "claim": "Sản phẩm mang tên Hải Phòng",
+    "support": "photo",
+    "note": "In trên hộp: 'Hải Phòng'; người bán cũng nói."
+   },
+   {
+    "field": "title",
+    "claim": "Thương hiệu Khánh Thọ",
+    "support": "photo",
+    "note": "Logo/chữ Khánh Thọ trên nắp; khớp lời người bán và catalog."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "Ảnh cho thấy hộp; người bán nói 'loại hộp'."
+   },
+   {
+    "field": "description",
+    "claim": "Dạng hộp tiện lợi",
+    "support": "photo",
+    "note": "Nhận xét chung về hộp ăn liền, hiển nhiên từ ảnh."
+   },
+   {
+    "field": "description",
+    "claim": "Trên bao bì ghi 'ngon tròn vị'",
+    "support": "photo",
+    "note": "Dòng chữ 'ngon tròn vị' in trên hộp."
+   },
+   {
+    "field": "attribute",
+    "claim": "Thương hiệu: Khánh Thọ",
+    "support": "photo",
+    "note": "In trên bao bì."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Bao bì in 'Hải Phòng'; người bán nói 'Bánh đa cua đồng Hải Phòng'."
+   },
+   {
+    "field": "attribute",
+    "claim": "Dạng đóng gói: Hộp",
+    "support": "photo",
+    "note": "Hiển thị trong ảnh; catalog pack 'hộp'."
+   }
+  ]
+ },
+ {
+  "run": "8f5d25c35809",
+  "title": "Cháo hàu ăn liền đặc sản Hải Phòng hộp 120g",
+  "claims": [
+   {
+    "field": "title",
+    "claim": "Cháo hàu ăn liền",
+    "support": "photo",
+    "note": "Pack prints 'CHÁO HÀU ĂN LIỀN'."
+   },
+   {
+    "field": "title",
+    "claim": "Đặc sản Hải Phòng",
+    "support": "photo",
+    "note": "Pack prints 'ĐẶC SẢN HẢI PHÒNG'; the seller also says it."
+   },
+   {
+    "field": "title",
+    "claim": "Dạng hộp",
+    "support": "photo",
+    "note": "The photo shows a bowl-shaped container, and the catalog pack is 'hộp'."
+   },
+   {
+    "field": "title",
+    "claim": "Khối lượng 120g",
+    "support": "photo",
+    "note": "Pack prints 'Khối lượng tịnh: 120g'. The seller says 150 gam, which conflicts, but the pack label supports 120g."
+   },
+   {
+    "field": "description",
+    "claim": "Cháo hàu ăn liền đặc sản Hải Phòng dạng hộp",
+    "support": "photo",
+    "note": "Pack text and the container shape show this."
+   },
+   {
+    "field": "description",
+    "claim": "Khối lượng tịnh 120g ghi trên bao bì",
+    "support": "photo",
+    "note": "Visible on the pack."
+   },
+   {
+    "field": "description",
+    "claim": "Hộp có nắp nhựa",
+    "support": "photo",
+    "note": "The photo shows a plastic lid on the container."
+   },
+   {
+    "field": "description",
+    "claim": "Tiện mang theo và sử dụng",
+    "support": "unsupported",
+    "note": "Convenience is not shown in the photo or stated by the seller or catalog; this is a mild usage claim."
+   },
+   {
+    "field": "attribute",
+    "claim": "Loại sản phẩm: Cháo hàu ăn liền",
+    "support": "photo",
+    "note": "Pack text."
+   },
+   {
+    "field": "attribute",
+    "claim": "Khối lượng tịnh: 120g",
+    "support": "photo",
+    "note": "Pack label. It conflicts with the seller's 150 gam."
+   },
+   {
+    "field": "attribute",
+    "claim": "Đặc sản: Hải Phòng",
+    "support": "photo",
+    "note": "Pack text."
+   }
+  ]
+ }
+]
