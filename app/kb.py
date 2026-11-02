@@ -215,7 +215,7 @@ WEIGHT = re.compile(r"(\d{2,4})\s*(?:g|gr|gam|gram)\b", re.I)
 DIGITS = {"không": 0, "một": 1, "mốt": 1, "hai": 2, "ba": 3, "bốn": 4, "tư": 4, "năm": 5, "lăm": 5, "sáu": 6,
           "bảy": 7, "tám": 8, "chín": 9}
 SPOKEN_WEIGHT = re.compile(r"((?:(?:không|một|mốt|hai|ba|bốn|tư|năm|lăm|sáu|bảy|tám|chín|mười|mươi|trăm|linh|lẻ)\s+){1,6})"
-                           r"(?:gam|gram|gờ ram|g)" + r"", re.I)
+                           r"(?:gam|gram|gờ ram|g)(?![a-zà-ỹ])", re.I)
 
 
 def vi_number(words_: str) -> int | None:
