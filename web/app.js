@@ -188,15 +188,30 @@ function fillPreview(run) {
   const v = run.verification || { verdict: 'warn', summary_vi: 'Chưa kiểm tra.' };
   $('verdict').className = `verdict ${v.verdict}`;
   const summary = v.summary_vi.charAt(0).toUpperCase() + v.summary_vi.slice(1);
-  // The written rule behind a warning or a block (policy/listing-policy.md), e.g. "Quy định P1 · Prescription medicine".
-  const RULES_VI = { P1: 'thuốc kê đơn', P2: 'vũ khí', P3: 'chất cấm, thuốc lá', P4: 'động vật hoang dã', P5: 'nội dung người lớn',
-    P6: 'hàng giả', P7: 'ảnh khác sản phẩm', W1: 'theo nhãn in trên bao bì', W2: 'thông tin ảnh không khớp',
-    W3: 'chữ lạ ra lệnh trong ảnh/lời nói', W4: 'sai danh mục',
-    W5: 'ảnh không phải của bạn', W6: 'ảnh do AI tạo', R1: 'đã có người xem lại', C4: 'tên hàng cấm' };
-  // Sellers see the rule by its plain name; the rule codes stay in the log panel and the audit log.
-  const rules = [...new Set((v.rules || []).filter((r) => r.id[0] !== 'C').map((r) => RULES_VI[r.id] || r.title))].join(', ');
-  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary
-    + (rules && v.verdict !== 'pass' ? ` (theo quy định: ${rules})` : '');
+  $('verdict').textContent = ({ pass: '✓ ', warn: '! ', block: '✕ ' }[v.verdict] || '') + summary;
+  // One fixed line per rule that applied: what happened and what to do, in plain Vietnamese, the same every time.
+  // The rule codes stay in the log panel and the audit log, not on the seller's screen.
+  const ADVICE = {
+    P1: 'Thuốc cần đơn bác sĩ không được bán trên Chợ Z.',
+    P2: 'Vũ khí, pháo nổ không được bán trên Chợ Z.',
+    P3: 'Chất cấm, thuốc lá, thuốc lá điện tử không được bán.',
+    P4: 'Động vật hoang dã và sản phẩm từ chúng không được bán.',
+    P5: 'Nội dung người lớn không được đăng.',
+    P6: 'Hàng có dấu hiệu giả thương hiệu không được đăng.',
+    P7: 'Ảnh là một món hàng khác với tin đăng.',
+    W1: 'Tin ghi theo thông tin in trên bao bì. Nếu bao bì đúng, bạn không cần làm gì.',
+    W2: 'Một vài thông tin không khớp với ảnh đã được sửa. Bạn xem lại tin nhé.',
+    W3: 'Ảnh hoặc lời nói có câu ra lệnh cho hệ thống. Trợ lý đã bỏ qua, giá và tin vẫn theo lời bạn.',
+    W4: 'Danh mục đã được chỉnh cho đúng món hàng.',
+    W5: 'Ảnh có vẻ lấy của người khác (dấu bản quyền, ảnh chụp màn hình). Bạn chụp giúp ảnh món hàng bạn có.',
+    W6: 'Ảnh mang dấu ảnh do AI tạo. Bạn chụp giúp ảnh thật của món hàng.',
+    R1: 'Người duyệt đã xem lại tin này.',
+  };
+  const ids = [...new Set([...(v.rule_ids || []), ...(v.rules || []).map((r) => r.id)])].filter((id) => ADVICE[id]);
+  $('advice').replaceChildren(...(v.verdict === 'pass' ? [] : ids).map((id) => {
+    const li = document.createElement('li'); li.className = id[0] === 'P' ? 'block' : 'warn';
+    li.textContent = ADVICE[id]; return li;
+  }));
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   // A warning must be read before publishing (human in the loop); the server enforces the same rule.
   const needsAck = v.verdict === 'warn' && run.status !== 'blocked';
