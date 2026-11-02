@@ -377,7 +377,7 @@ style="width:100%;padding:8px;margin:6px 0 12px"></label><button style="padding:
 
 REVIEW_PAGE = """<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>Chợ Z · xem lại tin bị chặn</title>
-<body style="font-family:system-ui;max-width:760px;margin:24px auto;padding:0 16px;color:#1f2937">
+<body style="font-family:system-ui;max-width:760px;margin:24px auto;padding:0 16px;color:#1f2937;background:#f6f1e7">
 <h1 style="font-size:20px">Tin bị chặn chờ xem lại</h1><p id="empty" hidden>Không có yêu cầu nào.</p><div id="list"></div>
 <script>
 async function load() {
@@ -386,7 +386,7 @@ async function load() {
   const list = document.getElementById('list'); list.replaceChildren();
   for (const a of items) {
     const card = document.createElement('div');
-    card.style.cssText = 'display:flex;gap:16px;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0';
+    card.style.cssText = 'display:flex;gap:16px;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:12px 0;background:#fff';
     const img = document.createElement('img'); img.src = a.photo; img.style.cssText = 'width:140px;height:140px;object-fit:cover;border-radius:8px';
     const body = document.createElement('div'); body.style.flex = '1';
     const lines = [['Tin', a.title], ['Người bán', a.seller || '-'], ['Lý do chặn', a.reason], ['Quy định', (a.rules || []).join(', ')],
