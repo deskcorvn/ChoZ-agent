@@ -232,7 +232,7 @@ function fillPreview(run) {
     $('catalog-text').textContent = `Khớp danh mục ${cat.brand}: ${cat.name}` + (retail ? ` · giá lẻ đề xuất ${vnd(retail)}` : '');
     $('use-price').hidden = !retail || $('f-price').value !== '';
     $('use-price').textContent = retail ? `Dùng giá ${vnd(retail)}` : '';
-    $('use-price').onclick = () => { $('f-price').value = retail; $('use-price').hidden = true; };
+    $('use-price').onclick = () => { $('f-price').value = retail; $('f-price').dispatchEvent(new Event('input')); $('use-price').hidden = true; };
   }
   // Seller memory: this product was listed before; by default the old listing is updated, not duplicated.
   const hist = l.history || {};
@@ -245,7 +245,7 @@ function fillPreview(run) {
       + (hist.stock != null && l.stock != null && hist.stock !== l.stock ? `: còn ${hist.stock} → ${l.stock}.` : '.');
     if (hist.title) $('f-title').value = hist.title;          // the same listing keeps its name
     $('update-old').checked = true;
-    if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('use-price').hidden = true; }; $('catalog').hidden = false; }
+    if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('f-price').dispatchEvent(new Event('input')); $('use-price').hidden = true; }; $('catalog').hidden = false; }
   }
   // A weight warning names the numbers and the source the listing follows.
   const wn = l.weight_note;
@@ -270,7 +270,12 @@ function fillPreview(run) {
   $('appeal-status').textContent = { pending: 'Đã gửi, đang chờ người duyệt xem lại.',
     upheld: `Người duyệt giữ quyết định chặn: ${appeal.reason || ''}`,
     overturned: `Người duyệt cho phép đăng: ${appeal.reason || ''}` }[appeal.status] || '';
-  $('ack').onchange = () => { $('publish').disabled = !$('ack').checked; };
+  const hint = () => { $('publish-hint').hidden = !(needsAck && !$('ack').checked); };
+  $('ack').onchange = () => { $('publish').disabled = !$('ack').checked; hint(); };
+  hint();
+  // money as sellers write it: 22.000 đ
+  const fmt = () => { const n = Number($('f-price').value); $('price-fmt').textContent = n ? `${n.toLocaleString('vi-VN')} đ` : '(đ)'; };
+  $('f-price').oninput = fmt; fmt();
   $('preview-error').textContent = run.status === 'blocked'
     ? 'Sản phẩm này không được đăng. Bạn có thể xoá tin, hoặc nhờ người duyệt xem lại nếu bạn thấy chặn nhầm.' : '';
 }

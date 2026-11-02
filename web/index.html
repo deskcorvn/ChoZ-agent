@@ -57,7 +57,7 @@
       <div class="catalog" id="catalog" hidden><span id="catalog-text"></span><button class="chip-btn" id="use-price" type="button" hidden></button></div>
       <label>Tên sản phẩm<input id="f-title" type="text"></label>
       <div class="row">
-        <label>Giá (đ)<input id="f-price" type="number" min="0" step="1000"><small class="src" id="src-price"></small></label>
+        <label>Giá <b class="money" id="price-fmt"></b><input id="f-price" type="number" min="0" step="1000"><small class="src" id="src-price"></small></label>
         <label>Còn<input id="f-stock" type="number" min="0"><small class="src" id="src-stock"></small></label>
       </div>
       <label>Danh mục<input id="f-category" type="text" readonly></label>
@@ -67,6 +67,7 @@
       </details>
       <label class="ack" id="ack-row" hidden><input type="checkbox" id="ack"> Tôi đã đọc cảnh báo và đồng ý đăng</label>
       <button class="primary" id="publish" type="button">Đăng lên Chợ Z</button>
+      <p class="fine" id="publish-hint" hidden>Đánh dấu "đã đọc cảnh báo" ở trên để đăng.</p>
       <button class="ghost" id="restart" type="button">Làm lại</button>
       <div class="appeal" id="appeal-row" hidden>
         <textarea id="appeal-note" rows="2" placeholder="Vì sao tin này nên được đăng? (không bắt buộc)"></textarea>

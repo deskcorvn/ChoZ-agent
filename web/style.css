@@ -141,6 +141,8 @@ details.more { border: 1px solid var(--line); border-radius: 10px; padding: 8px 
 details.more summary { cursor: pointer; font-size: 14px; color: var(--muted); }
 .danger.quiet { color: var(--muted); font-size: 13px; margin-top: 18px; }
 .step .evidence { margin: 4px 0 0 26px; font-size: 12px; color: #fbbf24; line-height: 1.35; }
+.money { color: var(--ink); font-weight: 700; margin-left: 4px; }
+#publish-hint { text-align: center; color: var(--warn); }
 .verdict-detail { display: block; margin-top: 4px; font-size: 13px; opacity: .85; }
 .advice { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--ink, #1f2937); }
 .advice:empty { display: none; }
