@@ -26,6 +26,17 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | category | 5/5 | 100 % | 57–100 % |
 | catalog: same product matched, or rightly none | 0/0 | – | – |
 
+### Regression gate after catalog grounding and W7, five samples (Nov 2)
+
+5 live runs · p50 13.4 s · p95 16.8 s · mean $0.0165 per listing · files: batch-20261102-084244.csv
+
+| Check | Right | Rate | Wilson 95 % |
+|---|---|---|---|
+| price from the seller's words | 5/5 | 100 % | 57–100 % |
+| stock | 4/4 | 100 % | 51–100 % |
+| category | 5/5 | 100 % | 57–100 % |
+| catalog: same product matched, or rightly none | 5/5 | 100 % | 57–100 % |
+
 ### Khánh Thọ's catalogue with catalog retrieval and grounding on (Nov 2)
 
 19 live runs · p50 12.4 s · p95 15.6 s · mean $0.0162 per listing · files: batch-20261102-083918.csv

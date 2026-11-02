@@ -86,7 +86,8 @@ def main(folder: Path) -> str:
               "catalogue": "Khánh Thọ's catalogue: 19 photos, 10 products (Nov 1)",
               "room-cache": "Five sample products with the room cache (Nov 1)",
               "gate": "Regression gate after the W5 and W6 policy changes, five samples (Nov 2)",
-              "rag-catalogue": "Khánh Thọ's catalogue with catalog retrieval and grounding on (Nov 2)"}
+              "rag-catalogue": "Khánh Thọ's catalogue with catalog retrieval and grounding on (Nov 2)",
+              "gate-rag": "Regression gate after catalog grounding and W7, five samples (Nov 2)"}
     for key, files in batches.items():
         lines += batch_section(titles.get(key, key), files)
     for f in sorted(folder.rglob("report.json")):
