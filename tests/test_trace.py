@@ -29,7 +29,8 @@ def test_a_run_is_an_otlp_trace_with_genai_attributes(settings):
     chat = next(c for c in children if c["name"] == "chat muse-spark-1.3")
     assert attrs(chat)["gen_ai.provider.name"] == "meta" and attrs(chat)["gen_ai.request.model"] == "muse-spark-1.3"
     assert all(int(c["endTimeUnixNano"]) >= int(c["startTimeUnixNano"]) for c in spans)
-    assert "0912" not in str(body) and "Cháo hàu ăn liền Khánh Thọ loại hộp, giá" not in str(body)
+    values = str([attrs(s) for s in spans])           # attribute values only: ids and times are random digits
+    assert "0912" not in values and "Cháo hàu ăn liền Khánh Thọ loại hộp, giá" not in values
 
 
 def test_every_run_is_stamped_with_what_produced_it():

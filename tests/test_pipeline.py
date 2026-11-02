@@ -383,3 +383,41 @@ def test_weights_spoken_in_vietnamese():
     assert weight_in(["Cháo hàu, hộp một trăm năm mươi gam, giá hai mươi hai nghìn"]) == 150
     assert weight_in(["hộp một trăm năm mươi gram"]) == 150 and weight_in(["Hộp 120g"]) == 120
     assert weight_in(["giá hai mươi hai nghìn một hộp"]) is None
+
+
+class SlowCheck(MockMetaClient):
+    """The check step takes a while, so an early question is on screen while the agent still works."""
+
+    async def chat_json(self, system, text, images, name, schema):
+        if name == "Verification":
+            await asyncio.sleep(0.4)
+        return await super().chat_json(system, text, images, name, schema)
+
+
+def test_stock_is_asked_early_and_an_early_answer_is_applied_at_the_end(settings, tmp_path):
+    agent = Agent(SlowCheck(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn")
+
+    async def seller_answers_while_it_works():
+        task = asyncio.create_task(agent.process(run))
+        for _ in range(100):
+            if run.status == "needs_answer":
+                break
+            await asyncio.sleep(0.01)
+        assert run.status == "needs_answer" and run.processing          # asked before the check finished
+        await agent.answer(run, None, "còn 5 cái")
+        assert run.status == "running" and run.pending_answer           # held while the agent works
+        await task
+    asyncio.run(seller_answers_while_it_works())
+    assert run.status == "ready" and run.listing["stock"] == 5 and run.answered
+    keys = [s.key for s in run.steps]
+    assert keys.index("ask") < keys.index("verify") < keys.index("answer")
+
+
+def test_an_unanswered_early_question_stays_open(settings, tmp_path):
+    agent = Agent(SlowCheck(settings), tmp_path / "runs")
+    run = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn")
+    asyncio.run(agent.process(run))
+    assert run.status == "needs_answer" and not run.processing and run.question
+    asyncio.run(agent.answer(run, None, "còn 5 cái"))
+    assert run.status == "ready" and run.listing["stock"] == 5

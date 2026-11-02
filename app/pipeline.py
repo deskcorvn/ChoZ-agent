@@ -76,6 +76,9 @@ class Run:
     asked: bool = False
     steps: list[Step] = field(default_factory=list)
     seller: str = ""                 # who made it (app/sellers.py); "" in the open single-user demo
+    processing: bool = False         # the agent is still working (an early question may already be on screen)
+    answered: bool = False
+    pending_answer: dict | None = field(default=None, repr=False)   # an answer that arrived while still working
     appeal: dict | None = None       # a blocked listing the seller asked a person to review (see server.py)
     origin_marks: list[str] = field(default_factory=list)   # generator marks read from the uploads (app/origin.py)
     error: str = ""
@@ -111,6 +114,7 @@ class Run:
     def public(self) -> dict:
         from app import versions
         data = asdict(self)
+        data.pop("pending_answer", None)
         data["totals"] = self.totals()
         data["versions"] = versions.current()
         return data
@@ -238,10 +242,18 @@ class Agent:
         return [(folder / name).read_bytes() for name in run.photos]
 
     async def process(self, run: Run) -> Run:
+        run.processing = True
         try:
             await self._process(run)
         except Exception as exc:
             run.status, run.error = "failed", f"{type(exc).__name__}: {exc}"[:500]
+        finally:
+            run.processing = False
+        pending, run.pending_answer = run.pending_answer, None
+        if pending and run.status in ("needs_answer", "ready") and not run.answered:
+            run.stop_work()                      # the answer step restarts the clock
+            run.status = "needs_answer"
+            await self._answer_now(run, pending.get("audio"), pending.get("text", ""))
         run.stop_work()
         self._save(run)
         self._audit(run, "checked")
@@ -325,6 +337,12 @@ class Agent:
             run.listing = masked
             self._local(run, "privacy", "Privacy guard (local): contact data masked", "title, description, attributes",
                         {"masked": kinds})
+        if listing.missing == ["stock"] and not run.asked:
+            # One continuous wait for the seller: ask now, while the check, the cut-out and the studio photo go on.
+            # (A missing price is asked at the end, where the catalog match and her last price can be suggested.)
+            run.question, run.asked, run.status = prompts.follow_up_question(["stock"]), True, "needs_answer"
+            self._local(run, "ask", "Asked early: no stock was said (the agent keeps working)", "draft listing",
+                        {"question": run.question})
 
         # 3. In parallel (with the background already painting): verify against the photos and the
         #    seller's words, and cut the product out.
@@ -581,12 +599,22 @@ class Agent:
             last = ((run.listing or {}).get("history") or {}).get("price_vnd")
             run.status, run.question, run.asked = ("needs_answer",
                                                    prompts.follow_up_question(listing.missing, suggested, last), True)
+        elif run.asked and not run.answered and run.pending_answer is None and listing.missing:
+            run.status = "needs_answer"          # the early question is still waiting for her
         else:
             run.status = "ready"
 
     async def answer(self, run: Run, audio: bytes | None, text: str) -> Run:
         if run.status != "needs_answer":
             raise ValueError(f"run is {run.status}, not waiting for an answer")
+        if run.processing:                       # asked early: keep the answer, apply it when the work is done
+            run.pending_answer = {"audio": audio, "text": text}
+            run.status = "running"
+            self._local(run, "answer-held", "Answer received; applied when the check finishes", "the seller's answer", {})
+            return run
+        return await self._answer_now(run, audio, text)
+
+    async def _answer_now(self, run: Run, audio: bytes | None, text: str) -> Run:
         run.start_work()
         try:
             words = text.strip()
@@ -623,6 +651,7 @@ class Agent:
             kept = {k: run.listing[k] for k in ("catalog", "history", "weight_note") if k in (run.listing or {})}
             run.listing = {**listing.model_dump(), **kept}
             run.status = "ready"     # one question only; anything still missing is typed in on the preview
+            run.answered = True
         except Exception as exc:
             run.status, run.error = "failed", f"{type(exc).__name__}: {exc}"[:500]
         run.stop_work()

@@ -145,6 +145,15 @@ function follow(run) {
     state.polling = setTimeout(async () => follow(await api(`/api/runs/${run.id}`)), 400);
     return;
   }
+  if (run.status === 'needs_answer' && run.processing) {
+    // asked early: show the question now, keep the log moving while the agent works on
+    if ($('screen-question').hidden) route(run);
+    state.polling = setTimeout(async () => {
+      const r = await api(`/api/runs/${run.id}`);
+      if (!$('screen-question').hidden && r.id === state.run.id) follow(r);
+    }, 600);
+    return;
+  }
   route(run);
 }
 
@@ -396,7 +405,8 @@ function renderLog(run) {
     compose: 'Ghép ảnh đẹp', privacy: 'Ẩn số điện thoại, liên kết', injection: 'Bỏ qua câu ra lệnh lạ',
     origin: 'Kiểm tra nguồn ảnh', backstop: 'Kiểm tra hàng cấm', fallback: 'Không nghe rõ, dùng chữ bạn gõ',
     'transcribe-answer': 'Nghe câu trả lời', answer: 'Cập nhật giá, số lượng', restyle: 'Vẽ phòng chụp mới',
-    retrieve: 'Tìm sản phẩm trong danh mục', match: 'Đối chiếu với danh mục', memory: 'Xem tin cũ của bạn' };
+    retrieve: 'Tìm sản phẩm trong danh mục', match: 'Đối chiếu với danh mục', memory: 'Xem tin cũ của bạn',
+    ask: 'Hỏi bạn số lượng', 'answer-held': 'Đã nhận câu trả lời' };
   $('progress').replaceChildren(...run.steps.map((s) => {
     const li = document.createElement('li'); li.className = s.status;
     li.textContent = SELLER_STEP[s.key] || s.title; return li;
