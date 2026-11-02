@@ -365,9 +365,19 @@ class MockMetaClient:
             }
             return listing, meta
         if name == "Verification":
+            match = "none"
+            if "[[[" in text:
+                from app.kb import fold
+                cands = json.loads(text.split("[[[", 1)[1].rsplit("]]]", 1)[0])
+                title = set(fold(text.split("Listing to check:", 1)[-1][:400]).split())
+                for c in cands:
+                    if len(title & set(fold(c["name"]).split())) >= 2:
+                        match = c["id"]
+                        break
             return {"verdict": "pass", "prohibited": False, "prohibited_reason": "",
                     "checks": [{"claim": "item type", "status": "consistent", "note": "mock"}],
-                    "summary_vi": "Mô tả khớp với ảnh (mock).", "instructions_found": "", "rule_ids": []}, meta
+                    "summary_vi": "Mô tả khớp với ảnh (mock).", "instructions_found": "", "rule_ids": [],
+                    "catalog_match": match, "catalog_reason": "mock: shares the product name"}, meta
         if name == "SaleFacts":
             answer = text.split("Answer:", 1)[-1]
             return {"price_vnd": mock_price(answer), "stock": mock_stock(answer)}, meta

@@ -170,6 +170,38 @@ overturned listing becomes publishable with a warning the seller must still tick
 `/api/appeals` and `/metrics`. Request and decision are audit events (`appeal_requested`, `appeal_upheld` /
 `appeal_overturned`, with who decided). Runs are read back from disk, so the queue survives a restart.
 
+**Grounded in the catalog (retrieval-augmented verification).** A listing is checked against what the marketplace
+already knows about the product, not only against the photo. `samples/kb/khanh-tho.json` is a small catalog built
+from the producer's price list and the pack labels; every fact keeps its source, and conflicting facts are both kept
+(the price list's "150gr" and the "120g" printed on the oyster porridge box), reconciled by source priority:
+pack label > price list > seller's words, while prices and stock stay the seller's own (rule C2).
+
+- **Retrieve** (`app/kb.py`, local, logged): the query is the draft title, the English phrase read from the photo, the
+  attributes and the seller's words with contact data masked. BM25 over diacritic-folded words and bigrams ranks the
+  records' contextual text (name, pack words, weights, aliases); character trigrams are a fallback for queries made
+  only of misspellings, with a similarity floor so an unrelated item gets no candidates at all.
+- **Decide** (Muse Spark, in the existing check call, with the photos): the top 3 records arrive fenced as reference
+  data; Spark names the record that is the same product (brand, line, pack type) or "none", with its reason.
+- **Verify in code:** only a retrieved id is accepted; the listing's weight is compared with the reconciled weight
+  (a pack-label conflict is W1), the seller's price with the producer's retail price (less than half or more than
+  twice is W7, a likely typo: the price is kept and the seller asked to check), the category with the record's.
+- **Use it for the seller:** the preview shows "Khớp danh mục Khánh Thọ: … · giá lẻ đề xuất 22.000đ"; a missing
+  price gets a one-tap "Dùng giá 22.000đ" (the seller's tap sets it) and the follow-up question mentions it.
+
+Measured (evals/rag/retrieval.md, `python -m app.rag_eval`): 136 queries from live runs (draft titles, phrases read
+from photos, seller words, real speech transcripts with slips such as "cháo lẩu", the same without diacritics);
+on the 112 whose product is in the catalog BM25 puts it first in 111 and in the top 3 in all 112. Character trigrams
+(108/112) and their fusion with BM25 (108/112) did worse on this catalog, so BM25 ranks. Live, Nov 2, Khánh Thọ's
+19 catalogue photos with grounding on: the right record or rightly none in 18/19. All 6 products that are not in
+the catalog were left unmatched, all 12 matches were right, and the one abstention is a pack that prints "Bún cá
+rô" where the price list says "Bánh đa cá rô, gói". Fields stayed 13/13, 19/19, 19/19 at $0.0162 a listing. A price
+said as 220.000đ for the 22.000đ box got W7 with the seller's price kept; a missing price got the suggestion.
+
+Not retrieved on purpose: the listing rules and the categories (about 20 short items) go to the verifier in full,
+since retrieving them could only drop one. No embeddings: the Meta Model API has no embedding endpoint, and on this
+catalog lexical retrieval already reaches the right record. The same run also surfaced that 10 of the 19 producer
+photos carry a generator's mark (IPTC trainedAlgorithmicMedia, some with C2PA), so W6 warned on them.
+
 **Written rules, cited.** `policy/listing-policy.md` holds the catalog's listing rules (P = not listable, W = listable
 with a warning, C = enforced in code). The verifier gets the file verbatim and must return the rule ids it applied; code
 keeps only ids that exist in the file, flags a block that cites no P rule, and the preview shows the rule next to the

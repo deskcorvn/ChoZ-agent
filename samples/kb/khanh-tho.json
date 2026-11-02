@@ -1,0 +1,43 @@
+{
+ "about": "Khánh Thọ's products as a catalog knowledge base for retrieval (app/kb.py). One record per product; every fact carries its source. Sources: the producer's price list (samples/supplier/price-list.jpg, row = STT) and the pack labels in the sample photos (samples/products/*/photo-1.png). Where two sources disagree both are kept; app/kb.py picks by source priority (pack label > price list). Aliases are retrieval hints: how sellers, the speech model and the photo reader name the product.",
+ "source_priority": ["pack_label", "price_list"],
+ "records": [
+  {"id": "kt-ca-ro-hop", "brand": "Khánh Thọ", "name": "Bánh đa cá rô đồng ăn liền, hộp", "line": "bánh đa cá rô đồng", "pack": "hộp",
+   "variants": ["bánh đa trắng", "bánh đa đỏ"], "category_id": "food_specialty", "certification": "OCOP 4 sao",
+   "facts": {
+    "weight_g": [{"value": 120, "source": "pack_label", "ref": "samples/products/02-banh-da-ca-ro-hop/photo-1.png"},
+                 {"value": 150, "source": "price_list", "ref": "price-list.jpg rows 1-2"}],
+    "retail_price_vnd": [{"value": 22000, "source": "price_list", "ref": "price-list.jpg rows 1-2"}],
+    "units_per_carton": [{"value": 12, "source": "price_list", "ref": "price-list.jpg rows 1-2"}]},
+   "aliases": ["bánh đa cá rô hộp", "bánh đa cá rô loại hộp", "cá rô đồng cốc", "KT cá rô hộp", "instant fish noodle bowl", "instant fish rice noodle cup"]},
+  {"id": "kt-ca-ro-goi", "brand": "Khánh Thọ", "name": "Bánh đa cá rô đồng, gói", "line": "bánh đa cá rô đồng", "pack": "gói",
+   "variants": ["bánh đa trắng", "bánh đa đỏ"], "category_id": "food_specialty", "certification": "OCOP 4 sao",
+   "facts": {
+    "weight_g": [{"value": 125, "source": "price_list", "ref": "price-list.jpg rows 3-4"}],
+    "retail_price_vnd": [{"value": 15000, "source": "price_list", "ref": "price-list.jpg rows 3-4"}],
+    "units_per_carton": [{"value": 20, "source": "price_list", "ref": "price-list.jpg rows 3-4"}]},
+   "aliases": ["bánh đa cá rô gói", "bún cá rô gói", "cá rô đồng dạng gói", "KT cá rô gói", "instant fish noodle pack", "fish rice noodle packet"]},
+  {"id": "kt-chao-hau-hop", "brand": "Khánh Thọ", "name": "Cháo hàu ăn liền, hộp", "line": "cháo hàu", "pack": "hộp",
+   "variants": [], "category_id": "food_specialty", "certification": "OCOP 4 sao", "origin": "Hải Phòng",
+   "facts": {
+    "weight_g": [{"value": 120, "source": "pack_label", "ref": "samples/products/05-chao-hau-hop/photo-1.png"},
+                 {"value": 150, "source": "price_list", "ref": "price-list.jpg row 5"}],
+    "retail_price_vnd": [{"value": 22000, "source": "price_list", "ref": "price-list.jpg row 5"}],
+    "units_per_carton": [{"value": 12, "source": "price_list", "ref": "price-list.jpg row 5"}]},
+   "aliases": ["cháo hàu hộp", "cháo hàu ăn liền đặc sản Hải Phòng", "cháo hàu loại hộp", "KT cháo hàu", "instant oyster porridge cup", "oyster rice porridge bowl"]},
+  {"id": "kt-cua-hop", "brand": "Khánh Thọ", "name": "Bánh đa cua đồng ăn liền, hộp", "line": "bánh đa cua đồng", "pack": "hộp",
+   "variants": [], "category_id": "food_specialty", "certification": "OCOP 4 sao",
+   "facts": {
+    "weight_g": [{"value": 150, "source": "price_list", "ref": "price-list.jpg row 6"}],
+    "retail_price_vnd": [{"value": 22000, "source": "price_list", "ref": "price-list.jpg row 6"}],
+    "units_per_carton": [{"value": 12, "source": "price_list", "ref": "price-list.jpg row 6"}]},
+   "aliases": ["bánh đa cua hộp", "bánh đa cua loại hộp", "bánh đa cua đồng Hải Phòng hộp", "KT cua hộp", "instant crab noodle cup", "crab rice noodle cup"]},
+  {"id": "kt-cua-goi", "brand": "Khánh Thọ", "name": "Bánh đa cua đồng ăn liền, gói", "line": "bánh đa cua đồng", "pack": "gói",
+   "variants": [], "category_id": "food_specialty", "certification": "OCOP 4 sao",
+   "facts": {
+    "weight_g": [{"value": 125, "source": "price_list", "ref": "price-list.jpg row 7"}],
+    "retail_price_vnd": [{"value": 15000, "source": "price_list", "ref": "price-list.jpg row 7"}],
+    "units_per_carton": [{"value": 20, "source": "price_list", "ref": "price-list.jpg row 7"}]},
+   "aliases": ["bánh đa cua gói", "bánh đa cua dạng gói", "có gói riêu cua", "KT cua gói", "instant crab noodle pack", "crab rice noodle packet"]}
+ ]
+}

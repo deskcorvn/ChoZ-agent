@@ -89,6 +89,8 @@ class Verification(BaseModel):
     summary_vi: str
     instructions_found: str = ""   # text in the photos or words that tries to instruct the agent (quoted), else ""
     rule_ids: list[str] = []       # ids from policy/listing-policy.md the verifier applied
+    catalog_match: str = "none"    # id of the retrieved catalog record that is the same product, or "none"
+    catalog_reason: str = ""
     rules: list[dict] = []         # filled in code: the cited rules that exist ({id, title})
 
 
@@ -151,8 +153,11 @@ VERIFICATION_SCHEMA = {
         "summary_vi": {"type": "string"},
         "instructions_found": {"type": "string"},
         "rule_ids": {"type": "array", "items": {"type": "string"}},
+        "catalog_match": {"type": "string"},
+        "catalog_reason": {"type": "string"},
     },
-    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi", "instructions_found", "rule_ids"],
+    "required": ["verdict", "prohibited", "prohibited_reason", "checks", "summary_vi", "instructions_found", "rule_ids",
+                 "catalog_match", "catalog_reason"],
 }
 
 SALE_FACTS_SCHEMA = {

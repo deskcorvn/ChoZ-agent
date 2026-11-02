@@ -21,6 +21,7 @@ from app.meta_api import make_client
 from app.pipeline import Agent
 
 PHOTO_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp")
+GOLD = True    # score catalog matches against app.rag_eval's gold mapping
 CHECKED = ("price_vnd", "stock", "category")
 
 
@@ -54,7 +55,12 @@ async def run_folder(folder: Path, settings: config.Settings | None = None) -> t
                         "title": listing.get("title", ""), "category": listing.get("category", ""),
                         "price_vnd": listing.get("price_vnd"), "stock": listing.get("stock"),
                         "verdict": (run.verification or {}).get("verdict", ""),
-                        "studio_photo": bool(run.studio_image), "error": run.error})
+                        "studio_photo": bool(run.studio_image), "error": run.error,
+                        "catalog_match": (listing.get("catalog") or {}).get("match", ""),
+                        "rules": " ".join(sorted(set((run.verification or {}).get("rule_ids") or [])))})
+            if "catalog_id" in expected or GOLD:                 # grounding: same product, or rightly none
+                from app.rag_eval import gold_for
+                row["catalog_ok"] = row["catalog_match"] == expected.get("catalog_id", gold_for(product.name))
             for key in CHECKED:
                 if key in expected:
                     row[f"{key}_ok"] = listing.get(key) == expected[key]

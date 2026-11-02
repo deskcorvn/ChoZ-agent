@@ -205,8 +205,20 @@ function fillPreview(run) {
     W4: 'Danh mục đã được chỉnh cho đúng món hàng.',
     W5: 'Ảnh có vẻ lấy của người khác (dấu bản quyền, ảnh chụp màn hình). Bạn chụp giúp ảnh món hàng bạn có.',
     W6: 'Ảnh mang dấu ảnh do AI tạo. Bạn chụp giúp ảnh thật của món hàng.',
+    W7: 'Giá khác xa giá bán lẻ đề xuất của nhà sản xuất. Bạn xem lại có gõ nhầm số không.',
     R1: 'Người duyệt đã xem lại tin này.',
   };
+  // Catalog grounding (app/kb.py): the matched product and the producer's suggested price; the seller decides the price.
+  const cat = (l.catalog || {});
+  const vnd = (n) => `${Number(n).toLocaleString('vi-VN')}đ`;
+  $('catalog').hidden = !cat.id;
+  if (cat.id) {
+    const retail = cat.suggested_price_vnd;
+    $('catalog-text').textContent = `Khớp danh mục ${cat.brand}: ${cat.name}` + (retail ? ` · giá lẻ đề xuất ${vnd(retail)}` : '');
+    $('use-price').hidden = !retail || $('f-price').value !== '';
+    $('use-price').textContent = retail ? `Dùng giá ${vnd(retail)}` : '';
+    $('use-price').onclick = () => { $('f-price').value = retail; $('use-price').hidden = true; };
+  }
   const ids = [...new Set([...(v.rule_ids || []), ...(v.rules || []).map((r) => r.id)])].filter((id) => ADVICE[id]);
   $('advice').replaceChildren(...(v.verdict === 'pass' ? [] : ids).map((id) => {
     const li = document.createElement('li'); li.className = id[0] === 'P' ? 'block' : 'warn';

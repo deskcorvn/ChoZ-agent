@@ -26,7 +26,7 @@ def test_a_complete_note_goes_straight_to_ready(settings):
     assert run.listing["price_vnd"] == 120000 and run.listing["stock"] == 50
     keys = [s.key for s in run.steps]
     assert keys[0] == "prepare" and keys[-1] == "compose"
-    assert sorted(keys[1:-1]) == ["background", "listing", "segment", "verify"]
+    assert sorted(keys[1:-1]) == ["background", "listing", "match", "retrieve", "segment", "verify"]
     assert keys.index("background") < keys.index("verify")      # the slow painter starts early
     assert all(s.status == "done" for s in run.steps)
     assert all(s.mock for s in run.steps if s.model)
@@ -340,3 +340,37 @@ def test_a_cached_room_is_not_counted_as_a_model_call(settings, tmp_path):
     run.steps = [Step(key="transcribe", title="", model="muse-voice-transcribe-1.0", status="done"),
                  Step(key="background", title="", model="cache (muse-image-1.0)", status="done")]
     assert run.totals()["model_calls"] == 1
+
+
+def test_catalog_grounding_matches_checks_and_never_invents(settings, tmp_path):
+    from app import kb
+    agent = Agent(MockMetaClient(settings), tmp_path / "runs")
+    # a catalog product, said with a price typo: matched, price kept (only the seller sets it), W7 asks to check
+    run = agent.create([product_photo()], None, "Cháo hàu ăn liền Khánh Thọ loại hộp, giá 220 nghìn, còn 80 hộp")
+    asyncio.run(agent.process(run))
+    cat = run.listing["catalog"]
+    assert cat["match"] == "kt-chao-hau-hop" and cat["facts"]["weight_g"]["value"] == 120
+    assert cat["facts"]["weight_g"]["conflicting"] == [{"value": 150, "source": "price_list"}]
+    assert run.listing["price_vnd"] == 220000 and "W7" in run.verification["rule_ids"]
+    assert run.verification["verdict"] == "warn" and cat["suggested_price_vnd"] == 22000
+    keys = [s.key for s in run.steps]
+    assert keys.index("retrieve") < keys.index("verify") < keys.index("match")
+    # not in the catalog: no candidates, nothing matched, nothing forced
+    other = agent.create([product_photo()], None, "Áo thun cotton nam, giá 120 nghìn, còn 50 cái")
+    asyncio.run(agent.process(other))
+    assert other.listing["catalog"]["match"] == "none" and "W7" not in other.verification["rule_ids"]
+    # retrieval itself: speech slips and missing diacritics still find the product
+    assert kb.default().search("cháo lẩu ăn liền hộp")[0]["id"] == "kt-chao-hau-hop"
+    assert kb.default().search("banh da cua goi 125g")[0]["id"] == "kt-cua-goi"
+
+
+def test_a_match_that_was_not_retrieved_is_ignored(settings, tmp_path):
+    from app.pipeline import Run
+    from app.schema import Verification
+    agent = Agent(MockMetaClient(settings), tmp_path / "runs")
+    run = Run(id="abcdef123456", mode="mock")
+    run.listing = {"title": "x", "price_vnd": 1000}
+    v = Verification(verdict="pass", prohibited=False, summary_vi="ok", catalog_match="kt-cua-hop")
+    from app import kb
+    agent._ground(run, v, [], kb.default())
+    assert run.listing["catalog"]["match"] == "none" and any("not retrieved" in c.note for c in v.checks)

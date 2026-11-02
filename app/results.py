@@ -42,7 +42,8 @@ def batch_section(name: str, files: list[Path]) -> list[str]:
     out = [f"### {name}", "", f"{len(rows)} live runs · p50 {pct(secs, .5):.1f} s · p95 {pct(secs, .95):.1f} s · "
            f"mean ${sum(cost) / max(len(cost), 1):.4f} per listing · files: {', '.join(f.name for f in files)}", "",
            "| Check | Right | Rate | Wilson 95 % |", "|---|---|---|---|"]
-    for key, label in (("price_vnd_ok", "price from the seller's words"), ("stock_ok", "stock"), ("category_ok", "category")):
+    for key, label in (("price_vnd_ok", "price from the seller's words"), ("stock_ok", "stock"), ("category_ok", "category"),
+                       ("catalog_ok", "catalog: same product matched, or rightly none")):
         vals = [r[key] == "True" for r in rows if r.get(key) in ("True", "False")]
         out.append(row(label, sum(vals), len(vals)))
     no_price = [r for r in rows if r.get("price_vnd_ok", "") == "" and r.get("status")]
@@ -84,7 +85,8 @@ def main(folder: Path) -> str:
     titles = {"samples-x3": "Five sample products, three repetitions (Oct 31)",
               "catalogue": "Khánh Thọ's catalogue: 19 photos, 10 products (Nov 1)",
               "room-cache": "Five sample products with the room cache (Nov 1)",
-              "gate": "Regression gate after the W5 and W6 policy changes, five samples (Nov 2)"}
+              "gate": "Regression gate after the W5 and W6 policy changes, five samples (Nov 2)",
+              "rag-catalogue": "Khánh Thọ's catalogue with catalog retrieval and grounding on (Nov 2)"}
     for key, files in batches.items():
         lines += batch_section(titles.get(key, key), files)
     for f in sorted(folder.rglob("report.json")):

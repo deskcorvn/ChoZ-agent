@@ -1,0 +1,28 @@
+[
+ {
+  "note": "ai mươi nghìn một hộp, còn tám mươi hộp.",
+  "status": "ready",
+  "price": 220000,
+  "match": "kt-chao-hau-hop",
+  "suggested": 22000,
+  "rules": [
+   "W7"
+  ],
+  "summary": "Giá 220.000đ khác xa giá bán lẻ đề xuất 22.000đ của nhà sản xuất; bạn kiểm tra lại giá nhé.",
+  "question": null,
+  "run": "4baf708d70c6",
+  "cost": 0.017195
+ },
+ {
+  "note": "n Hải Phòng, loại hộp, còn tám mươi hộp.",
+  "status": "needs_answer",
+  "price": null,
+  "match": "kt-chao-hau-hop",
+  "suggested": 22000,
+  "rules": [],
+  "summary": "Tin đăng khớp ảnh sản phẩm cháo hàu hộp Hải Phòng 120g của bạn.",
+  "question": "Bạn bán sản phẩm này giá bao nhiêu?",
+  "run": "b2d11f96d40e",
+  "cost": 0.016993
+ }
+]

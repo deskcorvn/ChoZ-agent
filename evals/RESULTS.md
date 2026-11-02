@@ -12,6 +12,7 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | price from the seller's words | 13/13 | 100 % | 77–100 % |
 | stock | 19/19 | 100 % | 83–100 % |
 | category | 19/19 | 100 % | 83–100 % |
+| catalog: same product matched, or rightly none | 0/0 | – | – |
 | no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
 
 ### Regression gate after the W5 and W6 policy changes, five samples (Nov 2)
@@ -23,6 +24,19 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | price from the seller's words | 5/5 | 100 % | 57–100 % |
 | stock | 4/4 | 100 % | 51–100 % |
 | category | 5/5 | 100 % | 57–100 % |
+| catalog: same product matched, or rightly none | 0/0 | – | – |
+
+### Khánh Thọ's catalogue with catalog retrieval and grounding on (Nov 2)
+
+19 live runs · p50 12.4 s · p95 15.6 s · mean $0.0162 per listing · files: batch-20261102-083918.csv
+
+| Check | Right | Rate | Wilson 95 % |
+|---|---|---|---|
+| price from the seller's words | 13/13 | 100 % | 77–100 % |
+| stock | 19/19 | 100 % | 83–100 % |
+| category | 19/19 | 100 % | 83–100 % |
+| catalog: same product matched, or rightly none | 18/19 | 95 % | 75–99 % |
+| no price said → the agent asks for it | 6/6 | 100 % | 61–100 % |
 
 ### Five sample products with the room cache (Nov 1)
 
@@ -33,6 +47,7 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | price from the seller's words | 5/5 | 100 % | 57–100 % |
 | stock | 4/4 | 100 % | 51–100 % |
 | category | 5/5 | 100 % | 57–100 % |
+| catalog: same product matched, or rightly none | 0/0 | – | – |
 
 ### Five sample products, three repetitions (Oct 31)
 
@@ -43,6 +58,7 @@ Expectations are fixed before a run. Samples are small; the Wilson interval is t
 | price from the seller's words | 15/15 | 100 % | 80–100 % |
 | stock | 12/12 | 100 % | 76–100 % |
 | category | 15/15 | 100 % | 80–100 % |
+| catalog: same product matched, or rightly none | 0/0 | – | – |
 
 ### Adversarial: prompt injection, contact data, disguised prohibited item (Nov 1)
 
