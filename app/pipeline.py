@@ -358,6 +358,14 @@ class Agent:
             await asyncio.gather(segment_task, return_exceptions=True)
             raise
         verification = Verification.model_validate(verified[0])
+        # Spark's own evidence in the log: what it found contradicted, in its words (shown under the step)
+        verified[1].output["contradicted"] = [f"{c.claim} — {c.note}"[:160] for c in verification.checks
+                                             if c.status == "contradicted"][:4]
+        # The exact numbers behind a weight warning, for a seller-facing line that names them
+        said_w = kb.weight_in([seller_words])
+        listed_w = kb.weight_in([listing.title, *[f"{a.name} {a.value}" for a in listing.attributes]])
+        if said_w and listed_w and said_w != listed_w:
+            run.listing = {**(run.listing or {}), "weight_note": {"said_g": said_w, "listed_g": listed_w}}
         self._ground(run, verification, candidates, catalog)
         self._remember(run)
         hits = guard.prohibited_terms(seller_words, run.listing.get("title", ""), run.listing.get("description", ""))
@@ -612,7 +620,7 @@ class Agent:
                 listing.provenance["stock"] = {"source": "seller's answer", "quote": words, "verified": True}
             listing.missing = listing.missing_for_sale()
             # keep what the agent attached outside the model's schema (catalog match, seller memory)
-            kept = {k: run.listing[k] for k in ("catalog", "history") if k in (run.listing or {})}
+            kept = {k: run.listing[k] for k in ("catalog", "history", "weight_note") if k in (run.listing or {})}
             run.listing = {**listing.model_dump(), **kept}
             run.status = "ready"     # one question only; anything still missing is typed in on the preview
         except Exception as exc:

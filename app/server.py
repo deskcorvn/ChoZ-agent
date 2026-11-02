@@ -392,10 +392,12 @@ async function load() {
     const lines = [['Tin', a.title], ['Người bán', a.seller || '-'], ['Lý do chặn', a.reason], ['Quy định', (a.rules || []).join(', ')],
                    ['Người bán viết', a.seller_note || '-'], ['Lúc', a.at]];
     for (const [k, v] of lines) { const p = document.createElement('div'); p.textContent = k + ': ' + (v || ''); body.append(p); }
-    const why = document.createElement('input'); why.placeholder = 'Lý do quyết định (bắt buộc)'; why.style.cssText = 'width:100%;margin:8px 0;padding:6px';
+    const why = document.createElement('input'); why.placeholder = 'Lý do quyết định (bắt buộc)'; why.style.cssText = 'width:100%;margin:8px 0;padding:10px;border:1px solid #d1d5db;border-radius:10px;font:inherit;box-sizing:border-box';
     body.append(why);
     for (const [label, decision] of [['Giữ chặn', 'uphold'], ['Cho đăng (kèm cảnh báo)', 'overturn']]) {
-      const b = document.createElement('button'); b.textContent = label; b.style.marginRight = '8px';
+      const b = document.createElement('button'); b.textContent = label;
+      b.style.cssText = 'margin-right:8px;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;'
+        + (decision === 'uphold' ? 'background:#c4282c;color:#fff' : 'background:#fff;color:#0f766e;border:1px solid #0f766e');
       b.onclick = async () => {
         const r = await fetch('/api/appeals/' + a.run_id, {method: 'POST', headers: {'Content-Type': 'application/json'},
                                                           body: JSON.stringify({decision, reason: why.value})});

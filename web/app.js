@@ -241,14 +241,21 @@ function fillPreview(run) {
     const [y, mo, dd] = (hist.published_at || '').slice(0, 10).split('-');
     const today = new Date().toISOString().slice(0, 10) === (hist.published_at || '').slice(0, 10);
     $('history-text').textContent = `Bạn đã đăng sản phẩm này ${today ? 'hôm nay' : `ngày ${+dd}/${+mo}/${y}`}`
-      + (hist.price_vnd ? ` (giá ${vnd(hist.price_vnd)}, còn ${hist.stock ?? '?'})` : '') + '. Cập nhật tin cũ thay vì đăng tin mới.';
+      + (hist.price_vnd ? ` (giá ${vnd(hist.price_vnd)})` : '') + '. Cập nhật tin cũ thay vì đăng tin mới'
+      + (hist.stock != null && l.stock != null && hist.stock !== l.stock ? `: còn ${hist.stock} → ${l.stock}.` : '.');
+    if (hist.title) $('f-title').value = hist.title;          // the same listing keeps its name
     $('update-old').checked = true;
     if ($('f-price').value === '' && hist.price_vnd) { $('use-price').hidden = false; $('use-price').textContent = `Dùng giá lần trước ${vnd(hist.price_vnd)}`; $('use-price').onclick = () => { $('f-price').value = hist.price_vnd; $('use-price').hidden = true; }; $('catalog').hidden = false; }
   }
+  // A weight warning names the numbers and the source the listing follows.
+  const wn = l.weight_note;
   const ids = [...new Set([...(v.rule_ids || []), ...(v.rules || []).map((r) => r.id)])].filter((id) => ADVICE[id]);
   $('advice').replaceChildren(...(v.verdict === 'pass' ? [] : ids).map((id) => {
     const li = document.createElement('li'); li.className = id[0] === 'P' ? 'block' : 'warn';
-    li.textContent = ADVICE[id]; return li;
+    li.textContent = (id === 'W1' && wn)
+      ? `Bạn nói ${wn.said_g}g · bao bì in ${wn.listed_g}g → tin ghi ${wn.listed_g}g theo bao bì. Bạn xem lại rồi đánh dấu đã đọc để đăng.`
+      : ADVICE[id];
+    return li;
   }));
   $('restyle').hidden = !run.studio_image || run.status !== 'ready';
   // A warning must be read before publishing (human in the loop); the server enforces the same rule.
@@ -362,6 +369,12 @@ function renderLog(run) {
     top.append(meta);
     li.append(top);
     if (s.error) { const err = document.createElement('div'); err.className = 'err'; err.textContent = s.error; li.append(err); }
+    // Evidence in the model's own words, under its step: what Spark found contradicted, the text it refused to obey.
+    const out = s.output || {};
+    const evidence = [...(out.contradicted || []), ...(s.key === 'injection' && out.in_photos ? [`quoted, not obeyed: “${out.in_photos}”`] : [])];
+    for (const line of evidence) {
+      const ev = document.createElement('div'); ev.className = 'evidence'; ev.textContent = line; li.append(ev);
+    }
     if (s.endpoint || s.input || s.output) {
       const details = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = s.endpoint || 'details';
