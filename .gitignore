@@ -16,3 +16,9 @@ __pycache__/
 
 # Studio step log (preview): regenerated on every run.
 studio/log.jsonl
+
+# sim: separate venv for AgentScope; per-run caches and listing photos (events and summaries are kept)
+.venv-sim/
+runs/*/listing-runs/
+runs/*/cache/
+runs/*/audit*

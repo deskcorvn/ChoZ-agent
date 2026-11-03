@@ -1,0 +1,43 @@
+{
+ "mode": "mock",
+ "seed": 7,
+ "started": "2026-11-03T21:21:02+07:00",
+ "finished": "2026-11-03T21:21:02+07:00",
+ "seconds": 0.01,
+ "events": 129,
+ "orders": 30.0,
+ "gmv_vnd": 3228000.0,
+ "agent_actions": 47.0,
+ "human_approvals": 6.0,
+ "human_minutes": 57.5,
+ "blocked": 1.0,
+ "cost": {},
+ "cost_total_usd": 0,
+ "cost_total_vnd": 0,
+ "cost_calls_usd": 0,
+ "cost_matches_calls": true,
+ "metric_cost_usd": 0.0,
+ "usd_vnd": 26300,
+ "usd_vnd_source": "giá trị trong yêu cầu demo (03/11/2026); đổi bằng biến USD_VND",
+ "price_source": {
+  "claude": "https://platform.claude.com/docs/en/about-claude/pricing (xem 03/11/2026)",
+  "meta": "https://dev.meta.ai/docs/pricing-rate-limits (xem 31/10/2026, app/prices.py)"
+ },
+ "latency_ms": {},
+ "errors": 0,
+ "stopped": null,
+ "services": {
+  "suat_an_sang": 20,
+  "giat_la_ho": 3,
+  "note": "dịch vụ chạy trên nền tảng, chỉ là một dòng bộ đếm; không tính vào đơn và tiền hàng Giỏ"
+ },
+ "scenes": [
+  "dat_gio",
+  "dang_ban",
+  "gom_kho",
+  "ra_tram",
+  "nhan_hang",
+  "doi_soat",
+  "tong_ket"
+ ]
+}
