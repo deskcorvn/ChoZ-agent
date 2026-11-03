@@ -34,6 +34,14 @@ class Lister:
             raise RuntimeError("MODEL_API_KEY is not set (live listing needs Meta; see sim/README.md)")
         self.client = make_client(self.settings)
         self.agent = Agent(self.client, day.out / "listing-runs")
+        # The app keeps a pool of empty studio rooms Muse Image already painted (data/cache/neutral-rooms); reuse it
+        # as the app does, instead of paying to paint a room for every listing of the day.
+        pool = ROOT / "data" / "cache" / "neutral-rooms"
+        target = day.out / "cache" / "neutral-rooms"
+        if pool.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            for room in pool.glob("room-*.png"):
+                (target / room.name).write_bytes(room.read_bytes())
 
     async def close(self) -> None:
         await self.client.aclose()

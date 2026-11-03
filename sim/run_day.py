@@ -108,17 +108,17 @@ async def dang_ban(d: Day) -> None:
     d.at("05:00")
     d.emit("scene", step=0, scene="dang_ban")
     lister = Lister(d) if d.mode == "live" else None
-    items = [  # (sample, supplier, what the supplier says, detail)
-        ("chao_hau", "ncc1", "Cháo hàu ăn liền, hộp 150 gam, 22 nghìn, còn 80 hộp",
+    items = [  # (sample, short name for bubbles, supplier, what the supplier says, detail)
+        ("chao_hau", "cháo hàu hộp", "ncc1", "Cháo hàu ăn liền, hộp 150 gam, 22 nghìn, còn 80 hộp",
          {"photos": 1, "audio_seconds": round(VOICE.stat().st_size / 32000, 1) if VOICE.is_file() else 0,
           "sample": "samples/products/05-chao-hau-hop", "voice": "sim/samples/voice/ncc1-chao-hau.wav"}),
-        ("banh_da_cua", "ncc1", "Bánh đa cua hộp, 22 nghìn một hộp, còn 80 hộp",
+        ("banh_da_cua", "bánh đa cua hộp", "ncc1", "Bánh đa cua hộp, 22 nghìn một hộp, còn 80 hộp",
          {"photos": 1, "sample": "samples/products/04-banh-da-cua-hop"}),
-        ("hang_cam", "ncc3", "Rượu ngâm mật gấu, chai 500 ml, 350 nghìn, còn 10 chai",
+        ("hang_cam", "rượu ngâm mật gấu", "ncc3", "Rượu ngâm mật gấu, chai 500 ml, 350 nghìn, còn 10 chai",
          {"photos": 1, "sample": "sim/samples/hang-cam"}),
     ]
     try:
-        for key, supplier, words, detail in items:
+        for key, label, supplier, words, detail in items:
             d.emit("say", from_=supplier, to="ag_dang_ban", text=words, detail=detail)
             if lister is None:
                 outcome = emit_mock(d, key, "Kiểm giúp tin vừa đăng với 1 ảnh")
@@ -127,15 +127,15 @@ async def dang_ban(d: Day) -> None:
                 checks = len((run.verification or {}).get("checks", []))
                 lister.emit_steps(run, 1, f"Kiểm giúp {checks} claim với 1 ảnh" if checks else "Kiểm giúp tin này, 1 ảnh")
                 outcome = outcome_of(run)
-            _after_listing(d, outcome, supplier)
+            _after_listing(d, outcome, supplier, label)
     finally:
         if lister is not None:
             await lister.close()
     d.metric()
 
 
-def _after_listing(d: Day, o: dict, supplier: str) -> None:
-    title = short(o["title"])[:40]
+def _after_listing(d: Day, o: dict, supplier: str, label: str) -> None:
+    title = label
     if o["status"] == "blocked":
         rules = ", ".join(o.get("rules") or []) or "hàng cấm"
         d.emit("say", from_="ag_kiem_chung", to=supplier, text=short(f"Chặn tin: {title} là hàng cấm ({rules}). Không đăng."),
@@ -144,14 +144,15 @@ def _after_listing(d: Day, o: dict, supplier: str) -> None:
         return
     if o["verdict"] == "warn" or o.get("check"):
         said = short(o.get("summary_vi") or (o.get("check") or {}).get("note") or "Lời nói và ảnh có điểm lệch")
+        said = said[:1].upper() + said[1:]
         d.emit("say", from_="ag_kiem_chung", to=supplier, text=said, detail={"check": o.get("check"), "verdict": o["verdict"]})
         humans.approve(d, "ag_kiem_chung", "hu_tram", "duyet_listing",
-                       short(f"Tin {title}: {o['checks']} claim, có lệch. Duyệt đăng theo nhãn?"),
+                       short(f"Tin {title}: {o['checks']} claim, có chỗ lệch lời nói. Duyệt đăng theo nhãn?"),
                        "Duyệt, đăng theo nhãn", detail={"listing_run": o["run"], "check": o.get("check")})
         return
     if o["status"] in ("ready", "needs_answer"):
         d.emit("say", from_="ag_dang_ban", to=supplier,
-               text=short(f"Đã lên tin {title}, {money(o['price_vnd'])}, tồn {o['stock']}, {o['seconds']:g} giây"),
+               text=short(f"Đã lên tin {title}, {money(o['price_vnd'])}, tồn {o['stock']}, {str(o['seconds']).replace('.', ',')} giây"),
                detail={"listing_run": o["run"], "status": o["status"]})
         return
     d.emit("error", from_="ag_dang_ban", text=short(f"Tin {title} lỗi: {o.get('error')}"), detail={"listing_run": o["run"]})
@@ -159,6 +160,7 @@ def _after_listing(d: Day, o: dict, supplier: str) -> None:
 
 
 # ── scene 3 ──────────────────────────────────────────────────────────────────────────────────────────
+LOT_NAMES = {"rau": "rau", "thit": "thịt", "tom": "tôm", "ca": "cá rô phi", "trung": "trứng", "chao_hau": "cháo hàu"}
 LOTS = [("ncc2", "rau"), ("ncc3", "thit"), ("ncc4", "tom"), ("ncc4", "ca"), ("ncc5", "trung"), ("ncc1", "chao_hau")]
 
 
@@ -185,9 +187,9 @@ async def gom_kho(d: Day) -> None:
         "`messages`: với mỗi lô loại, một câu gửi nhà cung cấp của lô đó (to = mã ncc) yêu cầu đổi lô, nêu lý do có số.",
         tools=["check_lot"], mock_calls=[("check_lot", {"supplier": s, "item": i}) for s, i in LOTS],
         mock_text=lambda o: (lambda bad: f"{len(LOTS) - len(bad)}/{len(LOTS)} lô đạt; loại {len(bad)} lô "
-                                         + ", ".join(f"{b['item']} {b['supplier']}" for b in bad))(
+                                         + ", ".join(f"{LOT_NAMES[b['item']]} {b['supplier']}" for b in bad))(
             [x for x in o["check_lot"] if x["result"] == "loại"]),
-        mock_messages=lambda o: [{"to": x["supplier"], "text": f"Lô {x['item']} {x['reasons'][0]}. Đổi lô khác trước 06:20."}
+        mock_messages=lambda o: [{"to": x["supplier"], "text": f"Lô {LOT_NAMES[x['item']]} {x['reasons'][0].replace('.', ',')}. Đổi lô khác trước 06:20."}
                                  for x in o["check_lot"] if x["result"] == "loại"],
         required=("check_lot",), check=_all_lots_checked)
     d.emit("say", from_="ag_kiem_chung", to="hu_kho", text=k.text, usage=k.usage)
@@ -196,7 +198,7 @@ async def gom_kho(d: Day) -> None:
     failed = [x for x in k.outputs.get("check_lot", []) if x["result"] == "loại"]
     for x in {(f["supplier"], f["item"]) for f in failed}:
         d.tools.replace_lot(x[0], x[1], 2.0)
-        d.emit("say", step=10 * 60, from_=x[0], to="ag_kiem_chung", text=f"Đã đổi lô {x[1]} mới, đo 2 °C",
+        d.emit("say", step=10 * 60, from_=x[0], to="ag_kiem_chung", text=f"Đã đổi lô {LOT_NAMES[x[1]]} mới, đo 2 °C",
                detail={"lot": x[1], "temp_c": 2.0})
     if failed:
         again = sorted({(f["supplier"], f["item"]) for f in failed})
