@@ -1,0 +1,109 @@
+{
+ "mode": "live",
+ "seed": 7,
+ "started": "2026-11-04T06:43:16+07:00",
+ "finished": "2026-11-04T06:45:57+07:00",
+ "seconds": 160.92,
+ "events": 144,
+ "orders": 30.0,
+ "gmv_vnd": 3228000.0,
+ "agent_actions": 60.0,
+ "human_approvals": 6.0,
+ "human_minutes": 57.5,
+ "blocked": 1.0,
+ "cost": {
+  "claude": {
+   "claude-sonnet-5-5": {
+    "calls": 38,
+    "events": 18,
+    "input_tokens": 168790,
+    "output_tokens": 5412,
+    "cached_tokens": 0,
+    "images": 0,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.3917
+   }
+  },
+  "meta": {
+   "muse-voice-transcribe-1.0": {
+    "calls": 1,
+    "events": 1,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cached_tokens": 0,
+    "images": 0,
+    "audio_seconds": 5.92,
+    "cost_usd": 0.000296
+   },
+   "muse-spark-1.3": {
+    "calls": 8,
+    "events": 8,
+    "input_tokens": 27256,
+    "output_tokens": 5653,
+    "cached_tokens": 0,
+    "images": 8,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.058095
+   },
+   "sam-3.1": {
+    "calls": 4,
+    "events": 4,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cached_tokens": 0,
+    "images": 4,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.01
+   }
+  }
+ },
+ "cost_total_usd": 0.460091,
+ "cost_total_vnd": 12100,
+ "cost_calls_usd": 0.460091,
+ "cost_matches_calls": true,
+ "metric_cost_usd": 0.460091,
+ "usd_vnd": 26300,
+ "usd_vnd_source": "giá trị trong yêu cầu demo (03/11/2026); đổi bằng biến USD_VND",
+ "price_source": {
+  "claude": "https://platform.claude.com/docs/en/about-claude/pricing (xem 03/11/2026)",
+  "meta": "https://dev.meta.ai/docs/pricing-rate-limits (xem 31/10/2026, app/prices.py)"
+ },
+ "latency_ms": {
+  "claude-sonnet-5-5": {
+   "p50": 1761,
+   "p95": 3485,
+   "calls": 38
+  },
+  "muse-voice-transcribe-1.0": {
+   "p50": 2962,
+   "p95": 2962,
+   "calls": 1
+  },
+  "muse-spark-1.3": {
+   "p50": 9416,
+   "p95": 11532,
+   "calls": 8
+  },
+  "sam-3.1": {
+   "p50": 7224,
+   "p95": 9826,
+   "calls": 4
+  }
+ },
+ "errors": 0,
+ "stopped": null,
+ "services": {
+  "suat_an_sang": 20,
+  "giat_la_ho": 3,
+  "note": "dịch vụ chạy trên nền tảng, chỉ là một dòng bộ đếm; không tính vào đơn và tiền hàng Giỏ"
+ },
+ "scenes": [
+  "dat_gio",
+  "dang_ban",
+  "gom_kho",
+  "ra_tram",
+  "nhan_hang",
+  "doi_soat",
+  "tong_ket"
+ ]
+}
