@@ -1,0 +1,388 @@
+{
+ "mode": "live",
+ "per_tram_day": {
+  "volumes": {
+   "baskets": 30,
+   "stations": 1,
+   "warehouses": 1,
+   "listings": 3,
+   "listings_checked": 3,
+   "orders_picked": 30,
+   "requests": 1,
+   "orders_completed": 30,
+   "supplier_reports": 5,
+   "customers": 30
+  },
+  "approval_minutes": {
+   "thay_hang": 1.0,
+   "duyet_listing": 0.5,
+   "nhan_hang_kho": 10.0,
+   "nhan_hang_tram": 10.0,
+   "doi_tra": 1.0,
+   "doi_soat": 5.0
+  },
+  "event_human_minutes": 57.5,
+  "rows": [
+   {
+    "key": "nhan_dat_gio",
+    "task": "Nhận đặt Giỏ qua tin nhắn, ghi sổ",
+    "unit": "mỗi đơn",
+    "qty": 30,
+    "minutes": 2,
+    "manual_who": "nhân viên trạm",
+    "kind": "van_phong",
+    "manual_min": 60,
+    "with_agent_min": 0.0,
+    "agent": "ag_chia_don (khách đặt trên Mini App)",
+    "scale": "orders",
+    "scale_note": "theo số đơn (1.500 / 30)"
+   },
+   {
+    "key": "gom_nhu_cau",
+    "task": "Gom nhu cầu thành đơn đặt nhà cung cấp",
+    "unit": "mỗi trạm mỗi ngày",
+    "qty": 1,
+    "minutes": 30,
+    "manual_who": "điều phối",
+    "kind": "van_phong",
+    "manual_min": 30,
+    "with_agent_min": 1.0,
+    "agent": "ag_chia_don",
+    "scale": "stations",
+    "scale_note": "theo số trạm (50)"
+   },
+   {
+    "key": "dang_ban",
+    "task": "Đăng bán một sản phẩm (chụp, viết, nhập)",
+    "unit": "mỗi sản phẩm",
+    "qty": 3,
+    "minutes": 12,
+    "manual_who": "nhân viên nội dung",
+    "kind": "van_phong",
+    "manual_min": 36,
+    "with_agent_min": 0.5,
+    "agent": "ag_dang_ban",
+    "scale": "listings",
+    "scale_note": "giả định số tin đăng mỗi ngày không tăng theo số trạm (chờ xác nhận)"
+   },
+   {
+    "key": "kiem_thong_tin",
+    "task": "Kiểm thông tin sản phẩm, hồ sơ nguồn gốc",
+    "unit": "mỗi sản phẩm",
+    "qty": 3,
+    "minutes": 5,
+    "manual_who": "nhân viên nội dung",
+    "kind": "van_phong",
+    "manual_min": 15,
+    "with_agent_min": 0.0,
+    "agent": "ag_kiem_chung (duyệt listing tính ở dòng đăng bán)",
+    "scale": "listings",
+    "scale_note": "giả định số tin đăng mỗi ngày không tăng theo số trạm (chờ xác nhận)"
+   },
+   {
+    "key": "lich_xe",
+    "task": "Lên lịch xe và chuyến gom",
+    "unit": "mỗi kho mỗi ngày",
+    "qty": 1,
+    "minutes": 20,
+    "manual_who": "điều phối",
+    "kind": "van_phong",
+    "manual_min": 20,
+    "with_agent_min": 0.0,
+    "agent": "ag_giao_nhan",
+    "scale": "warehouses",
+    "scale_note": "1 kho cho cả 50 trạm"
+   },
+   {
+    "key": "chia_hang",
+    "task": "Chia hàng theo đơn tại kho",
+    "unit": "mỗi đơn",
+    "qty": 30,
+    "minutes": 1,
+    "manual_who": "nhân viên kho",
+    "kind": "tay_chan",
+    "manual_min": 30,
+    "with_agent_min": 30,
+    "agent": "không thay (agent chỉ lên phiếu gom)",
+    "scale": "orders",
+    "scale_note": "theo số đơn (1.500 / 30)"
+   },
+   {
+    "key": "tra_loi_khach",
+    "task": "Trả lời khách hỏi, đổi trả",
+    "unit": "mỗi yêu cầu",
+    "qty": 1,
+    "minutes": 4,
+    "manual_who": "nhân viên trạm",
+    "kind": "van_phong",
+    "manual_min": 4,
+    "with_agent_min": 1.0,
+    "agent": "ag_cham_khach",
+    "scale": "requests",
+    "scale_note": "theo số đơn (tỷ lệ khách hỏi như ngày mô phỏng)"
+   },
+   {
+    "key": "doi_soat",
+    "task": "Đối soát đơn, tính phí, chia tiền",
+    "unit": "mỗi đơn",
+    "qty": 30,
+    "minutes": 1.5,
+    "manual_who": "kế toán",
+    "kind": "van_phong",
+    "manual_min": 45.0,
+    "with_agent_min": 5.0,
+    "agent": "ag_doi_soat",
+    "scale": "orders",
+    "scale_note": "theo số đơn (1.500 / 30)"
+   },
+   {
+    "key": "bao_cao_ncc",
+    "task": "Báo cáo số cho nhà cung cấp",
+    "unit": "mỗi nhà cung cấp mỗi ngày",
+    "qty": 5,
+    "minutes": 10,
+    "manual_who": "kế toán",
+    "kind": "van_phong",
+    "manual_min": 50,
+    "with_agent_min": 0.0,
+    "agent": "ag_doi_soat",
+    "scale": "suppliers",
+    "scale_note": "giả định vẫn 5 nhà cung cấp (chờ xác nhận)"
+   },
+   {
+    "key": "bao_cao_ngay",
+    "task": "Báo cáo ngày cho quản lý",
+    "unit": "mỗi trạm mỗi ngày",
+    "qty": 1,
+    "minutes": 15,
+    "manual_who": "nhân viên trạm",
+    "kind": "van_phong",
+    "manual_min": 15,
+    "with_agent_min": 0.0,
+    "agent": "ag_doi_soat",
+    "scale": "stations",
+    "scale_note": "theo số trạm (50)"
+   },
+   {
+    "key": "nhan_hang_kho",
+    "task": "Nhận hàng tại kho",
+    "unit": "mỗi kho mỗi ngày",
+    "qty": 1,
+    "minutes": 10,
+    "manual_who": "chủ kho",
+    "kind": "tay_chan",
+    "manual_min": 10,
+    "with_agent_min": 10,
+    "agent": "không thay",
+    "scale": "warehouses",
+    "scale_note": "1 kho cho cả 50 trạm"
+   },
+   {
+    "key": "nhan_hang_tram",
+    "task": "Nhận hàng tại trạm",
+    "unit": "mỗi trạm mỗi ngày",
+    "qty": 1,
+    "minutes": 10,
+    "manual_who": "người trực trạm",
+    "kind": "tay_chan",
+    "manual_min": 10,
+    "with_agent_min": 10,
+    "agent": "không thay",
+    "scale": "stations",
+    "scale_note": "theo số trạm (50)"
+   },
+   {
+    "key": "giao_khach",
+    "task": "Giao túi cho khách tại trạm",
+    "unit": "mỗi khách",
+    "qty": 30,
+    "minutes": 1,
+    "manual_who": "người trực trạm",
+    "kind": "tay_chan",
+    "manual_min": 30,
+    "with_agent_min": 30,
+    "agent": "không thay",
+    "scale": "orders",
+    "scale_note": "theo số đơn (1.500 / 30)"
+   }
+  ]
+ },
+ "tram_1": {
+  "stations": 1,
+  "orders_per_day": 30,
+  "manual_minutes": 355.0,
+  "with_agents_minutes": 87.5,
+  "manual_people": 0.89,
+  "with_agents_people": 0.22,
+  "manual_people_whole": 1,
+  "with_agents_people_whole": 1,
+  "office": {
+   "manual_minutes": 275.0,
+   "with_agents_minutes": 7.5,
+   "manual_people": 0.69,
+   "with_agents_people": 0.02
+  },
+  "physical": {
+   "minutes": 80.0,
+   "people": 0.2,
+   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+  },
+  "agents": 6,
+  "agent_cost_vnd_day": 10968,
+  "agent_cost_vnd_month": 285168,
+  "agent_cost_usd_month": 10.84,
+  "agent_cost_vnd_per_order": 366,
+  "human_minutes_saved_pct": 75.4
+ },
+ "tram_50": {
+  "stations": 50,
+  "orders_per_day": 1500,
+  "manual_minutes": 11331.0,
+  "with_agents_minutes": 3860.5,
+  "manual_people": 28.33,
+  "with_agents_people": 9.65,
+  "manual_people_whole": 29,
+  "with_agents_people_whole": 10,
+  "office": {
+   "manual_minutes": 7821.0,
+   "with_agents_minutes": 350.5,
+   "manual_people": 19.55,
+   "with_agents_people": 0.88
+  },
+  "physical": {
+   "minutes": 3510.0,
+   "people": 8.78,
+   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+  },
+  "agents": 6,
+  "agent_cost_vnd_day": 548400,
+  "agent_cost_vnd_month": 14258400,
+  "agent_cost_usd_month": 542.16,
+  "agent_cost_vnd_per_order": 366,
+  "human_minutes_saved_pct": 65.9
+ },
+ "assumptions": [
+  {
+   "key": "nhan_dat_gio",
+   "task": "Nhận đặt Giỏ qua tin nhắn, ghi sổ",
+   "unit": "mỗi đơn",
+   "minutes": 2,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "gom_nhu_cau",
+   "task": "Gom nhu cầu thành đơn đặt nhà cung cấp",
+   "unit": "mỗi trạm mỗi ngày",
+   "minutes": 30,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "dang_ban",
+   "task": "Đăng bán một sản phẩm (chụp, viết, nhập)",
+   "unit": "mỗi sản phẩm",
+   "minutes": 12,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận; repo ChoZ-agent ghi 10-15 phút"
+  },
+  {
+   "key": "kiem_thong_tin",
+   "task": "Kiểm thông tin sản phẩm, hồ sơ nguồn gốc",
+   "unit": "mỗi sản phẩm",
+   "minutes": 5,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "lich_xe",
+   "task": "Lên lịch xe và chuyến gom",
+   "unit": "mỗi kho mỗi ngày",
+   "minutes": 20,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "chia_hang",
+   "task": "Chia hàng theo đơn tại kho",
+   "unit": "mỗi đơn",
+   "minutes": 1,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "tra_loi_khach",
+   "task": "Trả lời khách hỏi, đổi trả",
+   "unit": "mỗi yêu cầu",
+   "minutes": 4,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "doi_soat",
+   "task": "Đối soát đơn, tính phí, chia tiền",
+   "unit": "mỗi đơn",
+   "minutes": 1.5,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "bao_cao_ncc",
+   "task": "Báo cáo số cho nhà cung cấp",
+   "unit": "mỗi nhà cung cấp mỗi ngày",
+   "minutes": 10,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "bao_cao_ngay",
+   "task": "Báo cáo ngày cho quản lý",
+   "unit": "mỗi trạm mỗi ngày",
+   "minutes": 15,
+   "source": "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
+  },
+  {
+   "key": "nhan_hang_kho",
+   "task": "Nhận hàng tại kho",
+   "unit": "mỗi kho mỗi ngày",
+   "minutes": 10,
+   "source": "bảng phút người duyệt, mục 6 của yêu cầu demo; cùng phút ở cả hai bên"
+  },
+  {
+   "key": "nhan_hang_tram",
+   "task": "Nhận hàng tại trạm",
+   "unit": "mỗi trạm mỗi ngày",
+   "minutes": 10,
+   "source": "bảng phút người duyệt, mục 6 của yêu cầu demo; cùng phút ở cả hai bên"
+  },
+  {
+   "key": "giao_khach",
+   "task": "Giao túi cho khách tại trạm",
+   "unit": "mỗi khách",
+   "minutes": 1,
+   "source": "bảng phút người duyệt, mục 6 của yêu cầu demo; cùng phút ở cả hai bên"
+  },
+  {
+   "key": "ngay_cong",
+   "task": "Một người một ngày",
+   "unit": "phút",
+   "minutes": 480,
+   "source": "yêu cầu demo mục 6b"
+  },
+  {
+   "key": "du_phong",
+   "task": "Hệ số nghỉ phép, việc lặt vặt",
+   "unit": "hệ số",
+   "minutes": 1.2,
+   "source": "yêu cầu demo mục 6b"
+  },
+  {
+   "key": "ngay_thang",
+   "task": "Ngày làm việc mỗi tháng",
+   "unit": "ngày",
+   "minutes": 26,
+   "source": "yêu cầu demo mục 6b"
+  }
+ ],
+ "note": "định mức thủ công là giả định, số có agent đo từ ngày mô phỏng",
+ "rules": [
+  "việc tay chân (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
+  "chở hàng, đứng trạm không nằm trong bảng ở cả hai bên",
+  "phút có agent là phút người duyệt và giao nhận, đọc từ sự kiện approve và thanh toán"
+ ],
+ "computed_from": {
+  "events": "F:\\_tmp\\sim\\live_try1\\events.jsonl",
+  "sha256": "ae8b8285084bc82260471f5605d12982a7f7fa5355761206554da58d9a258073"
+ }
+}

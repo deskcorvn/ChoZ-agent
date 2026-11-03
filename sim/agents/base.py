@@ -116,6 +116,7 @@ class Day:
         self._log = (out / "log.jsonl").open("w", encoding="utf-8", newline="\n")
         self._claude = None
         self._asking: dict[str, list] = {}
+        self.listing = ""                    # the listing the dang_ban scene is working on (sample key)
 
     # ── clock and events ───────────────────────────────────────────────────────────────────────────────
     def at(self, hhmm: str, day: int = 0) -> None:
@@ -123,6 +124,9 @@ class Day:
 
     def emit(self, type: str, step: float | None = None, **fields: Any) -> dict:
         self.t += self.STEP_S if step is None else step
+        if self.listing and type not in ("scene", "metric", "move"):
+            # every line about one listing carries its key, so the stage can follow it from words to verdict
+            fields["detail"] = {**(fields.get("detail") or {}), "listing": self.listing}
         return self.em.emit(self.t, type, **fields)
 
     def add(self, **amounts: float) -> None:

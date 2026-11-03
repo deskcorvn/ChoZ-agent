@@ -119,6 +119,7 @@ async def dang_ban(d: Day) -> None:
     ]
     try:
         for key, label, supplier, words, detail in items:
+            d.listing = key
             d.emit("say", from_=supplier, to="ag_dang_ban", text=words, detail=detail)
             if lister is None:
                 outcome = emit_mock(d, key, "Kiểm giúp tin vừa đăng với 1 ảnh")
@@ -129,6 +130,7 @@ async def dang_ban(d: Day) -> None:
                 outcome = outcome_of(run)
             _after_listing(d, outcome, supplier, label)
     finally:
+        d.listing = ""
         if lister is not None:
             await lister.close()
     d.metric()

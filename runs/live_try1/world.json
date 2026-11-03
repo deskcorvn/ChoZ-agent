@@ -1,0 +1,1407 @@
+{
+ "seed": 7,
+ "day": "2026-11-04",
+ "tram": "Trạm Z 01 (góc tiệm tạp hóa)",
+ "kho": "Kho khu vực 1",
+ "suppliers": [
+  {
+   "code": "ncc1",
+   "name": "Nhà cung cấp đặc sản 1",
+   "kind": "đặc sản, đồ khô"
+  },
+  {
+   "code": "ncc2",
+   "name": "Hợp tác xã rau 2",
+   "kind": "rau củ"
+  },
+  {
+   "code": "ncc3",
+   "name": "Vựa thịt 3",
+   "kind": "thịt"
+  },
+  {
+   "code": "ncc4",
+   "name": "Vựa cá 4",
+   "kind": "cá, tôm"
+  },
+  {
+   "code": "ncc5",
+   "name": "Hợp tác xã trứng 5",
+   "kind": "trứng, đậu phụ"
+  }
+ ],
+ "goods": [
+  {
+   "sku": "rau_muong",
+   "name": "Rau muống",
+   "unit": "bó",
+   "price_vnd": 8000,
+   "supplier": "ncc2",
+   "stock": 40
+  },
+  {
+   "sku": "cai_ngot",
+   "name": "Cải ngọt",
+   "unit": "bó",
+   "price_vnd": 10000,
+   "supplier": "ncc2",
+   "stock": 10
+  },
+  {
+   "sku": "ca_chua",
+   "name": "Cà chua",
+   "unit": "nửa cân",
+   "price_vnd": 12000,
+   "supplier": "ncc2",
+   "stock": 40
+  },
+  {
+   "sku": "bi_xanh",
+   "name": "Bí xanh",
+   "unit": "quả",
+   "price_vnd": 15000,
+   "supplier": "ncc2",
+   "stock": 30
+  },
+  {
+   "sku": "ba_chi",
+   "name": "Thịt ba chỉ",
+   "unit": "300 g",
+   "price_vnd": 45000,
+   "supplier": "ncc3",
+   "stock": 30
+  },
+  {
+   "sku": "nac_vai",
+   "name": "Thịt nạc vai",
+   "unit": "300 g",
+   "price_vnd": 40000,
+   "supplier": "ncc3",
+   "stock": 40
+  },
+  {
+   "sku": "ca_ro_phi",
+   "name": "Cá rô phi",
+   "unit": "con",
+   "price_vnd": 35000,
+   "supplier": "ncc4",
+   "stock": 20
+  },
+  {
+   "sku": "tom",
+   "name": "Tôm",
+   "unit": "200 g",
+   "price_vnd": 40000,
+   "supplier": "ncc4",
+   "stock": 20
+  },
+  {
+   "sku": "trung_ga",
+   "name": "Trứng gà",
+   "unit": "10 quả",
+   "price_vnd": 30000,
+   "supplier": "ncc5",
+   "stock": 30
+  },
+  {
+   "sku": "dau_phu",
+   "name": "Đậu phụ",
+   "unit": "2 bìa",
+   "price_vnd": 10000,
+   "supplier": "ncc5",
+   "stock": 30
+  },
+  {
+   "sku": "chao_hau",
+   "name": "Cháo hàu ăn liền",
+   "unit": "hộp",
+   "price_vnd": 22000,
+   "supplier": "ncc1",
+   "stock": 80
+  },
+  {
+   "sku": "banh_da_cua",
+   "name": "Bánh đa cua ăn liền",
+   "unit": "hộp",
+   "price_vnd": 22000,
+   "supplier": "ncc1",
+   "stock": 80
+  }
+ ],
+ "households": [
+  "ho01",
+  "ho02",
+  "ho03",
+  "ho04",
+  "ho05",
+  "ho06",
+  "ho07",
+  "ho08",
+  "ho09",
+  "ho10",
+  "ho11",
+  "ho12",
+  "ho13",
+  "ho14",
+  "ho15",
+  "ho16",
+  "ho17",
+  "ho18",
+  "ho19",
+  "ho20",
+  "ho21",
+  "ho22",
+  "ho23",
+  "ho24",
+  "ho25",
+  "ho26",
+  "ho27",
+  "ho28",
+  "ho29",
+  "ho30",
+  "ho31",
+  "ho32",
+  "ho33",
+  "ho34",
+  "ho35",
+  "ho36",
+  "ho37",
+  "ho38",
+  "ho39",
+  "ho40",
+  "ho41",
+  "ho42",
+  "ho43",
+  "ho44",
+  "ho45",
+  "ho46",
+  "ho47",
+  "ho48",
+  "ho49",
+  "ho50"
+ ],
+ "orders": [
+  {
+   "id": "DH001",
+   "household": "ho02",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "ho31",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH002",
+   "household": "ho03",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "hu_tram",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH003",
+   "household": "ho04",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH004",
+   "household": "ho05",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "ho13",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH005",
+   "household": "ho06",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "hu_tram",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH006",
+   "household": "ho07",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH007",
+   "household": "ho08",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "hu_tram",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH008",
+   "household": "ho09",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha1",
+   "referrer": "ho23",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH009",
+   "household": "ho11",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha2",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH010",
+   "household": "ho15",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha2",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH011",
+   "household": "ho19",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha2",
+   "referrer": "ho08",
+   "total_vnd": 172000
+  },
+  {
+   "id": "DH012",
+   "household": "ho20",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha2",
+   "referrer": "hu_tram",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH013",
+   "household": "ho22",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH014",
+   "household": "ho24",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "hu_tram",
+   "total_vnd": 122000
+  },
+  {
+   "id": "DH015",
+   "household": "ho25",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "hu_tram",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH016",
+   "household": "ho27",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "hu_tram",
+   "total_vnd": 122000
+  },
+  {
+   "id": "DH017",
+   "household": "ho28",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "ho50",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH018",
+   "household": "ho29",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha3",
+   "referrer": "hu_tram",
+   "total_vnd": 172000
+  },
+  {
+   "id": "DH019",
+   "household": "ho32",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "ho22",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH020",
+   "household": "ho34",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "ho23",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH021",
+   "household": "ho36",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "ho32",
+   "total_vnd": 70000
+  },
+  {
+   "id": "DH022",
+   "household": "ho37",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "hu_tram",
+   "total_vnd": 92000
+  },
+  {
+   "id": "DH023",
+   "household": "ho38",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH024",
+   "household": "ho39",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "ho31",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH025",
+   "household": "ho40",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "chao_hau",
+     "qty": 1,
+     "price_vnd": 22000,
+     "supplier": "ncc1"
+    }
+   ],
+   "house": "loc_nha4",
+   "referrer": "hu_tram",
+   "total_vnd": 92000
+  },
+  {
+   "id": "DH026",
+   "household": "ho43",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha5",
+   "referrer": "ho04",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH027",
+   "household": "ho45",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha5",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH028",
+   "household": "ho46",
+   "basket_vnd": 150000,
+   "lines": [
+    {
+     "sku": "ca_ro_phi",
+     "qty": 1,
+     "price_vnd": 35000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "tom",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc4"
+    },
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha5",
+   "referrer": "ho42",
+   "total_vnd": 150000
+  },
+  {
+   "id": "DH029",
+   "household": "ho48",
+   "basket_vnd": 100000,
+   "lines": [
+    {
+     "sku": "ba_chi",
+     "qty": 1,
+     "price_vnd": 45000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "cai_ngot",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "trung_ga",
+     "qty": 1,
+     "price_vnd": 30000,
+     "supplier": "ncc5"
+    },
+    {
+     "sku": "bi_xanh",
+     "qty": 1,
+     "price_vnd": 15000,
+     "supplier": "ncc2"
+    }
+   ],
+   "house": "loc_nha5",
+   "referrer": "hu_tram",
+   "total_vnd": 100000
+  },
+  {
+   "id": "DH030",
+   "household": "ho50",
+   "basket_vnd": 70000,
+   "lines": [
+    {
+     "sku": "nac_vai",
+     "qty": 1,
+     "price_vnd": 40000,
+     "supplier": "ncc3"
+    },
+    {
+     "sku": "rau_muong",
+     "qty": 1,
+     "price_vnd": 8000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "ca_chua",
+     "qty": 1,
+     "price_vnd": 12000,
+     "supplier": "ncc2"
+    },
+    {
+     "sku": "dau_phu",
+     "qty": 1,
+     "price_vnd": 10000,
+     "supplier": "ncc5"
+    }
+   ],
+   "house": "loc_nha5",
+   "referrer": "ho19",
+   "total_vnd": 70000
+  }
+ ],
+ "lots": [
+  {
+   "supplier": "ncc2",
+   "sku": "rau",
+   "label": "HTX rau 2, thu hoạch 03/11",
+   "expiry": "2026-11-06",
+   "temp_c": null,
+   "max_temp_c": null,
+   "qty": 120
+  },
+  {
+   "supplier": "ncc3",
+   "sku": "thit",
+   "label": "Vựa thịt 3, giết mổ 04/11, có tem kiểm dịch",
+   "expiry": "2026-11-06",
+   "temp_c": 3.0,
+   "max_temp_c": 4.0,
+   "qty": 22
+  },
+  {
+   "supplier": "ncc4",
+   "sku": "tom",
+   "label": "Vựa cá 4, tôm 200 g",
+   "expiry": "2026-11-05",
+   "temp_c": 6.5,
+   "max_temp_c": 4.0,
+   "qty": 8
+  },
+  {
+   "supplier": "ncc4",
+   "sku": "ca",
+   "label": "Vựa cá 4, cá rô phi",
+   "expiry": "2026-11-05",
+   "temp_c": 2.5,
+   "max_temp_c": 4.0,
+   "qty": 8
+  },
+  {
+   "supplier": "ncc5",
+   "sku": "trung",
+   "label": "HTX trứng 5, đóng hộp 02/11",
+   "expiry": "2026-11-25",
+   "temp_c": null,
+   "max_temp_c": null,
+   "qty": 34
+  },
+  {
+   "supplier": "ncc1",
+   "sku": "chao_hau",
+   "label": "Cháo hàu ăn liền, hộp 120 g",
+   "expiry": "2027-05-01",
+   "temp_c": null,
+   "max_temp_c": null,
+   "qty": 6
+  }
+ ],
+ "laundry": [
+  "ho22",
+  "ho37",
+  "ho48"
+ ],
+ "breakfasts": 20,
+ "broken_eggs": "ho07",
+ "notes": {
+  "baskets": "30 of 50 households (60 %) book a basket: 10 × 70k, 12 × 100k, 8 × 150k",
+  "prices": "made up for the simulation, whole thousands of đồng",
+  "shortage": "cải ngọt: 10 bunches in stock for 12 baskets of 100k",
+  "cold_chain": "tôm lot arrives at 6.5 °C, above the 4 °C limit; the supplier swaps it",
+  "fee": "10 % of each completed line, split {'tram': 5, 'kho_giao': 2, 'gioi_thieu': 1, 'cho_z': 2}"
+ }
+}

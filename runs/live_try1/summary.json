@@ -1,0 +1,124 @@
+{
+ "mode": "live",
+ "seed": 7,
+ "started": "2026-11-03T21:26:39+07:00",
+ "finished": "2026-11-03T21:28:59+07:00",
+ "seconds": 139.7,
+ "events": 136,
+ "orders": 30.0,
+ "gmv_vnd": 3228000.0,
+ "agent_actions": 54.0,
+ "human_approvals": 6.0,
+ "human_minutes": 57.5,
+ "blocked": 1.0,
+ "cost": {
+  "claude": {
+   "claude-sonnet-5-5": {
+    "calls": 33,
+    "events": 19,
+    "input_tokens": 148091,
+    "output_tokens": 3875,
+    "cached_tokens": 0,
+    "images": 0,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.334932
+   }
+  },
+  "meta": {
+   "muse-voice-transcribe-1.0": {
+    "calls": 1,
+    "events": 1,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cached_tokens": 0,
+    "images": 0,
+    "audio_seconds": 5.92,
+    "cost_usd": 0.000296
+   },
+   "muse-image-1.0": {
+    "calls": 3,
+    "events": 3,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cached_tokens": 0,
+    "images": 3,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.03
+   },
+   "muse-spark-1.3": {
+    "calls": 6,
+    "events": 6,
+    "input_tokens": 20376,
+    "output_tokens": 4435,
+    "cached_tokens": 0,
+    "images": 6,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.044319
+   },
+   "sam-3.1": {
+    "calls": 3,
+    "events": 3,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cached_tokens": 0,
+    "images": 3,
+    "audio_seconds": 0.0,
+    "cost_usd": 0.0075
+   }
+  }
+ },
+ "cost_total_usd": 0.417047,
+ "cost_total_vnd": 10968,
+ "cost_calls_usd": 0.417047,
+ "cost_matches_calls": true,
+ "metric_cost_usd": 0.417047,
+ "usd_vnd": 26300,
+ "usd_vnd_source": "giá trị trong yêu cầu demo (03/11/2026); đổi bằng biến USD_VND",
+ "price_source": {
+  "claude": "https://platform.claude.com/docs/en/about-claude/pricing (xem 03/11/2026)",
+  "meta": "https://dev.meta.ai/docs/pricing-rate-limits (xem 31/10/2026, app/prices.py)"
+ },
+ "latency_ms": {
+  "claude-sonnet-5-5": {
+   "p50": 1436,
+   "p95": 3605,
+   "calls": 33
+  },
+  "muse-voice-transcribe-1.0": {
+   "p50": 3237,
+   "p95": 3237,
+   "calls": 1
+  },
+  "muse-image-1.0": {
+   "p50": 15149,
+   "p95": 21284,
+   "calls": 3
+  },
+  "muse-spark-1.3": {
+   "p50": 12052,
+   "p95": 13504,
+   "calls": 6
+  },
+  "sam-3.1": {
+   "p50": 6944,
+   "p95": 9198,
+   "calls": 3
+  }
+ },
+ "errors": 0,
+ "stopped": null,
+ "services": {
+  "suat_an_sang": 20,
+  "giat_la_ho": 3,
+  "note": "dịch vụ chạy trên nền tảng, chỉ là một dòng bộ đếm; không tính vào đơn và tiền hàng Giỏ"
+ },
+ "scenes": [
+  "dat_gio",
+  "dang_ban",
+  "gom_kho",
+  "ra_tram",
+  "nhan_hang",
+  "doi_soat",
+  "tong_ket"
+ ]
+}
