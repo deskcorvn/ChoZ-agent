@@ -78,13 +78,23 @@ class Tools:
 
     # ── ag_giao_nhan ─────────────────────────────────────────────────────────────────────────────────
     def plan_route(self, stops: list[str]) -> dict:
-        """Lịch xe xe1 qua các điểm dừng theo thứ tự (loc_kho, loc_duong, loc_tram ...), giờ đi giờ đến."""
-        minutes = {"loc_ncc": 0, "loc_kho": 20, "loc_duong": 0, "loc_tram": 25}
+        """Lịch xe xe1 qua các điểm dừng theo thứ tự (loc_kho, loc_duong, loc_tram ...): giờ đến từng điểm, số túi
+        giao ở mỗi trạm, đồ giặt gom trên chuyến về."""
+        minutes = {"loc_ncc": 0, "loc_kho": 20, "loc_duong": 5, "loc_tram": 20}
         t, legs = 6 * 60 + 30, []
+        seen_tram = False
         for a, b in zip(stops, stops[1:]):
             t += max(minutes.get(b, 10), 5)
-            legs.append({"from": a, "to": b, "arrive": f"{t // 60:02d}:{t % 60:02d}"})
-        return {"vehicle": "xe1", "bags": len(self.w.orders), "legs": legs}
+            leg = {"from": a, "to": b, "arrive": f"{t // 60:02d}:{t % 60:02d}"}
+            if b == "loc_tram":
+                leg.update(drop_bags=len(self.w.orders), station=self.w.tram,
+                           pick_laundry=0 if not seen_tram else len(self.w.laundry))
+                seen_tram = True
+            if b == "loc_kho" and seen_tram:
+                leg.update(bring_back_laundry=len(self.w.laundry))
+            legs.append(leg)
+        return {"vehicle": "xe1", "depart": "06:30", "bags": len(self.w.orders), "stations": 1,
+                "laundry_households": self.w.laundry, "legs": legs}
 
     def laundry_pickups(self) -> dict:
         """Các hộ gửi đồ giặt hôm nay, xe gom ở trạm trên chuyến về kho."""

@@ -29,6 +29,25 @@ STATIONS_50, ORDERS_50 = 50, 1500
 BRIEF = "giả định khởi điểm trong yêu cầu demo (mục 6b), chờ anh Hùng xác nhận"
 TABLE6 = "bảng phút người duyệt, mục 6 của yêu cầu demo"
 
+# Monthly pay per role, VND, used only to turn people into money. ASSUMPTIONS for Hải Phòng 2026, to be confirmed
+# by anh Hùng; change a number and both columns of the final table follow. Fractions of a person are paid pro rata
+# (hour-based), which is how a shop pays a part-time helper.
+WAGES = {
+    "nhân viên trạm": 7_000_000,
+    "nhân viên kho": 7_000_000,
+    "điều phối": 10_000_000,
+    "nhân viên nội dung": 9_000_000,
+    "kế toán": 10_000_000,
+    "chủ kho": 10_000_000,
+}
+WAGE_SOURCE = "giả định lương tháng Hải Phòng 2026, chờ anh Hùng xác nhận"
+# The person who still does a row's minutes when agents handle the paperwork: the approver (hu_tram = nhân viên trạm,
+# hu_kho = chủ kho) or the same physical worker.
+AGENT_SIDE_WHO = {"approvals:thay_hang": "nhân viên trạm", "approvals:duyet_listing": "nhân viên trạm",
+                  "approvals:doi_tra": "nhân viên trạm", "approvals:nhan_hang_tram": "nhân viên trạm",
+                  "handover": "nhân viên trạm", "approvals:nhan_hang_kho": "chủ kho", "approvals:doi_soat": "chủ kho",
+                  "same": None, "none": None}
+
 # unit volume key → how it scales from 1 station to 50 (factor applied to the day's volume)
 SCALE = {"orders": ORDERS_50 / ORDERS_1, "stations": STATIONS_50, "warehouses": 1, "suppliers": 1, "listings": 1,
          "requests": ORDERS_50 / ORDERS_1}
@@ -77,10 +96,10 @@ NORMS = [
      "manual_who": "chủ kho", "kind": "tay_chan", "volume": "warehouses", "scale": "warehouses",
      "with_agent": "approvals:nhan_hang_kho", "agent": "không thay", "source": TABLE6 + "; cùng phút ở cả hai bên"},
     {"key": "nhan_hang_tram", "task": "Nhận hàng tại trạm", "unit": "mỗi trạm mỗi ngày", "minutes": 10,
-     "manual_who": "người trực trạm", "kind": "tay_chan", "volume": "stations", "scale": "stations",
+     "manual_who": "nhân viên trạm", "kind": "tay_chan", "volume": "stations", "scale": "stations",
      "with_agent": "approvals:nhan_hang_tram", "agent": "không thay", "source": TABLE6 + "; cùng phút ở cả hai bên"},
     {"key": "giao_khach", "task": "Giao túi cho khách tại trạm", "unit": "mỗi khách", "minutes": 1,
-     "manual_who": "người trực trạm", "kind": "tay_chan", "volume": "customers", "scale": "orders",
+     "manual_who": "nhân viên trạm", "kind": "tay_chan", "volume": "customers", "scale": "orders",
      "with_agent": "handover", "agent": "không thay", "source": TABLE6 + "; cùng phút ở cả hai bên"},
 ]
 
@@ -161,10 +180,28 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
     day_cost_usd = float(last["agent_cost_usd"])
     orders = max(vol["orders_completed"], 1)
 
+    def roles(pick, key: str, who_of) -> list[dict]:
+        minutes: dict[str, float] = {}
+        for r in rows:
+            who = who_of(r)
+            if who and pick(r, key):
+                minutes[who] = minutes.get(who, 0.0) + pick(r, key)
+        out = []
+        for who, m in sorted(minutes.items(), key=lambda kv: -kv[1]):
+            n = people(m)
+            out.append({"role": who, "minutes_day": round(m, 1), "people": n, "people_whole": math.ceil(n),
+                        "wage_vnd_month": WAGES[who], "cost_vnd_month": round(n * WAGES[who])})
+        return out
+
     def block(factor_key: str, stations: int, order_count: int) -> dict:
         pick = (lambda r, k: r[k]) if factor_key == "1" else scaled
         manual = sum(pick(r, "manual_min") for r in rows)
         with_agent = sum(pick(r, "with_agent_min") for r in rows)
+        roles_manual = roles(pick, "manual_min", lambda r: r["manual_who"])
+        roles_agent = roles(pick, "with_agent_min",
+                            lambda r: r["manual_who"] if r["with_agent"] == "same" else AGENT_SIDE_WHO.get(r["with_agent"]))
+        people_cost_manual = sum(x["cost_vnd_month"] for x in roles_manual)
+        people_cost_agent = sum(x["cost_vnd_month"] for x in roles_agent)
         office_m = sum(pick(r, "manual_min") for r in rows if r["kind"] == "van_phong")
         office_a = sum(pick(r, "with_agent_min") for r in rows if r["kind"] == "van_phong")
         cost_day = day_cost_vnd * order_count / orders
@@ -182,6 +219,13 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
             "agent_cost_usd_month": round(day_cost_usd * order_count / orders * DAYS_PER_MONTH, 2),
             "agent_cost_vnd_per_order": round(day_cost_vnd / orders),
             "human_minutes_saved_pct": round(100 * (manual - with_agent) / manual, 1) if manual else 0.0,
+            "roles_manual": roles_manual, "roles_with_agents": roles_agent,
+            "people_cost_vnd_month_manual": people_cost_manual,
+            "people_cost_vnd_month_with_agents": people_cost_agent,
+            "total_cost_vnd_month_manual": people_cost_manual,
+            "total_cost_vnd_month_with_agents": people_cost_agent + round(cost_day * DAYS_PER_MONTH),
+            "saving_vnd_month": people_cost_manual - people_cost_agent - round(cost_day * DAYS_PER_MONTH),
+            "wage_source": WAGE_SOURCE,
         }
 
     digest = hashlib.sha256(source.read_bytes()).hexdigest() if source and source.is_file() else None
@@ -199,7 +243,9 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
                           {"key": "du_phong", "task": "Hệ số nghỉ phép, việc lặt vặt", "unit": "hệ số",
                            "minutes": RESERVE, "source": "yêu cầu demo mục 6b"},
                           {"key": "ngay_thang", "task": "Ngày làm việc mỗi tháng", "unit": "ngày",
-                           "minutes": DAYS_PER_MONTH, "source": "yêu cầu demo mục 6b"}],
+                           "minutes": DAYS_PER_MONTH, "source": "yêu cầu demo mục 6b"}]
+                       + [{"key": f"luong_{i}", "task": f"Lương tháng {who}", "unit": "đ/tháng", "minutes": wage,
+                           "source": WAGE_SOURCE} for i, (who, wage) in enumerate(WAGES.items(), start=1)],
         "note": "định mức thủ công là giả định, số có agent đo từ ngày mô phỏng",
         "rules": ["việc tay chân (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
                   "chở hàng, đứng trạm không nằm trong bảng ở cả hai bên",
@@ -228,8 +274,11 @@ def main() -> None:
     data = write(args.events, args.out or args.events.with_name("headcount.json"), args.norms)
     for k in ("tram_1", "tram_50"):
         b = data[k]
-        print(f"{k}: làm tay {b['manual_people']} người · với agent {b['with_agents_people']} người + {b['agents']} agent · "
-              f"agent {b['agent_cost_vnd_month']:,} đ/tháng · giảm {b['human_minutes_saved_pct']} % phút công")
+        print(f"{k}: làm tay {b['manual_people']} người ({b['people_cost_vnd_month_manual']:,} đ/tháng) · với agent "
+              f"{b['with_agents_people']} người ({b['people_cost_vnd_month_with_agents']:,} đ) + {b['agents']} agent "
+              f"({b['agent_cost_vnd_month']:,} đ) · giảm {b['human_minutes_saved_pct']} % phút công")
+        for side in ("roles_manual", "roles_with_agents"):
+            print("   " + side + ": " + "; ".join(f"{x['role']} {x['people']}" for x in b[side]))
 
 
 if __name__ == "__main__":

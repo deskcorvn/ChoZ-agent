@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SAMPLES = {
     "chao_hau": ROOT / "samples" / "products" / "05-chao-hau-hop",
     "banh_da_cua": ROOT / "samples" / "products" / "04-banh-da-cua-hop",
-    "hang_cam": ROOT / "sim" / "samples" / "hang-cam",
+    "nuoc_mam": ROOT / "sim" / "samples" / "nuoc-mam-cat-hai",
+    "thuoc_la": ROOT / "sim" / "samples" / "thuoc-la",
 }
 VOICE = ROOT / "sim" / "samples" / "voice" / "ncc1-chao-hau.wav"
 
@@ -112,10 +113,12 @@ async def dang_ban(d: Day) -> None:
         ("chao_hau", "cháo hàu hộp", "ncc1", "Cháo hàu ăn liền, hộp 150 gam, 22 nghìn, còn 80 hộp",
          {"photos": 1, "audio_seconds": round(VOICE.stat().st_size / 32000, 1) if VOICE.is_file() else 0,
           "sample": "samples/products/05-chao-hau-hop", "voice": "sim/samples/voice/ncc1-chao-hau.wav"}),
-        ("banh_da_cua", "bánh đa cua hộp", "ncc1", "Bánh đa cua hộp, 22 nghìn một hộp, còn 80 hộp",
-         {"photos": 1, "sample": "samples/products/04-banh-da-cua-hop"}),
-        ("hang_cam", "rượu ngâm mật gấu", "ncc3", "Rượu ngâm mật gấu, chai 500 ml, 350 nghìn, còn 10 chai",
-         {"photos": 1, "sample": "sim/samples/hang-cam"}),
+        ("nuoc_mam", "nước mắm Cát Hải", "ncc1", "Nước mắm Cát Hải 30 độ đạm, chai 500 ml, 45 nghìn, còn 60 chai",
+         {"photos": 1, "sample": "sim/samples/nuoc-mam-cat-hai", "ocop": "Hải Phòng"}),
+        ("banh_da_cua", "bánh đa cua hộp", "ncc1", "Bánh đa cua Khánh Thọ, OCOP 4 sao, 22 nghìn một hộp, còn 80 hộp",
+         {"photos": 1, "sample": "samples/products/04-banh-da-cua-hop", "ocop": "4 sao"}),
+        ("thuoc_la", "thuốc lá", "ncc3", "Thuốc lá bao mềm, 25 nghìn một bao, còn 50 bao",
+         {"photos": 1, "sample": "sim/samples/thuoc-la"}),
     ]
     try:
         for key, label, supplier, words, detail in items:
@@ -140,7 +143,8 @@ def _after_listing(d: Day, o: dict, supplier: str, label: str) -> None:
     title = label
     if o["status"] == "blocked":
         rules = ", ".join(o.get("rules") or []) or "hàng cấm"
-        d.emit("say", from_="ag_kiem_chung", to=supplier, text=short(f"Chặn tin: {title} là hàng cấm ({rules}). Không đăng."),
+        d.emit("say", from_="ag_kiem_chung", to=supplier,
+               text=short(f"Không đăng {title}: Chợ Z không bán mặt hàng này (luật {rules})."),
                detail={"blocked": True, "listing_run": o["run"], "reason": o.get("reason"), "rules": o.get("rules")})
         d.add(blocked=1)
         return
