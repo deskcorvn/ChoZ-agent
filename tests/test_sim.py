@@ -166,3 +166,17 @@ def test_staffing_follows_its_rates():
     cs = lambda t: next(r["people"] for r in t["manual"] if r["role"] == "chăm sóc khách hàng")  # noqa: E731
     assert cs(more) > cs(base)
     assert more["with_agents_staff_cost_vnd_month"] == base["with_agents_staff_cost_vnd_month"]   # agents absorb it
+
+
+def test_people_summary_is_whole_people_and_plain_words(mock_day):
+    from sim import staffing
+    ps = workload.compute(events(mock_day))["view"]["central_50"]["people_summary"]
+    for side in ("manual", "with_agents"):
+        assert all(isinstance(g[side], int) for g in ps["groups"])
+        assert sum(g[side] for g in ps["groups"]) == ps[f"{side}_people"]
+    for k, vnd in (("manual_cost_trieu", "manual_cost_vnd_month"), ("with_agents_cost_trieu", "with_agents_cost_vnd_month")):
+        assert ps[k] == round(ps[vnd] / 1e6)                              # money to the nearest 1 triệu
+    text = " ".join([ps["headline"], ps["cost_line"]] + [g["label"] for g in ps["groups"]])
+    assert "tay chân" not in text and "→" not in text
+    assert ("dưới mức" in ps["cost_line"]) == ps["within_fee_pool"]
+    assert staffing.about_million(177_421_000) == 177 and staffing.about_million(444_556_000) == 445

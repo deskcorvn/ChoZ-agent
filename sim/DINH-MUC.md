@@ -23,8 +23,8 @@ Kết quả 50 trạm, 1.500 đơn/ngày, 30 ngày vận hành:
 | Kiểm hàng nhập kho, theo giờ | 2 giờ/ngày: 1,8 triệu | giống bên trái |
 | Giám sát trạm, theo giờ | 2 người × 4 giờ: 7,2 triệu | giống bên trái |
 | Vận chuyển thuê ngoài | 65 triệu (60–70) | giống bên trái |
-| 6 agent | không có | 8,5 triệu (đo từ lượt chạy thật 30, 150, 300 đơn; 189 đ/đơn) |
-| **Tổng** | **445 triệu/tháng** | **178 triệu/tháng, trong 180 triệu phí** |
+| 6 agent | không có | 8,4 triệu (đo từ lượt chạy thật 30, 150, 300 đơn; 187 đ/đơn) |
+| **Tổng** | **445 triệu/tháng** | **177 triệu/tháng, dưới mức 180 triệu (4 % phí)** |
 
 Các mục dưới đây (1–6) là bản trước (soạn từng đơn, mọi vai toàn thời gian); giữ lại để thấy cách tính đã đổi gì.
 
@@ -89,7 +89,7 @@ Ba lượt chạy thật trên cùng một trạm với 30, 150 và 300 đơn (`
 | Lộ trình xe | số tuyến | khoảng 700 đ một tuyến |
 | Chăm sóc khách | số lượt hỏi | khoảng 1.200 đ một lượt (có cả xin duyệt và trả lời) |
 
-Cộng lại cho 50 trạm: khoảng 280.000 đ/ngày, **8,5 triệu đ/tháng (30 ngày), 189 đ mỗi đơn**. Nhân thẳng theo số đơn từ
+Cộng lại cho 50 trạm: khoảng 280.000 đ/ngày, **8,4 triệu đ/tháng (30 ngày), 187 đ mỗi đơn** (lượt 30 đơn chạy lại 04/11 chiều). Nhân thẳng theo số đơn từ
 một trạm (cách cũ) cho 15,6 triệu, gần gấp đôi. Lượt 300 đơn có một lỗi: agent chia đơn không tự nhắn đủ 20 hộ bị thay
 hàng, bộ điều phối phát hiện và báo lỗi; ở vận hành thật, tin báo hàng loạt nên do phần mềm gửi theo mẫu.
 

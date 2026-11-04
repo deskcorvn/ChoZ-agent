@@ -177,8 +177,8 @@ def whole(x: float) -> int:
     return math.ceil(round(x, 6))
 
 
-def about_million(vnd: int, step: int = 5) -> int:
-    """Money on the comparison screen, in million đồng rounded to the nearest 5 (445, 180)."""
+def about_million(vnd: int, step: int = 1) -> int:
+    """Money in headcount.json and the docs, in million đồng rounded to the nearest 1 (445, 178)."""
     return int(step * math.floor(vnd / 1_000_000 / step + 0.5))
 
 
@@ -217,8 +217,8 @@ def people_summary(t: dict) -> dict:
         "hours_per_person_month": HOURS_PER_PERSON_MONTH,
         "headline": f"Cùng khối lượng việc, từ khoảng {manual} người còn khoảng {agent} người, cộng {t['agents']} "
                     "agent. Người ở lại lo hàng và khách tại trạm, tại kho.",
-        "cost_line": f"Chi phí cả bộ máy: khoảng {m_tr} triệu → khoảng {a_tr} triệu mỗi tháng, vừa trong phần phí "
-                     f"4 % ({pool_tr} triệu)",
+        "cost_line": f"Chi phí cả bộ máy: khoảng {m_tr} triệu xuống khoảng {a_tr} triệu mỗi tháng, "
+                     + (f"dưới mức {pool_tr} triệu (4 % phí)" if t["within_fee_pool"] else f"vượt mức {pool_tr} triệu (4 % phí)"),
         "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá",
     }
 
