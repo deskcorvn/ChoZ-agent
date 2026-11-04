@@ -125,11 +125,11 @@ async def dang_ban(d: Day) -> None:
             d.listing = key
             d.emit("say", from_=supplier, to="ag_dang_ban", text=words, detail=detail)
             if lister is None:
-                outcome = emit_mock(d, key, "Kiểm giúp tin vừa đăng với 1 ảnh")
+                outcome = emit_mock(d, key, "Đối chiếu giúp tin vừa viết với ảnh")
             else:
                 run = await lister.list(SAMPLES[key], VOICE if key == "chao_hau" else None)
                 checks = len((run.verification or {}).get("checks", []))
-                lister.emit_steps(run, 1, f"Kiểm giúp {checks} claim với 1 ảnh" if checks else "Kiểm giúp tin này, 1 ảnh")
+                lister.emit_steps(run, 1, f"Đối chiếu giúp {checks} điểm trong tin với ảnh" if checks else "Đối chiếu giúp tin này với ảnh")
                 outcome = outcome_of(run)
             _after_listing(d, outcome, supplier, label)
     finally:
@@ -153,7 +153,7 @@ def _after_listing(d: Day, o: dict, supplier: str, label: str) -> None:
         said = said[:1].upper() + said[1:]
         d.emit("say", from_="ag_kiem_chung", to=supplier, text=said, detail={"check": o.get("check"), "verdict": o["verdict"]})
         humans.approve(d, "ag_kiem_chung", "hu_tram", "duyet_listing",
-                       short(f"Tin {title}: {o['checks']} claim, có chỗ lệch lời nói. Duyệt đăng theo nhãn?"),
+                       short(f"Tin {title}: {o['checks']} điểm đã đối chiếu, 1 điểm lời nói lệch nhãn. Đăng theo nhãn?"),
                        "Duyệt, đăng theo nhãn", detail={"listing_run": o["run"], "check": o.get("check")})
         return
     if o["status"] in ("ready", "needs_answer"):
