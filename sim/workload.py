@@ -281,6 +281,13 @@ def last_cost_usd(events: list[dict]) -> float:
     return next(e["metrics"]["agent_cost_usd"] for e in reversed(events) if e["type"] == "metric")
 
 
+def skus_per_station(events: list[dict]) -> int:
+    """Distinct items on the station's picklist: one splitting line per item per station."""
+    pick = next((e["detail"]["picklist"] for e in reversed(events) if e["type"] == "handoff"
+                 and (e.get("detail") or {}).get("picklist")), None)
+    return pick["items"] if pick else 12
+
+
 def items_per_order(events: list[dict]) -> float:
     pick = next((e["detail"]["picklist"] for e in reversed(events) if e["type"] == "handoff"
                  and (e.get("detail") or {}).get("picklist")), None)
@@ -459,9 +466,9 @@ def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, e
             "approval_minutes_day_with_agents": round(c1["agent"].get("chủ kho", 0.0), 1),
             "note": "1 trạm chưa đủ việc cho một bộ máy riêng; tính bằng phút mỗi ngày",
         },
-        "central_50": {**staffing.team(50, items_per_order(events), model["cost_vnd_month_1500"]),
-                       "rounding": "người nguyên, làm tròn lên theo từng vai; ca 480 phút làm hiệu quả 85 %, hệ số phủ "
-                                   "ca 1,2 (mở 7 ngày/tuần, nghỉ phép)",
+        "central_50": {**staffing.team(50, skus_per_station(events), model["cost_vnd_month_1500"]),
+                       "rounding": "người toàn thời gian làm tròn lên theo từng vai (ca 480 phút làm hiệu quả 85 %, hệ số "
+                                   "phủ ca 1,2); việc theo giờ tính theo giờ công; xe thuê theo chuyến",
                        "agent_cost_model": model},
         "assumptions": staffing.assumptions(),
         "agent_cost_vnd_per_order": round(day_cost_vnd / orders),
@@ -495,7 +502,8 @@ def main() -> None:
           f"{c50['with_agents_people']} người + 6 agent ({c50['with_agents_cost_vnd_month']:,} đ/tháng); "
           f"ít hơn {c50['saving_vnd_month']:,} đ/tháng")
     for side in ("manual", "with_agents"):
-        print("   " + side + ": " + "; ".join(f"{x['role']} {x['people']}" for x in c50[side]))
+        print("   " + side + ": " + "; ".join(f"{x['role']} {x['people'] or ''}{' ' + str(x['hours_day']) + 'h' if x.get('hours_day') else ''} {x['cost_vnd_month'] / 1e6:.1f}tr" for x in c50[side]))
+    print(f"   {c50['fee_pool']['text']} = {c50['fee_pool']['vnd_month']:,} đ; trong phí: {c50['within_fee_pool']}")
     mo = c50["agent_cost_model"]
     print(f"   agent: {mo['fit_points']} → cố định {mo['fixed_vnd_day']:,} + {mo['per_order_vnd']} đ/đơn; "
           f"{mo['parts_vnd_day']} → {mo['cost_vnd_month_1500']:,} đ/tháng ({mo['cost_vnd_per_order_1500']} đ/đơn)")

@@ -4,6 +4,30 @@ Bảng nhân sự ở màn cuối được tính bằng `sim/staffing.py` (bộ 
 mỗi trạm). Trang này giải thích cách tính và ghi nguồn của mọi con số. Ký hiệu: **[Nguồn]** là số tra được (luật, tin
 tuyển dụng, số liệu ngành); **[Giả định]** là số Chợ Z cần xác nhận.
 
+## 0. Bản 04/11 trưa: theo thiết kế Chợ Z (chủ dự án chốt)
+
+| Quyết định | Áp dụng cho cả hai cột |
+|---|---|
+| Luồng hàng | Kho chia **theo trạm, theo mặt hàng** (mỗi trạm một sọt theo phiếu gom); không đóng túi theo từng đơn. Người trực trạm giao từng hộ theo đơn trên app (đã trả bằng 5 % của trạm) |
+| Trả lương | Văn phòng, điều phối, quản lý: toàn thời gian có bảo hiểm (× 1,318). Chia hàng, kiểm hàng nhập kho, giám sát trạm: **theo giờ 30.000 đ** (Định hướng Chợ Z: sinh viên part-time; mức tối thiểu vùng I là 25.500 đ/giờ). Xe: **thuê ngoài theo chuyến**, 60–70 triệu/tháng, chờ báo giá đối tác |
+| Quản lý | 4 người khi làm tay (kho, trạm, nhà cung cấp, tiền); 2 người khi có agent (agent theo dõi, báo cáo) |
+| Phí nuôi bộ máy | 4 % (kho và giao hàng 2 % + bộ máy 2 %) của 4,5 tỷ tiền hàng/tháng = **180 triệu/tháng** (slide tài chính Chợ Z: 1.500 đơn × 100.000 đ × 30 ngày) |
+
+Kết quả 50 trạm, 1.500 đơn/ngày, 30 ngày vận hành:
+
+| | Chỉ con người | Con người + 6 agent |
+|---|---|---|
+| Văn phòng, toàn thời gian | 19 người (CSKH 3, thu mua 5, điều phối xe 1, đăng bán 1, kế toán 9): 268 triệu | 2 người điều phối, chịu trách nhiệm số liệu: 34 triệu |
+| Quản lý, toàn thời gian | 4 người: 84 triệu | 2 người: 42 triệu |
+| Chia hàng theo trạm, theo giờ | 550 dòng × 2,25 phút ≈ 20,6 giờ/ngày: 18,6 triệu | giống bên trái |
+| Kiểm hàng nhập kho, theo giờ | 2 giờ/ngày: 1,8 triệu | giống bên trái |
+| Giám sát trạm, theo giờ | 2 người × 4 giờ: 7,2 triệu | giống bên trái |
+| Vận chuyển thuê ngoài | 65 triệu (60–70) | giống bên trái |
+| 6 agent | không có | 8,5 triệu (đo từ lượt chạy thật 30, 150, 300 đơn; 189 đ/đơn) |
+| **Tổng** | **445 triệu/tháng** | **178 triệu/tháng, trong 180 triệu phí** |
+
+Các mục dưới đây (1–6) là bản trước (soạn từng đơn, mọi vai toàn thời gian); giữ lại để thấy cách tính đã đổi gì.
+
 ## 1. Ba nhóm người, ba cách tính
 
 | Nhóm | Ai | Cách tính |

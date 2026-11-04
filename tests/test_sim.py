@@ -142,25 +142,27 @@ def test_final_view_is_whole_people_and_station_minutes(mock_day):
     v = workload.compute(events(mock_day))["view"]
     st, c = v["station"], v["central_50"]
     assert st["with_agents_minutes_day"] < st["manual_minutes_day"]          # same person, less paperwork
-    assert all(isinstance(r["people"], int) for r in c["manual"] + c["with_agents"])
-    physical_m = {r["role"]: r["people"] for r in c["manual"] if r["kind"] == "tay_chan"}
-    physical_a = {r["role"]: r["people"] for r in c["with_agents"] if r["kind"] == "tay_chan"}
-    assert physical_m == physical_a                                          # agents never replace physical work
+    assert all(r["people"] is None or isinstance(r["people"], int) for r in c["manual"] + c["with_agents"])
+    same_m = {r["role"]: r["cost_vnd_month"] for r in c["manual"] if r["kind"] == "tay_chan"}
+    same_a = {r["role"]: r["cost_vnd_month"] for r in c["with_agents"] if r["kind"] == "tay_chan"}
+    assert same_m == same_a                                                  # same flow, same physical work
     assert c["office_people_with_agents"] < c["office_people_manual"]
-    assert c["with_agents_people"] <= c["manual_people"]
+    assert c["managers"] == {"manual": 4, "with_agents": 2}
     assert c["saving_vnd_month"] == (c["manual_cost_vnd_month"] - c["with_agents_staff_cost_vnd_month"]
                                      - c["agents_cost_vnd_month"])
+    assert c["fee_pool"]["vnd_month"] == 180_000_000
     assert all(a["source"] for a in v["assumptions"])
 
 
 def test_staffing_follows_its_rates():
     from sim import staffing
-    base = staffing.team(50, 4.7, 0)
+    base = staffing.team(50, 11, 0)
     old = staffing.CONTACTS_PER_100
     try:
         staffing.CONTACTS_PER_100 = 20
-        more = staffing.team(50, 4.7, 0)
+        more = staffing.team(50, 11, 0)
     finally:
         staffing.CONTACTS_PER_100 = old
     cs = lambda t: next(r["people"] for r in t["manual"] if r["role"] == "chăm sóc khách hàng")  # noqa: E731
     assert cs(more) > cs(base)
+    assert more["with_agents_staff_cost_vnd_month"] == base["with_agents_staff_cost_vnd_month"]   # agents absorb it
