@@ -33,7 +33,9 @@ hiểu đang dùng trong code, và những chỗ **cần anh Hùng xác nhận**
 | B10 | Việc tay chân trong bảng nhân sự | thêm 3 dòng từ bảng mục 6 (nhận hàng kho, nhận hàng trạm, giao khách) vào **cả hai bên** cùng số phút, cạnh dòng "chia hàng" | hai cột so sánh cùng một khối việc; agent không "tiết kiệm" việc tay chân |
 | B11 | Câu chốt "Bộ máy 6 người lo được 50 trạm" | **chưa có nguồn trong dữ liệu**: số người tính được từ ngày mô phỏng xem `headcount.json` (khối văn phòng và khối tay chân tách riêng) | cần anh Hùng định nghĩa "bộ máy" gồm ai, hoặc sân khấu chỉ hiện số tính được |
 | B12 | Ảnh và giọng của nhà cung cấp | cháo hàu: 1 ảnh mẫu (thư mục mẫu chỉ có 1 ảnh) + giọng đọc tổng hợp VieNeu "Đoan Trang" (giọng Bắc, không phải người thật) | yêu cầu ví dụ "3 ảnh"; có ảnh thật thêm thì thay vào `samples/products/05-chao-hau-hop` |
-| B13 | Hàng cấm | "Rượu ngâm mật gấu", ảnh vẽ bằng code (`sim/samples/hang-cam`), luật P4 trong `app/guard.py` | chặn hẳn, không hỏi duyệt |
+| B13 | Mặt hàng bị từ chối | Theo góp ý 04/11 bỏ "rượu ngâm mật gấu"; thay bằng **thuốc lá** (hàng tiệm tạp hóa vẫn bán, Chợ Z không đăng; luật P3 trong `app/guard.py`), ảnh vẽ bằng code `sim/samples/thuoc-la` | từ chối hẳn, không hỏi duyệt; vẫn đủ yêu cầu "một mặt hàng bị chặn" |
+| B15 | Cảnh đăng bán: nước mắm Cát Hải, sản phẩm OCOP Hải Phòng | Nước mắm Cát Hải: ảnh thật Quang Hải (cá thu, 28 độ đạm, OCOP 4 sao, 650 ml) chủ dự án gửi qua Drive 04/11; giá 65.000 đ và tồn 60 là số mô phỏng. Bánh đa cua, cháo hàu Khánh Thọ là OCOP 4 sao (Hải Dương đã sáp nhập vào Hải Phòng 2025) | cần ảnh thật và tên đúng của nhà sản xuất nước mắm nếu muốn ghi thương hiệu |
+| B16 | Lương tháng để quy người ra tiền ở màn cuối | giả định Hải Phòng 2026: nhân viên trạm 7 tr, nhân viên kho 7 tr, điều phối 10 tr, nội dung 9 tr, kế toán 10 tr, chủ kho 10 tr (`sim/workload.py` WAGES); phần lẻ người tính theo giờ công | đổi một con số, cả hai cột tiền đổi theo; chưa tính bảo hiểm, thưởng |
 | B14 | Tỷ giá | 26.300 đ/USD theo yêu cầu, ghi ngày 03/11/2026 | đổi bằng `USD_VND` |
 
 ## C. Ràng buộc kỹ thuật phát hiện khi làm

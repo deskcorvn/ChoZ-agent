@@ -156,13 +156,13 @@ MOCK = {
                               ("studio_photo", "ag_dang_ban", "ảnh tách nền", "Compose studio photo (local)")],
                     "outcome": {"status": "ready", "verdict": "pass", "title": "Bánh đa cua đồng Hải Phòng hộp",
                                 "price_vnd": 22000, "stock": 80, "checks": 5, "check": None, "seconds": 12.9}},
-    "nuoc_mam": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Nước mắm Cát Hải 30 độ đạm chai 500 ml, "
-                            "45.000 đ, tồn 60"),
+    "nuoc_mam": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Nước mắm Quang Hải cá thu 28 độ đạm chai 650 ml, "
+                            "65.000 đ, tồn 60"),
                            ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "pass: 5 claim, 0 lệch"),
                            ("cut_out", "ag_dang_ban", "ảnh chai", "Cut out product"),
                            ("studio_photo", "ag_dang_ban", "ảnh tách nền", "Compose studio photo (local)")],
-                 "outcome": {"status": "ready", "verdict": "pass", "title": "Nước mắm Cát Hải 30 độ đạm chai 500 ml",
-                             "price_vnd": 45000, "stock": 60, "checks": 5, "check": None, "seconds": 12.4}},
+                 "outcome": {"status": "ready", "verdict": "pass", "title": "Nước mắm Quang Hải cá thu 28 độ đạm chai 650 ml",
+                             "price_vnd": 65000, "stock": 60, "checks": 5, "check": None, "seconds": 12.4}},
     "thuoc_la": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Thuốc lá bao mềm, 25.000 đ, tồn 50"),
                            ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "block: mặt hàng không được đăng")],
                  "outcome": {"status": "blocked", "verdict": "block", "title": "Thuốc lá bao mềm", "price_vnd": 25000,
