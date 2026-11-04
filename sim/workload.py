@@ -339,7 +339,7 @@ def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, e
         kho_staff_m = whole(c["manual"].get("nhân viên kho", 0.0))
         kho_staff_a = whole(c["agent"].get("nhân viên kho", 0.0))
         manual_rows = [{"role": "Văn phòng (điều phối, đăng bán, kế toán)", "people": office_people,
-                        "detail": office_fte, "cost_vnd_month": round(office_people * office_wage, -3)},
+                        "detail": office_fte, "cost_vnd_month": int(round(office_people * office_wage, -3))},
                        {"role": "Chủ kho", "people": 1, "cost_vnd_month": WAGES["chủ kho"]},
                        {"role": "Nhân viên kho (chia hàng)", "people": kho_staff_m,
                         "cost_vnd_month": kho_staff_m * WAGES["nhân viên kho"]}]

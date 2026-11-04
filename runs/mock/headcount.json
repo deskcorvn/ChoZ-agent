@@ -278,7 +278,7 @@
       "nhân viên nội dung": 0.17,
       "kế toán": 5.75
      },
-     "cost_vnd_month": 99825000.0
+     "cost_vnd_month": 99825000
     },
     {
      "role": "Chủ kho",
@@ -311,13 +311,13 @@
    ],
    "manual_people": 15,
    "with_agents_people": 6,
-   "manual_cost_vnd_month": 137825000.0,
+   "manual_cost_vnd_month": 137825000,
    "with_agents_staff_cost_vnd_month": 48000000,
    "office_minutes_day_manual": 3888.0,
    "agents": 6,
    "agents_cost_vnd_month": 0,
    "with_agents_cost_vnd_month": 48000000,
-   "saving_vnd_month": 89825000.0,
+   "saving_vnd_month": 89825000,
    "rounding": "người nguyên, làm tròn lên; văn phòng làm tròn chung một nhóm (một người làm nhiều việc)",
    "min_office_with_agents": 1
   },
