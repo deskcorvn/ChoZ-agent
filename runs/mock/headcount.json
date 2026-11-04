@@ -444,6 +444,41 @@
    },
    "within_fee_pool": true,
    "same_flow_note": "hai cột cùng luồng hàng (chia theo trạm, theo mặt hàng), cùng định mức, cùng mức lương",
+   "people_summary": {
+    "groups": [
+     {
+      "key": "van_phong",
+      "label": "Giấy tờ, điều phối, đối soát",
+      "manual": 19.0,
+      "with_agents": 2.0,
+      "same_both_sides": false
+     },
+     {
+      "key": "quan_ly",
+      "label": "Quản lý",
+      "manual": 4.0,
+      "with_agents": 2.0,
+      "same_both_sides": false
+     },
+     {
+      "key": "tay_chan",
+      "label": "Chia hàng, kiểm hàng, giám sát (tay chân)",
+      "manual": 4.5,
+      "with_agents": 4.5,
+      "same_both_sides": true
+     }
+    ],
+    "manual_people": 27.5,
+    "with_agents_people": 8.5,
+    "agents": 6,
+    "manual_cost_vnd_month": 444556000,
+    "with_agents_cost_vnd_month": 169026000,
+    "fee_pool_vnd_month": 180000000,
+    "within_fee_pool": true,
+    "hours_per_person_month": 208,
+    "headline": "Cùng khối lượng việc, từ khoảng 27,5 người còn khoảng 8,5 người, cộng 6 agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+    "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá"
+   },
    "rounding": "người toàn thời gian làm tròn lên theo từng vai (ca 480 phút làm hiệu quả 85 %, hệ số phủ ca 1,2); việc theo giờ tính theo giờ công; xe thuê theo chuyến",
    "agent_cost_model": {
     "fit_points": [

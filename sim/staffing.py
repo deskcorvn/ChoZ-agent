@@ -149,7 +149,7 @@ def team(stations: int, skus_per_station: int, agent_cost_vnd_month: int) -> dic
     m_cost = sum(r["cost_vnd_month"] for r in manual)
     a_staff = sum(r["cost_vnd_month"] for r in agent)
     pool = fee_pool(stations)
-    return {
+    out = {
         "stations": stations, "orders_per_day": orders, "operating_days": OPERATING_DAYS,
         "manual": manual, "with_agents": agent,
         "manual_people": full_time_people(manual), "with_agents_people": full_time_people(agent),
@@ -165,6 +165,53 @@ def team(stations: int, skus_per_station: int, agent_cost_vnd_month: int) -> dic
         "within_fee_pool": a_staff + agent_cost_vnd_month <= pool["vnd_month"],
         "same_flow_note": "hai cột cùng luồng hàng (chia theo trạm, theo mặt hàng), cùng định mức, cùng mức lương",
     }
+    out["people_summary"] = people_summary(out)
+    return out
+
+
+HOURS_PER_PERSON_MONTH = 208     # 26 working days × 8 hours: one person, for counting hourly work as people
+
+
+def half(x: float) -> float:
+    """Round to the nearest half person (the screen never shows 8,17 people)."""
+    return round(x * 2) / 2
+
+
+def people_summary(t: dict) -> dict:
+    """What the comparison screen shows: people in three groups and two monthly costs, nothing else.
+
+    Office and managers are whole full-time people; hourly work (splitting, receiving, station visits) is turned into
+    people at 208 hours a month; the hired van is a cost, not people. Each group and each total is rounded to 0,5."""
+    def hourly_people(rows: list[dict]) -> float:
+        return sum((r["hours_day"] or 0) * OPERATING_DAYS / HOURS_PER_PERSON_MONTH for r in rows
+                   if r["pay"].startswith("theo giờ"))
+
+    groups = []
+    for key, label in (("van_phong", "Giấy tờ, điều phối, đối soát"), ("quan_ly", "Quản lý"),
+                       ("tay_chan", "Chia hàng, kiểm hàng, giám sát (tay chân)")):
+        if key == "tay_chan":
+            m, a = hourly_people(t["manual"]), hourly_people(t["with_agents"])
+        else:
+            m = sum(r["people"] or 0 for r in t["manual"] if r["kind"] == key)
+            a = sum(r["people"] or 0 for r in t["with_agents"] if r["kind"] == key)
+        groups.append({"key": key, "label": label, "manual": half(m), "with_agents": half(a),
+                       "same_both_sides": key == "tay_chan"})
+    manual = half(sum(g["manual"] for g in groups))
+    agent = half(sum(g["with_agents"] for g in groups))
+    return {
+        "groups": groups, "manual_people": manual, "with_agents_people": agent, "agents": t["agents"],
+        "manual_cost_vnd_month": t["manual_cost_vnd_month"],
+        "with_agents_cost_vnd_month": t["with_agents_cost_vnd_month"],
+        "fee_pool_vnd_month": t["fee_pool"]["vnd_month"], "within_fee_pool": t["within_fee_pool"],
+        "hours_per_person_month": HOURS_PER_PERSON_MONTH,
+        "headline": f"Cùng khối lượng việc, từ khoảng {fmt_half(manual)} người còn khoảng {fmt_half(agent)} người, "
+                    f"cộng {t['agents']} agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+        "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá",
+    }
+
+
+def fmt_half(x: float) -> str:
+    return f"{x:g}".replace(".", ",")
 
 
 def assumptions() -> list[dict]:

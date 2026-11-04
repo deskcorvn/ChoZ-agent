@@ -178,6 +178,31 @@ def check(path: Path) -> tuple[list[str], dict]:
             errors.append("chi phí trên dòng sự kiện không khớp tổng các lần gọi model")
     else:
         errors.append("thiếu summary.json cạnh events.jsonl")
+    # headcount.json beside the events: the comparison screen shows only people_summary; it must add up
+    headcount_path = path.with_name("headcount.json")
+    if headcount_path.is_file():
+        hc = json.loads(headcount_path.read_text(encoding="utf-8"))
+        c50 = (hc.get("view") or {}).get("central_50") or {}
+        ps = c50.get("people_summary")
+        if ps:
+            for side in ("manual", "with_agents"):
+                total = sum(g[side] for g in ps["groups"])
+                if abs(round(total * 2) / 2 - ps[f"{side}_people"]) > 1e-9:
+                    errors.append(f"headcount: tổng người {side} {ps[f'{side}_people']} khác cộng các nhóm {total}")
+                if any(abs(g[side] * 2 - round(g[side] * 2)) > 1e-9 for g in ps["groups"]):
+                    errors.append(f"headcount: số người {side} chưa làm tròn 0,5")
+            for g in ps["groups"]:
+                if g["same_both_sides"] and g["manual"] != g["with_agents"]:
+                    errors.append(f"headcount: nhóm tay chân phải giống nhau ở hai bên ({g['manual']} ≠ {g['with_agents']})")
+            if ps["manual_cost_vnd_month"] != c50.get("manual_cost_vnd_month") or \
+                    ps["with_agents_cost_vnd_month"] != c50.get("with_agents_cost_vnd_month"):
+                errors.append("headcount: chi phí trên màn so sánh khác bảng chi tiết")
+            if ps["within_fee_pool"] != (ps["with_agents_cost_vnd_month"] <= ps["fee_pool_vnd_month"]):
+                errors.append("headcount: cờ 'nằm trong phí' sai")
+            if c50.get("agents_cost_vnd_month", 0) > 0 and cost == 0:
+                errors.append("headcount: có chi phí agent nhưng ngày mô phỏng không gọi model")
+        else:
+            errors.append("headcount.json thiếu view.central_50.people_summary")
     stats = {"events": len(events), "scenes": len(scenes), "says": say_agents, "approvals": approvals,
              "orders": orders, "gmv_vnd": gmv, "agent_actions": actions, "cost_usd": cost, "blocked": blocked,
              "fees": fees}
