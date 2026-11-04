@@ -449,34 +449,41 @@
      {
       "key": "van_phong",
       "label": "Giấy tờ, điều phối, đối soát",
-      "manual": 19.0,
-      "with_agents": 2.0,
-      "same_both_sides": false
+      "manual": 19,
+      "with_agents": 2,
+      "same_both_sides": false,
+      "exact_people": null
      },
      {
       "key": "quan_ly",
       "label": "Quản lý",
-      "manual": 4.0,
-      "with_agents": 2.0,
-      "same_both_sides": false
+      "manual": 4,
+      "with_agents": 2,
+      "same_both_sides": false,
+      "exact_people": null
      },
      {
       "key": "tay_chan",
       "label": "Chia hàng, kiểm hàng, giám sát (tay chân)",
-      "manual": 4.5,
-      "with_agents": 4.5,
-      "same_both_sides": true
+      "manual": 5,
+      "with_agents": 5,
+      "same_both_sides": true,
+      "exact_people": 4.41
      }
     ],
-    "manual_people": 27.5,
-    "with_agents_people": 8.5,
+    "manual_people": 28,
+    "with_agents_people": 9,
     "agents": 6,
     "manual_cost_vnd_month": 444556000,
     "with_agents_cost_vnd_month": 177513000,
+    "manual_cost_trieu": 445,
+    "with_agents_cost_trieu": 180,
+    "fee_pool_trieu": 180,
     "fee_pool_vnd_month": 180000000,
     "within_fee_pool": true,
     "hours_per_person_month": 208,
-    "headline": "Cùng khối lượng việc, từ khoảng 27,5 người còn khoảng 8,5 người, cộng 6 agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+    "headline": "Cùng khối lượng việc, từ khoảng 28 người còn khoảng 9 người, cộng 6 agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+    "cost_line": "Chi phí cả bộ máy: khoảng 445 triệu → khoảng 180 triệu mỗi tháng, vừa trong phần phí 4 % (180 triệu)",
     "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá"
    },
    "rounding": "người toàn thời gian làm tròn lên theo từng vai (ca 480 phút làm hiệu quả 85 %, hệ số phủ ca 1,2); việc theo giờ tính theo giờ công; xe thuê theo chuyến",

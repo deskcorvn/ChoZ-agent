@@ -172,16 +172,22 @@ def team(stations: int, skus_per_station: int, agent_cost_vnd_month: int) -> dic
 HOURS_PER_PERSON_MONTH = 208     # 26 working days × 8 hours: one person, for counting hourly work as people
 
 
-def half(x: float) -> float:
-    """Round to the nearest half person (the screen never shows 8,17 people)."""
-    return round(x * 2) / 2
+def whole(x: float) -> int:
+    """People are whole people: round UP (the cautious side, more people rather than fewer)."""
+    return math.ceil(round(x, 6))
+
+
+def about_million(vnd: int, step: int = 5) -> int:
+    """Money on the comparison screen, in million đồng rounded to the nearest 5 (445, 180)."""
+    return int(step * math.floor(vnd / 1_000_000 / step + 0.5))
 
 
 def people_summary(t: dict) -> dict:
-    """What the comparison screen shows: people in three groups and two monthly costs, nothing else.
+    """What the comparison screen shows: whole people in three groups and two monthly costs, nothing else.
 
     Office and managers are whole full-time people; hourly work (splitting, receiving, station visits) is turned into
-    people at 208 hours a month; the hired van is a cost, not people. Each group and each total is rounded to 0,5."""
+    people at 208 hours a month and rounded up; the hired van is a cost, not people. Totals are the sums of the groups.
+    Money is shown in million đồng rounded to 5; the exact amounts stay in the file."""
     def hourly_people(rows: list[dict]) -> float:
         return sum((r["hours_day"] or 0) * OPERATING_DAYS / HOURS_PER_PERSON_MONTH for r in rows
                    if r["pay"].startswith("theo giờ"))
@@ -191,27 +197,30 @@ def people_summary(t: dict) -> dict:
                        ("tay_chan", "Chia hàng, kiểm hàng, giám sát (tay chân)")):
         if key == "tay_chan":
             m, a = hourly_people(t["manual"]), hourly_people(t["with_agents"])
+            exact = round(m, 2)
         else:
             m = sum(r["people"] or 0 for r in t["manual"] if r["kind"] == key)
             a = sum(r["people"] or 0 for r in t["with_agents"] if r["kind"] == key)
-        groups.append({"key": key, "label": label, "manual": half(m), "with_agents": half(a),
-                       "same_both_sides": key == "tay_chan"})
-    manual = half(sum(g["manual"] for g in groups))
-    agent = half(sum(g["with_agents"] for g in groups))
+            exact = None
+        groups.append({"key": key, "label": label, "manual": whole(m), "with_agents": whole(a),
+                       "same_both_sides": key == "tay_chan", "exact_people": exact})
+    manual = sum(g["manual"] for g in groups)
+    agent = sum(g["with_agents"] for g in groups)
+    m_tr, a_tr = about_million(t["manual_cost_vnd_month"]), about_million(t["with_agents_cost_vnd_month"])
+    pool_tr = about_million(t["fee_pool"]["vnd_month"])
     return {
         "groups": groups, "manual_people": manual, "with_agents_people": agent, "agents": t["agents"],
         "manual_cost_vnd_month": t["manual_cost_vnd_month"],
         "with_agents_cost_vnd_month": t["with_agents_cost_vnd_month"],
+        "manual_cost_trieu": m_tr, "with_agents_cost_trieu": a_tr, "fee_pool_trieu": pool_tr,
         "fee_pool_vnd_month": t["fee_pool"]["vnd_month"], "within_fee_pool": t["within_fee_pool"],
         "hours_per_person_month": HOURS_PER_PERSON_MONTH,
-        "headline": f"Cùng khối lượng việc, từ khoảng {fmt_half(manual)} người còn khoảng {fmt_half(agent)} người, "
-                    f"cộng {t['agents']} agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+        "headline": f"Cùng khối lượng việc, từ khoảng {manual} người còn khoảng {agent} người, cộng {t['agents']} "
+                    "agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+        "cost_line": f"Chi phí cả bộ máy: khoảng {m_tr} triệu → khoảng {a_tr} triệu mỗi tháng, vừa trong phần phí "
+                     f"4 % ({pool_tr} triệu)",
         "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá",
     }
-
-
-def fmt_half(x: float) -> str:
-    return f"{x:g}".replace(".", ",")
 
 
 def assumptions() -> list[dict]:

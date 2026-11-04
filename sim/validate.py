@@ -187,10 +187,14 @@ def check(path: Path) -> tuple[list[str], dict]:
         if ps:
             for side in ("manual", "with_agents"):
                 total = sum(g[side] for g in ps["groups"])
-                if abs(round(total * 2) / 2 - ps[f"{side}_people"]) > 1e-9:
+                if total != ps[f"{side}_people"]:
                     errors.append(f"headcount: tổng người {side} {ps[f'{side}_people']} khác cộng các nhóm {total}")
-                if any(abs(g[side] * 2 - round(g[side] * 2)) > 1e-9 for g in ps["groups"]):
-                    errors.append(f"headcount: số người {side} chưa làm tròn 0,5")
+                if any(not isinstance(g[side], int) for g in ps["groups"]):
+                    errors.append(f"headcount: số người {side} phải là người nguyên")
+            for k, vnd in (("manual_cost_trieu", "manual_cost_vnd_month"), ("with_agents_cost_trieu",
+                                                                             "with_agents_cost_vnd_month")):
+                if abs(ps[k] - ps[vnd] / 1e6) > 2.5:
+                    errors.append(f"headcount: {k}={ps[k]} triệu lệch quá 2,5 triệu so với {ps[vnd]:,} đ")
             for g in ps["groups"]:
                 if g["same_both_sides"] and g["manual"] != g["with_agents"]:
                     errors.append(f"headcount: nhóm tay chân phải giống nhau ở hai bên ({g['manual']} ≠ {g['with_agents']})")
