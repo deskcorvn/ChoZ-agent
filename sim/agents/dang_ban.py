@@ -104,8 +104,9 @@ def summarize_step(step: Any, run: Run) -> str:
         return f"{listing.get('title', '')}, {listing.get('price_vnd') or 0:,} đ, tồn {listing.get('stock')}".replace(",", ".")
     if step.key == "verify":
         bad = [c for c in v.get("checks", []) if c.get("status") == "contradicted"]
-        return f"{v.get('verdict', '')}: {len(v.get('checks', []))} claim, {len(bad)} lệch" + (
-            " (hàng cấm)" if v.get("prohibited") else "")
+        word = {"pass": "khớp ảnh", "warn": "có chỗ lệch", "block": "không đăng"}.get(v.get("verdict", ""), v.get("verdict", ""))
+        return f"{word}: {len(v.get('checks', []))} điểm đối chiếu, {len(bad)} lệch" + (
+            " (mặt hàng không được bán)" if v.get("prohibited") else "")
     if step.key == "match":
         return str(((run.listing or {}).get("catalog") or {}).get("name") or "không có trong danh mục")
     return step.title[:160]
@@ -141,7 +142,7 @@ MOCK = {
                             "gam, giá 22 nghìn một hộp, còn 80 hộp"),
                            ("choz_listing", "ag_dang_ban", "1 ảnh + lời nói", "Cháo hàu ăn liền đặc sản Hải Phòng hộp "
                             "120g, 22.000 đ, tồn 80"),
-                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "warn: 7 claim, 1 lệch"),
+                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "có chỗ lệch: 7 điểm đối chiếu, 1 lệch"),
                            ("cut_out", "ag_dang_ban", "ảnh hộp", "Cut out product"),
                            ("studio_photo", "ag_dang_ban", "ảnh tách nền", "Compose studio photo (local)")],
                  "outcome": {"status": "ready", "verdict": "warn", "title": "Cháo hàu ăn liền đặc sản Hải Phòng hộp 120g",
@@ -150,7 +151,7 @@ MOCK = {
                              "summary_vi": "Anh nói 150 g, nhãn ghi 120 g. Lấy theo nhãn nhé?", "seconds": 13.0}},
     "banh_da_cua": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Bánh đa cua đồng Hải Phòng hộp, 22.000 đ, "
                                "tồn 80"),
-                              ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "pass: 5 claim, 0 lệch"),
+                              ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "khớp ảnh: 5 điểm đối chiếu, 0 lệch"),
                               ("catalog_match", "ag_kiem_chung", "danh mục mẫu", "Bánh đa cua đồng ăn liền, hộp"),
                               ("cut_out", "ag_dang_ban", "ảnh hộp", "Cut out product"),
                               ("studio_photo", "ag_dang_ban", "ảnh tách nền", "Compose studio photo (local)")],
@@ -158,13 +159,13 @@ MOCK = {
                                 "price_vnd": 22000, "stock": 80, "checks": 5, "check": None, "seconds": 12.9}},
     "nuoc_mam": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Nước mắm Quang Hải cá thu 28 độ đạm chai 650 ml, "
                             "65.000 đ, tồn 60"),
-                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "pass: 5 claim, 0 lệch"),
+                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "khớp ảnh: 5 điểm đối chiếu, 0 lệch"),
                            ("cut_out", "ag_dang_ban", "ảnh chai", "Cut out product"),
                            ("studio_photo", "ag_dang_ban", "ảnh tách nền", "Compose studio photo (local)")],
                  "outcome": {"status": "ready", "verdict": "pass", "title": "Nước mắm Quang Hải cá thu 28 độ đạm chai 650 ml",
                              "price_vnd": 65000, "stock": 60, "checks": 5, "check": None, "seconds": 12.4}},
     "thuoc_la": {"steps": [("choz_listing", "ag_dang_ban", "1 ảnh + chữ", "Thuốc lá bao mềm, 25.000 đ, tồn 50"),
-                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "block: mặt hàng không được đăng")],
+                           ("verify_listing", "ag_kiem_chung", "listing + 1 ảnh", "không đăng: mặt hàng không được bán")],
                  "outcome": {"status": "blocked", "verdict": "block", "title": "Thuốc lá bao mềm", "price_vnd": 25000,
                              "stock": 50, "checks": 2, "check": None, "rules": ["P3"],
                              "reason": "thuốc lá: nền tảng không đăng bán", "seconds": 4.0}},
