@@ -1395,6 +1395,10 @@
   "ho37",
   "ho48"
  ],
+ "parcels": [
+  "ho02",
+  "ho20"
+ ],
  "breakfasts": 20,
  "broken_eggs": "ho07",
  "notes": {
