@@ -123,7 +123,7 @@ class Day:
     def __init__(self, out: Path, mode: str, seed: int, usd_vnd: int, max_run_usd: float, claude_model: str):
         self.out, self.mode, self.seed = out, mode, seed
         out.mkdir(parents=True, exist_ok=True)
-        self.world: World = generate(seed)
+        self.world: World = generate(seed, int(os.environ.get("SIM_SCALE", "1")))
         self.tools = Tools(self.world)
         self.em = Emitter(out / "events.jsonl", mode, usd_vnd)
         self.usd_vnd, self.max_run_usd, self.claude_model = usd_vnd, max_run_usd, claude_model
@@ -289,7 +289,7 @@ def _problem(reply: Reply | None, missing: list[str]) -> str:
     return ""
 
 
-CODES = re.compile(r"\b(ho\d{2}|DH\d{3}|ncc\d|xe1|loc_[a-z0-9_]+)\b")
+CODES = re.compile(r"\b(ho\d{2,3}|DH\d{3}|ncc\d|xe1|loc_[a-z0-9_]+)\b")
 
 
 def env_settings() -> dict:

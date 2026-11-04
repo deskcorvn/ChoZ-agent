@@ -136,34 +136,37 @@ BASKETS = {
 BASKET_MIX = {70_000: 10, 100_000: 12, 150_000: 8}   # 30 baskets
 
 
-def house_of(household: str) -> str:
-    return f"loc_nha{(int(household[2:]) - 1) // 10 + 1}"
+def house_of(household: str, households: int = 50) -> str:
+    """One of the five houses the stage draws: the households split into five equal blocks."""
+    return f"loc_nha{(int(household[2:]) - 1) * 5 // households + 1}"
 
 
-def generate(seed: int = 7) -> World:
+def generate(seed: int = 7, scale: int = 1) -> World:
+    """The day's world. `scale` multiplies households, baskets, stock and lots (one station, k times the orders): used
+    only to measure how the agents' cost grows with volume (SIM_SCALE), never for the stage."""
     rng = random.Random(seed)
-    goods = [Good(*g) for g in GOODS]
+    goods = [Good(sku, name, unit, price, sup, stock * scale) for sku, name, unit, price, sup, stock in GOODS]
     price = {g.sku: g for g in goods}
     for basket, items in BASKETS.items():
         assert sum(price[s].price_vnd * q for s, q in items) == basket, basket
-    households = [f"ho{i:02d}" for i in range(1, 51)]
+    households = [f"ho{i:02d}" for i in range(1, 50 * scale + 1)]
     broken_eggs = "ho07"
     others = [h for h in households if h != broken_eggs]
-    booked = sorted([broken_eggs] + rng.sample(others, 29))
-    tiers = [p for p, n in BASKET_MIX.items() for _ in range(n)]
+    booked = sorted([broken_eggs] + rng.sample(others, 30 * scale - 1), key=lambda h: int(h[2:]))
+    tiers = [p for p, n in BASKET_MIX.items() for _ in range(n * scale)]
     rng.shuffle(tiers)
     # ho07 orders the 100k basket (it has the eggs).
     i = booked.index(broken_eggs)
     j = tiers.index(100_000)
     tiers[i], tiers[j] = tiers[j], tiers[i]
-    extras = set(rng.sample(booked, 6))           # six households add a box of cháo hàu
+    extras = set(rng.sample(booked, 6 * scale))   # six households (per 30) add a box of cháo hàu
     orders = []
     for n, (household, basket) in enumerate(zip(booked, tiers), start=1):
         lines = [Line(sku, qty, price[sku].price_vnd, price[sku].supplier) for sku, qty in BASKETS[basket]]
         if household in extras:
             lines.append(Line("chao_hau", 1, price["chao_hau"].price_vnd, "ncc1"))
         referrer = rng.choice(["hu_tram", "hu_tram", rng.choice([h for h in households if h != household])])
-        orders.append(Order(f"DH{n:03d}", household, basket, lines, house_of(household), referrer))
+        orders.append(Order(f"DH{n:03d}", household, basket, lines, house_of(household, len(households)), referrer))
     lots = [
         Lot("ncc2", "rau", "HTX rau 2, thu hoạch 03/11", "2026-11-06", None, None, 120),
         Lot("ncc3", "thit", "Vựa thịt 3, giết mổ 04/11, có tem kiểm dịch", "2026-11-06", 3.0, 4.0, 22),
@@ -172,6 +175,8 @@ def generate(seed: int = 7) -> World:
         Lot("ncc5", "trung", "HTX trứng 5, đóng hộp 02/11", "2026-11-25", None, None, 34),
         Lot("ncc1", "chao_hau", "Cháo hàu ăn liền, hộp 120 g", "2027-05-01", None, None, 6),
     ]
+    for lot in lots:
+        lot.qty *= scale
     laundry = sorted(rng.sample(booked, 3))
     parcels = sorted(rng.sample([h for h in booked if h not in laundry], 2))
     return World(seed=seed, day="2026-11-04", tram="Trạm Z 01 (góc tiệm tạp hóa)", kho="Kho khu vực 1",

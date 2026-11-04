@@ -18,7 +18,7 @@ VN = timezone(timedelta(hours=7))
 AGENTS = ("ag_dang_ban", "ag_kiem_chung", "ag_chia_don", "ag_giao_nhan", "ag_cham_khach", "ag_doi_soat")
 HUMANS = ("hu_tram", "hu_kho")
 SUPPLIERS = tuple(f"ncc{i}" for i in range(1, 6))
-HOUSEHOLDS = tuple(f"ho{i:02d}" for i in range(1, 51))
+HOUSEHOLDS = tuple(f"ho{i:02d}" for i in range(1, 501))   # 50 in the stage's day; up to 500 for SIM_SCALE runs
 VEHICLES = ("xe1",)
 ACTORS = AGENTS + HUMANS + SUPPLIERS + HOUSEHOLDS + VEHICLES
 PLACES = ("loc_ncc", "loc_kho", "loc_duong", "loc_tram", "loc_nha1", "loc_nha2", "loc_nha3", "loc_nha4", "loc_nha5",
