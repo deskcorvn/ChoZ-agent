@@ -1,10 +1,10 @@
 {
  "mode": "mock",
  "seed": 7,
- "started": "2026-11-04T07:18:41+07:00",
- "finished": "2026-11-04T07:18:41+07:00",
+ "started": "2026-11-04T07:44:30+07:00",
+ "finished": "2026-11-04T07:44:30+07:00",
  "seconds": 0.01,
- "events": 136,
+ "events": 134,
  "orders": 30.0,
  "gmv_vnd": 3228000.0,
  "agent_actions": 52.0,
@@ -29,6 +29,7 @@
  "services": {
   "suat_an_sang": 20,
   "giat_la_ho": 3,
+  "buu_pham": 2,
   "note": "dịch vụ chạy trên nền tảng, chỉ là một dòng bộ đếm; không tính vào đơn và tiền hàng Giỏ"
  },
  "scenes": [

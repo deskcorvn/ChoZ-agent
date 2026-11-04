@@ -153,8 +153,8 @@ class Emitter:
                                       "wall": datetime.now(VN).isoformat(timespec="seconds"), "type": type,
                                       "mode": self.mode, **fields})
         self.n += 1
-        if event.from_ in AGENTS and type in ("tool", "say"):
-            self.totals["agent_actions"] += 1
+        if event.from_ in AGENTS and type in ("tool", "say") and not (event.detail or {}).get("auto"):
+            self.totals["agent_actions"] += 1          # a read-out of the metrics (detail.auto) is not agent work
         if event.usage is not None:
             self.totals["agent_cost_usd"] += event.usage.cost_usd
         if type == "approve":
@@ -178,7 +178,8 @@ class Emitter:
         for key, value in amounts.items():
             self.totals[key] += value
 
-    def metric(self, t: float) -> dict:
-        if self.events and self.events[-1]["type"] == "metric" and self.events[-1]["metrics"] == self.metrics():
+    def metric(self, t: float, force: bool = False) -> dict:
+        if (not force and self.events and self.events[-1]["type"] == "metric"
+                and self.events[-1]["metrics"] == self.metrics()):
             return self.events[-1]          # nothing changed since the last metric line
         return self.emit(t, "metric", metrics=self.metrics())

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -87,7 +88,8 @@ def summarize(name: str, args: dict, out: dict) -> tuple[str, str]:
         "make_picklist": lambda: f"{out['items']} mặt hàng cho {out['orders']} đơn; thiếu: "
                                  + (", ".join(f"{x['name']} {x['missing']}" for x in out["short"]) or "không"),
         "plan_route": lambda: " → ".join(f"{leg['to']} {leg['arrive']}" for leg in out["legs"]),
-        "laundry_pickups": lambda: f"{out['count']} hộ gửi giặt: {', '.join(out['households'])}",
+        "laundry_pickups": lambda: f"{out['count']} túi giặt ({', '.join(out['households_vi'])}), "
+                                   f"{out['parcel_count']} bưu phẩm ({', '.join(out['parcels_vi'])})",
         "check_lot": lambda: f"{out['label']}: {out['result']}" + (f" ({'; '.join(out['reasons'])})"
                                                                    if out["reasons"] else ""),
         "order_of": lambda: (f"{out['order']}: " + ", ".join(li["name"] for li in out["lines"])
@@ -281,7 +283,13 @@ def _problem(reply: Reply | None, missing: list[str]) -> str:
         return f"câu dài quá {TEXT_MAX} ký tự: {long[0][:40]}..."
     if not any(ch.isdigit() for ch in reply.text):
         return "câu chưa có số cụ thể"
+    coded = [m for m in [reply.text] + [m.get("text", "") for m in reply.messages] if CODES.search(m)]
+    if coded:
+        return f"câu còn mã nội bộ (ho.., DH.., ncc.., xe1, loc_..): {coded[0][:50]}"
     return ""
+
+
+CODES = re.compile(r"\b(ho\d{2}|DH\d{3}|ncc\d|xe1|loc_[a-z0-9_]+)\b")
 
 
 def env_settings() -> dict:

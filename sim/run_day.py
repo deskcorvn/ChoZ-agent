@@ -49,15 +49,22 @@ async def dat_gio(d: Day) -> None:
     d.at("20:00", -1)
     d.emit("scene", step=0, scene="dat_gio")
     orders = sorted(d.world.orders, key=lambda o: o.household)
-    chunks = [orders[i::9] for i in range(9)]
-    for chunk in sorted(chunks, key=lambda c: c[0].household):
+    wording = ["Nhà {i} đặt {n} Giỏ cho sáng mai: {parts}",
+               "{n} hộ nhà {i} gọi Giỏ: {parts}",
+               "Nhà {i}: {n} Giỏ, {parts}, chiều mai ra trạm nhận",
+               "Thêm {n} Giỏ từ nhà {i}: {parts}",
+               "Nhà {i} chốt {n} Giỏ: {parts}. Đủ {total} Giỏ tối nay"]
+    for i in range(1, 6):
+        chunk = [o for o in orders if o.house == f"loc_nha{i}"]
+        if not chunk:
+            continue
         tiers: dict[int, int] = {}
         for o in chunk:
             tiers[o.basket_vnd] = tiers.get(o.basket_vnd, 0) + 1
         parts = ", ".join(f"{n} Giỏ {p // 1000}k" for p, n in sorted(tiers.items()))
-        d.emit("say", step=8 * 60, from_=chunk[0].household, to="ag_chia_don",
-               text=f"{len(chunk)} hộ đặt Giỏ cho sáng mai: {parts}",
-               detail={"households": [o.household for o in chunk], "orders": [o.id for o in chunk]})
+        d.emit("say", step=15 * 60, from_=chunk[0].household, to="ag_chia_don",
+               text=wording[i - 1].format(i=i, n=len(chunk), parts=parts, total=len(orders)),
+               detail={"households": [o.household for o in chunk], "orders": [o.id for o in chunk], "house": i})
     d.at("21:15", -1)
     a = await d.ask(
         "ag_chia_don",
@@ -86,8 +93,8 @@ async def dat_gio(d: Day) -> None:
             tools=["apply_substitution"], mock_calls=[("apply_substitution", sub)],
             mock_text=lambda o: f"Phiếu gom {len(d.world.orders)} đơn, {d.tools.make_picklist()['items']} mặt hàng, "
                                 f"đã thay {sub['count']} phần. Mời lên lịch xe.",
-            mock_messages=lambda o: [{"to": c["household"], "text": f"Đơn {c['order']}: hết {s['name'].lower()}, thay "
-                                      f"{s['suggest']['name'].lower()}, hoàn {money(s['suggest']['refund_vnd_each'])}."}
+            mock_messages=lambda o: [{"to": c["household"], "text": f"Đơn {int(c['order'][2:])}: hết {s['name'].lower()}, "
+                                      f"thay {s['suggest']['name'].lower()}, hoàn {money(s['suggest']['refund_vnd_each'])}."}
                                      for c in o["apply_substitution"][-1]["orders"]],
             required=("apply_substitution",), listeners=("ag_giao_nhan",),
             check=lambda r, o: _households_match(r, o))
@@ -112,13 +119,14 @@ async def dang_ban(d: Day) -> None:
     items = [  # (sample, short name for bubbles, supplier, what the supplier says, detail)
         ("chao_hau", "cháo hàu hộp", "ncc1", "Cháo hàu ăn liền, hộp 150 gam, 22 nghìn, còn 80 hộp",
          {"photos": 1, "audio_seconds": round(VOICE.stat().st_size / 32000, 1) if VOICE.is_file() else 0,
-          "sample": "samples/products/05-chao-hau-hop", "voice": "sim/samples/voice/ncc1-chao-hau.wav"}),
+          "sample": "samples/products/05-chao-hau-hop", "voice": "sim/samples/voice/ncc1-chao-hau.wav",
+          "synthetic_voice": True, "label": "giọng đọc tổng hợp (VieNeu), không phải người thật"}),
         ("nuoc_mam", "nước mắm Cát Hải", "ncc1", "Nước mắm Quang Hải cá thu 28 độ đạm, OCOP 4 sao, chai 650 ml, 65 nghìn, còn 60",
          {"photos": 1, "sample": "sim/samples/nuoc-mam-cat-hai", "ocop": "4 sao"}),
         ("banh_da_cua", "bánh đa cua hộp", "ncc1", "Bánh đa cua Khánh Thọ, OCOP 4 sao, 22 nghìn một hộp, còn 80 hộp",
          {"photos": 1, "sample": "samples/products/04-banh-da-cua-hop", "ocop": "4 sao"}),
         ("thuoc_la", "thuốc lá", "ncc3", "Thuốc lá bao mềm, 25 nghìn một bao, còn 50 bao",
-         {"photos": 1, "sample": "sim/samples/thuoc-la"}),
+         {"photos": 1, "sample": "sim/samples/thuoc-la", "illustration": True, "label": "ảnh minh họa vẽ bằng code"}),
     ]
     try:
         for key, label, supplier, words, detail in items:
@@ -154,6 +162,9 @@ def _after_listing(d: Day, o: dict, supplier: str, label: str) -> None:
         humans.approve(d, "ag_kiem_chung", "hu_tram", "duyet_listing",
                        short(f"Tin {title}: {o['checks']} điểm đã đối chiếu, 1 điểm lời nói lệch nhãn. Đăng theo nhãn?"),
                        "Duyệt, đăng theo nhãn", detail={"listing_run": o["run"], "check": o.get("check")})
+        d.emit("say", from_="ag_dang_ban", to=supplier,
+               text=short(f"Đã lên tin {title} theo nhãn, {money(o['price_vnd'])}, tồn {o['stock']}"),
+               detail={"listing_run": o["run"], "status": "ready", "after_approval": True})
         return
     if o["status"] in ("ready", "needs_answer"):
         d.emit("say", from_="ag_dang_ban", to=supplier,
@@ -192,7 +203,8 @@ async def gom_kho(d: Day) -> None:
         "`messages`: với mỗi lô loại, một câu gửi nhà cung cấp của lô đó (to = mã ncc) yêu cầu đổi lô, nêu lý do có số.",
         tools=["check_lot"], mock_calls=[("check_lot", {"supplier": s, "item": i}) for s, i in LOTS],
         mock_text=lambda o: (lambda bad: f"{len(LOTS) - len(bad)}/{len(LOTS)} lô đạt; loại {len(bad)} lô "
-                                         + ", ".join(f"{LOT_NAMES[b['item']]} {b['supplier']}" for b in bad))(
+                                         + ", ".join(f"{LOT_NAMES[b['item']]} của {d.world.supplier(b['supplier']).name.lower()}"
+                                                     for b in bad))(
             [x for x in o["check_lot"] if x["result"] == "loại"]),
         mock_messages=lambda o: [{"to": x["supplier"], "text": f"Lô {LOT_NAMES[x['item']]} {x['reasons'][0].replace('.', ',')}. Đổi lô khác trước 06:20."}
                                  for x in o["check_lot"] if x["result"] == "loại"],
@@ -240,14 +252,15 @@ async def ra_tram(d: Day) -> None:
     bags = len(d.world.orders)
     g = await d.ask(
         "ag_giao_nhan",
-        f"06:30. Lên lịch xe1: gọi plan_route với stops {ROUTE} và laundry_pickups. `text`: báo người trực trạm "
-        "(hu_tram) giờ xe tới trạm và số túi. `messages`: đúng một câu cho xe1 (to = xe1) dặn chuyến về ghé trạm gom "
-        "đồ giặt, nêu số hộ.",
+        f"06:30. Lên lịch xe: gọi plan_route với stops {ROUTE} và laundry_pickups. `text`: báo bạn trực trạm "
+        "(hu_tram) giờ xe tới trạm và số túi, nhắc chuyến về không chạy rỗng. `messages`: đúng một câu cho tài xế "
+        "(to = xe1) dặn chuyến về ghé trạm gom đồ giặt và bưu phẩm, nêu số túi giặt và số bưu phẩm. Gọi xe là 'xe'.",
         tools=["plan_route", "laundry_pickups"],
         mock_calls=[("plan_route", {"stops": ROUTE}), ("laundry_pickups", {})],
-        mock_text=lambda o: f"Xe1 tới trạm {o['plan_route'][-1]['legs'][1]['arrive']}, {bags} túi cho {bags} đơn",
-        mock_messages=lambda o: [{"to": "xe1", "text": f"Chuyến về ghé trạm gom đồ giặt {o['laundry_pickups'][-1]['count']} "
-                                                       "hộ, mang về kho."}],
+        mock_text=lambda o: f"Xe tới trạm {o['plan_route'][-1]['legs'][1]['arrive']}, {bags} túi cho {bags} đơn; "
+                            "chiều về gom đồ giặt, bưu phẩm",
+        mock_messages=lambda o: [{"to": "xe1", "text": f"Chuyến về ghé trạm gom {o['laundry_pickups'][-1]['count']} túi giặt "
+                                                       f"và {o['laundry_pickups'][-1]['parcel_count']} bưu phẩm, mang về kho."}],
         required=("plan_route", "laundry_pickups"),
         check=lambda r, o: "" if [m.get("to") for m in r.messages] == ["xe1"] else "messages phải có đúng 1 câu cho xe1")
     d.emit("say", from_="ag_giao_nhan", to="hu_tram", text=g.text, usage=g.usage)
@@ -255,12 +268,17 @@ async def ra_tram(d: Day) -> None:
         d.emit("say", from_="ag_giao_nhan", to=m["to"], text=m["text"])
     d.emit("move", step=5 * 60, from_="xe1", loc="loc_duong")
     d.emit("move", step=20 * 60, from_="xe1", loc="loc_tram", detail={"bags": bags})
-    humans.approve(d, "ag_giao_nhan", "hu_tram", "nhan_hang_tram", f"Xe1 đã tới trạm: {bags} túi cho {bags} đơn. Nhận?",
+    humans.approve(d, "ag_giao_nhan", "hu_tram", "nhan_hang_tram", f"Xe đã tới trạm: {bags} túi cho {bags} đơn. Nhận?",
                    f"Nhận đủ {bags} túi", detail={"bags": bags})
-    laundry = d.world.laundry
+    laundry, parcels = d.world.laundry, d.world.parcels
+    d.emit("say", from_="hu_tram", to="xe1",
+           text=f"Chiều về: {len(laundry)} túi giặt của hộ {', '.join(str(int(h[2:])) for h in laundry)} và "
+                f"{len(parcels)} bưu phẩm, xe mang về kho",
+           detail={"laundry_bags": len(laundry), "parcels": len(parcels), "households": laundry,
+                   "parcel_households": parcels})
     d.emit("move", step=10 * 60, from_="xe1", loc="loc_duong",
-           detail={"laundry_bags": len(laundry), "households": laundry})
-    d.emit("move", step=20 * 60, from_="xe1", loc="loc_kho", detail={"laundry_bags": len(laundry)})
+           detail={"laundry_bags": len(laundry), "parcels": len(parcels), "households": laundry})
+    d.emit("move", step=20 * 60, from_="xe1", loc="loc_kho", detail={"laundry_bags": len(laundry), "parcels": len(parcels)})
     d.metric()
 
 
@@ -298,8 +316,8 @@ async def _broken_eggs(d: Day) -> None:
         "và return_policy. `text`: câu xin người trực trạm (hu_tram) duyệt cách xử lý, có mã đơn và số tiền dòng trứng.",
         tools=["order_of", "return_policy"],
         mock_calls=[("order_of", {"household": ho}), ("return_policy", {})],
-        mock_text=lambda o: (lambda od: f"{od['order']} của {ho}: trứng {money(30_000)} vỡ 3 quả. Đổi hộp mới?")(
-            o["order_of"][-1]),
+        mock_text=lambda o: (lambda od: f"{od['order_vi'].capitalize()} của {od['household_vi']}: trứng {money(30_000)} "
+                                        "vỡ 3 quả. Đổi hộp mới?")(o["order_of"][-1]),
         required=("order_of",))
     humans.approve(d, "ag_cham_khach", "hu_tram", "doi_tra", c.text, "Duyệt theo đề xuất", usage=c.usage,
                    detail={"household": ho, "order": c.out("order_of").get("order") if "order_of" in c.outputs else None})
@@ -352,18 +370,14 @@ def _settlement_numbers(r: Reply, o: dict) -> str:
 async def tong_ket(d: Day) -> None:
     d.at("22:00")
     d.emit("scene", step=0, scene="tong_ket")
+    # The closing line reads the final metric out loud. It is written by code from those numbers (no model call,
+    # not counted as agent work), so what the jury hears is exactly what the last metric line says.
     m = d.metric()["metrics"]
-    numbers = (f"{m['orders']:g} đơn, {millions(m['gmv_vnd'])} tiền hàng, agent làm {m['agent_actions']:g} việc hết "
-               f"{money(m['agent_cost_vnd'])}, người duyệt {m['human_approvals']:g} lần")
-    t = await d.ask(
-        "ag_doi_soat",
-        f"22:00. Tổng kết ngày cho người trực trạm (hu_tram). Số liệu cả ngày (đã tính sẵn, giữ nguyên): {numbers}. "
-        "`text` theo mẫu 'Hôm nay N đơn, X tiền hàng, agent làm A việc hết C, anh duyệt M lần'. Không gọi công cụ.",
-        tools=[], mock_calls=[],
-        mock_text=lambda o: f"Hôm nay {m['orders']:g} đơn, {millions(m['gmv_vnd'])} tiền hàng, agent làm "
-                            f"{m['agent_actions']:g} việc hết {money(m['agent_cost_vnd'])}, anh duyệt {m['human_approvals']:g} lần")
-    d.emit("say", from_="ag_doi_soat", to="hu_tram", text=t.text, usage=t.usage, detail={"metrics": m})
-    d.metric()
+    d.emit("say", from_="ag_doi_soat", to="hu_tram",
+           text=f"Hôm nay {m['orders']:g} đơn, {millions(m['gmv_vnd'])} tiền hàng, agent làm {m['agent_actions']:g} "
+                f"việc hết {money(m['agent_cost_vnd'])}, anh duyệt {m['human_approvals']:g} lần",
+           detail={"metrics": m, "auto": True, "note": "đọc từ metric cuối, không gọi model"})
+    d.em.metric(d.t, force=True)
 
 
 SCENES = [("dat_gio", "ag_chia_don", dat_gio), ("dang_ban", "ag_dang_ban", dang_ban), ("gom_kho", "ag_giao_nhan", gom_kho),

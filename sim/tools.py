@@ -88,18 +88,23 @@ class Tools:
             t += max(minutes.get(b, 10), 5)
             leg = {"from": a, "to": b, "arrive": f"{t // 60:02d}:{t % 60:02d}"}
             if b == "loc_tram":
-                leg.update(drop_bags=len(self.w.orders), station=self.w.tram,
-                           pick_laundry=0 if not seen_tram else len(self.w.laundry))
+                leg.update(drop_bags=len(self.w.orders), station=self.w.tram, pick_laundry=len(self.w.laundry),
+                           pick_parcels=len(self.w.parcels))
                 seen_tram = True
             if b == "loc_kho" and seen_tram:
-                leg.update(bring_back_laundry=len(self.w.laundry))
+                leg.update(bring_back_laundry=len(self.w.laundry), bring_back_parcels=len(self.w.parcels))
             legs.append(leg)
         return {"vehicle": "xe1", "depart": "06:30", "bags": len(self.w.orders), "stations": 1,
-                "laundry_households": self.w.laundry, "legs": legs}
+                "laundry_households": self.w.laundry, "parcel_households": self.w.parcels,
+                "return_trip": f"gom {len(self.w.laundry)} túi giặt và {len(self.w.parcels)} bưu phẩm ở trạm, mang về kho",
+                "legs": legs}
 
     def laundry_pickups(self) -> dict:
-        """Các hộ gửi đồ giặt hôm nay, xe gom ở trạm trên chuyến về kho."""
-        return {"households": self.w.laundry, "count": len(self.w.laundry), "where": "loc_tram"}
+        """Chuyến về của xe không chạy rỗng: các hộ gửi đồ giặt và bưu phẩm hôm nay, xe gom ở trạm rồi mang về kho."""
+        return {"households": self.w.laundry, "count": len(self.w.laundry),
+                "households_vi": [f"hộ {int(h[2:])}" for h in self.w.laundry],
+                "parcels": self.w.parcels, "parcel_count": len(self.w.parcels),
+                "parcels_vi": [f"hộ {int(h[2:])}" for h in self.w.parcels], "where": "loc_tram"}
 
     # ── ag_kiem_chung (warehouse) ────────────────────────────────────────────────────────────────────
     def check_lot(self, supplier: str, item: str) -> dict:
@@ -124,7 +129,8 @@ class Tools:
         o = self.w.order_of(household)
         if o is None:
             return {"household": household, "order": None}
-        return {"household": household, "order": o.id, "total_vnd": o.total_vnd, "paid": o.id in self.paid,
+        return {"household": household, "household_vi": f"hộ {int(household[2:])}", "order": o.id,
+                "order_vi": f"đơn {int(o.id[2:])}", "total_vnd": o.total_vnd, "paid": o.id in self.paid,
                 "lines": [{"sku": li.sku, "name": self.w.good(li.sku).name, "qty": li.qty, "price_vnd": li.price_vnd,
                            "supplier": li.supplier} for li in o.lines]}
 

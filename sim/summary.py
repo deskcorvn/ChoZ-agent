@@ -69,6 +69,7 @@ def write(day: Any, started: str, seconds: float, stopped: str = "") -> dict:
     data = build(day.em.events, day.calls, mode=day.mode, seed=day.seed, usd_vnd=day.usd_vnd, started=started,
                  seconds=seconds, errors=day.errors, stopped=stopped,
                  services={"suat_an_sang": day.world.breakfasts, "giat_la_ho": len(day.world.laundry),
+                           "buu_pham": len(day.world.parcels),
                            "note": "dịch vụ chạy trên nền tảng, chỉ là một dòng bộ đếm; không tính vào đơn và tiền hàng Giỏ"})
     (day.out / "summary.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     return data

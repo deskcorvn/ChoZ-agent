@@ -12,7 +12,10 @@ Quy tắc:
   duyệt, bộ điều phối gửi yêu cầu duyệt (approve_request) tới người trực trạm hoặc chủ kho.
 - Câu trả lời cuối gọi generate_response. `text` là câu hiện trong bong bóng: tiếng Việt, tối đa {TEXT_MAX} ký tự,
   có số cụ thể (số đơn, số tiền, tên hàng, giờ), không chào hỏi, không cảm ơn, không emoji.
-- Tiền viết dạng 2.000 đ hoặc 3,2 triệu. Mã hộ, mã nhà cung cấp giữ nguyên (ho07, ncc4).
+- Tiền viết dạng 2.000 đ hoặc 3,2 triệu.
+- Người xem không đọc mã. Trong `text` và trong `messages[].text` KHÔNG viết mã: viết "hộ 48" (không ho48),
+  "đơn 29" (không DH029), "xe" (không xe1), "trạm" (không loc_tram), tên nhà cung cấp như "vựa cá 4" hay
+  "hợp tác xã rau 2" (không ncc4, ncc2). Mã chỉ dùng khi gọi công cụ và trong `messages[].to`.
 """
 
 AGENTS = {

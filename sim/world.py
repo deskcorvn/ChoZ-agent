@@ -82,6 +82,7 @@ class World:
     orders: list[Order]
     lots: list[Lot]
     laundry: list[str]
+    parcels: list[str]   # households handing a parcel to the van at the station, for the return trip
     breakfasts: int
     broken_eggs: str     # the household whose eggs arrive broken (scene nhan_hang)
     notes: dict = field(default_factory=dict)
@@ -172,9 +173,10 @@ def generate(seed: int = 7) -> World:
         Lot("ncc1", "chao_hau", "Cháo hàu ăn liền, hộp 120 g", "2027-05-01", None, None, 6),
     ]
     laundry = sorted(rng.sample(booked, 3))
+    parcels = sorted(rng.sample([h for h in booked if h not in laundry], 2))
     return World(seed=seed, day="2026-11-04", tram="Trạm Z 01 (góc tiệm tạp hóa)", kho="Kho khu vực 1",
                  suppliers=list(SUPPLIERS), goods=goods, households=households, orders=orders, lots=lots,
-                 laundry=laundry, breakfasts=20, broken_eggs=broken_eggs,
+                 laundry=laundry, parcels=parcels, breakfasts=20, broken_eggs=broken_eggs,
                  notes={"baskets": "30 of 50 households (60 %) book a basket: 10 × 70k, 12 × 100k, 8 × 150k",
                         "prices": "made up for the simulation, whole thousands of đồng",
                         "shortage": "cải ngọt: 10 bunches in stock for 12 baskets of 100k",

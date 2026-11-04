@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -80,7 +81,9 @@ def check(path: Path) -> tuple[list[str], dict]:
             errors.append(f"{rid}: approve_request chưa có approve")
 
     # recomputed totals versus the last metric line
-    actions = sum(1 for e in events if e.get("from") in AGENTS and e["type"] in ("tool", "say"))
+    actions = sum(1 for e in events if e.get("from") in AGENTS and e["type"] in ("tool", "say")
+                  and not (e.get("detail") or {}).get("auto"))
+    closing = next((e for e in reversed(events) if e["type"] == "say" and (e.get("detail") or {}).get("auto")), None)
     cost = round(sum((e.get("usage") or {}).get("cost_usd", 0) for e in events), 6)
     approvals = sum(1 for e in events if e["type"] == "approve")
     paid = [e["detail"] for e in events if e["type"] == "say" and (e.get("detail") or {}).get("payment")]
@@ -100,6 +103,13 @@ def check(path: Path) -> tuple[list[str], dict]:
             errors.append(f"metric cuối {k}={last.get(k)} nhưng đếm từ các dòng được {v}")
     if set(last) != set(METRIC_KEYS):
         errors.append("metric cuối thiếu trường")
+    if closing is not None:
+        said = re.sub(r"\D", "", closing["text"])
+        for key in ("orders", "agent_actions", "human_approvals"):
+            if str(int(last.get(key, -1))) not in closing["text"]:
+                errors.append(f"câu tổng kết không nêu {key}={last.get(key)}: {closing['text']}")
+        if re.sub(r"\D", "", money_vnd := f"{last.get('agent_cost_vnd', 0):,.0f}") not in said:
+            errors.append(f"câu tổng kết không khớp agent_cost_vnd={money_vnd}: {closing['text']}")
     for e in events:
         if e["mode"] == "mock" and (e.get("usage") or {}).get("cost_usd"):
             errors.append(f"{e['id']}: mock không được có chi phí")
