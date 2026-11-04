@@ -228,10 +228,10 @@
    "note": "tay chân: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
-  "agent_cost_vnd_day": 10265,
-  "agent_cost_vnd_month": 266890,
-  "agent_cost_usd_month": 10.15,
-  "agent_cost_vnd_per_order": 342,
+  "agent_cost_vnd_day": 10827,
+  "agent_cost_vnd_month": 281502,
+  "agent_cost_usd_month": 10.7,
+  "agent_cost_vnd_per_order": 361,
   "human_minutes_saved_pct": 76.5,
   "roles_manual": [
    {
@@ -312,8 +312,8 @@
   "people_cost_vnd_month_manual": 7920000,
   "people_cost_vnd_month_with_agents": 1660000,
   "total_cost_vnd_month_manual": 7920000,
-  "total_cost_vnd_month_with_agents": 1926890,
-  "saving_vnd_month": 5993110,
+  "total_cost_vnd_month_with_agents": 1941502,
+  "saving_vnd_month": 5978498,
   "wage_source": "giả định lương tháng Hải Phòng 2026, chờ anh Hùng xác nhận"
  },
  "tram_50": {
@@ -337,10 +337,10 @@
    "note": "tay chân: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
-  "agent_cost_vnd_day": 513250,
-  "agent_cost_vnd_month": 13344500,
-  "agent_cost_usd_month": 507.41,
-  "agent_cost_vnd_per_order": 342,
+  "agent_cost_vnd_day": 541350,
+  "agent_cost_vnd_month": 14075100,
+  "agent_cost_usd_month": 535.18,
+  "agent_cost_vnd_per_order": 361,
   "human_minutes_saved_pct": 66.0,
   "roles_manual": [
    {
@@ -421,8 +421,8 @@
   "people_cost_vnd_month_manual": 227640000,
   "people_cost_vnd_month_with_agents": 69500000,
   "total_cost_vnd_month_manual": 227640000,
-  "total_cost_vnd_month_with_agents": 82844500,
-  "saving_vnd_month": 144795500,
+  "total_cost_vnd_month_with_agents": 83575100,
+  "saving_vnd_month": 144064900,
   "wage_source": "giả định lương tháng Hải Phòng 2026, chờ anh Hùng xác nhận"
  },
  "assumptions": [
@@ -589,6 +589,6 @@
  ],
  "computed_from": {
   "events": "runs\\live_final\\events.jsonl",
-  "sha256": "7f58eebea41a7d1f1f52448898f788ba43dd05ecbb4c99b45002e2bc50b6e311"
+  "sha256": "ebc7449d8e61ed187ccf53c0106b975fc73d87a7b9817b5f5bbfec13088e8eac"
  }
 }
