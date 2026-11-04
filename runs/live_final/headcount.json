@@ -426,9 +426,9 @@
    "manual_cost_vnd_month": 444556000,
    "with_agents_staff_cost_vnd_month": 169026000,
    "agents": 6,
-   "agents_cost_vnd_month": 8487000,
-   "with_agents_cost_vnd_month": 177513000,
-   "saving_vnd_month": 267043000,
+   "agents_cost_vnd_month": 8395000,
+   "with_agents_cost_vnd_month": 177421000,
+   "saving_vnd_month": 267135000,
    "office_people_manual": 19,
    "office_people_with_agents": 2,
    "managers": {
@@ -464,7 +464,7 @@
      },
      {
       "key": "tay_chan",
-      "label": "Chia hàng, kiểm hàng, giám sát (tay chân)",
+      "label": "Chia hàng, kiểm hàng, giám sát (tại trạm, tại kho)",
       "manual": 5,
       "with_agents": 5,
       "same_both_sides": true,
@@ -475,15 +475,15 @@
     "with_agents_people": 9,
     "agents": 6,
     "manual_cost_vnd_month": 444556000,
-    "with_agents_cost_vnd_month": 177513000,
+    "with_agents_cost_vnd_month": 177421000,
     "manual_cost_trieu": 445,
-    "with_agents_cost_trieu": 180,
+    "with_agents_cost_trieu": 175,
     "fee_pool_trieu": 180,
     "fee_pool_vnd_month": 180000000,
     "within_fee_pool": true,
     "hours_per_person_month": 208,
-    "headline": "Cùng khối lượng việc, từ khoảng 28 người còn khoảng 9 người, cộng 6 agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
-    "cost_line": "Chi phí cả bộ máy: khoảng 445 triệu → khoảng 180 triệu mỗi tháng, vừa trong phần phí 4 % (180 triệu)",
+    "headline": "Cùng khối lượng việc, từ khoảng 28 người còn khoảng 9 người, cộng 6 agent. Người ở lại lo hàng và khách tại trạm, tại kho.",
+    "cost_line": "Chi phí cả bộ máy: khoảng 445 triệu → khoảng 175 triệu mỗi tháng, vừa trong phần phí 4 % (180 triệu)",
     "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá"
    },
    "rounding": "người toàn thời gian làm tròn lên theo từng vai (ca 480 phút làm hiệu quả 85 %, hệ số phủ ca 1,2); việc theo giờ tính theo giờ công; xe thuê theo chuyến",
@@ -491,12 +491,12 @@
     "fit_points": [
      {
       "orders": 30,
-      "cost_vnd_day": 5866,
+      "cost_vnd_day": 3886,
       "run": "live_final"
      },
      {
       "orders": 300,
-      "cost_vnd_day": 20100,
+      "cost_vnd_day": 20101,
       "run": "scale_x10"
      },
      {
@@ -505,19 +505,19 @@
       "run": "scale_x5"
      }
     ],
-    "fixed_vnd_day": 4078,
-    "per_order_vnd": 52.9,
+    "fixed_vnd_day": 2293,
+    "per_order_vnd": 59.9,
     "parts_vnd_day": {
-     "gom đơn, đối soát (theo số đơn)": 83379,
-     "đăng bán, kiểm chứng (theo số tin)": 8706,
-     "kiểm lô ở kho (theo số nhà cung cấp)": 7503,
-     "lộ trình xe (theo số tuyến)": 2119,
-     "chăm sóc khách (theo lượt hỏi)": 181206
+     "gom đơn, đối soát (theo số đơn)": 92148,
+     "đăng bán, kiểm chứng (theo số tin)": 9166,
+     "kiểm lô ở kho (theo số nhà cung cấp)": 5817,
+     "lộ trình xe (theo số tuyến)": 2025,
+     "chăm sóc khách (theo lượt hỏi)": 170671
     },
-    "cost_vnd_day_1500": 282913,
+    "cost_vnd_day_1500": 279826,
     "days_per_month": 30,
-    "cost_vnd_month_1500": 8487000,
-    "cost_vnd_per_order_1500": 189,
+    "cost_vnd_month_1500": 8395000,
+    "cost_vnd_per_order_1500": 187,
     "method": "đo từ các lượt chạy thật (30, 150, 300 đơn), cộng theo từng khâu"
    }
   },
@@ -578,7 +578,7 @@
     "source": "định mức khởi điểm trong yêu cầu demo (mục 6b), chờ Chợ Z"
    }
   ],
-  "agent_cost_vnd_per_order": 401,
+  "agent_cost_vnd_per_order": 316,
   "excluded": [
    "người trực 50 trạm (ở cả hai bên, trả bằng 5 % phí)",
    "xe, xăng dầu",
@@ -604,13 +604,13 @@
   "physical": {
    "minutes": 80.0,
    "people": 0.2,
-   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+   "note": "việc tại trạm, tại kho: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
-  "agent_cost_vnd_day": 12023,
-  "agent_cost_vnd_month": 312598,
-  "agent_cost_usd_month": 11.89,
-  "agent_cost_vnd_per_order": 401,
+  "agent_cost_vnd_day": 9471,
+  "agent_cost_vnd_month": 246246,
+  "agent_cost_usd_month": 9.36,
+  "agent_cost_vnd_per_order": 316,
   "human_minutes_saved_pct": 76.5,
   "roles_manual": [
    {
@@ -691,8 +691,8 @@
   "people_cost_vnd_month_manual": 7920000,
   "people_cost_vnd_month_with_agents": 1660000,
   "total_cost_vnd_month_manual": 7920000,
-  "total_cost_vnd_month_with_agents": 1972598,
-  "saving_vnd_month": 5947402,
+  "total_cost_vnd_month_with_agents": 1906246,
+  "saving_vnd_month": 6013754,
   "wage_source": "giả định lương tháng Hải Phòng 2026, chờ anh Hùng xác nhận"
  },
  "tram_50": {
@@ -713,13 +713,13 @@
   "physical": {
    "minutes": 3510.0,
    "people": 8.78,
-   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+   "note": "việc tại trạm, tại kho: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
-  "agent_cost_vnd_day": 601150,
-  "agent_cost_vnd_month": 15629900,
-  "agent_cost_usd_month": 594.31,
-  "agent_cost_vnd_per_order": 401,
+  "agent_cost_vnd_day": 473550,
+  "agent_cost_vnd_month": 12312300,
+  "agent_cost_usd_month": 468.14,
+  "agent_cost_vnd_per_order": 316,
   "human_minutes_saved_pct": 66.0,
   "roles_manual": [
    {
@@ -800,8 +800,8 @@
   "people_cost_vnd_month_manual": 227640000,
   "people_cost_vnd_month_with_agents": 69500000,
   "total_cost_vnd_month_manual": 227640000,
-  "total_cost_vnd_month_with_agents": 85129900,
-  "saving_vnd_month": 142510100,
+  "total_cost_vnd_month_with_agents": 81812300,
+  "saving_vnd_month": 145827700,
   "wage_source": "giả định lương tháng Hải Phòng 2026, chờ anh Hùng xác nhận"
  },
  "assumptions": [
@@ -962,12 +962,12 @@
  ],
  "note": "định mức thủ công là giả định, số có agent đo từ ngày mô phỏng",
  "rules": [
-  "việc tay chân (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
+  "việc tại trạm, tại kho (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
   "chở hàng, đứng trạm không nằm trong bảng ở cả hai bên",
   "phút có agent là phút người duyệt và giao nhận, đọc từ sự kiện approve và thanh toán"
  ],
  "computed_from": {
   "events": "runs\\live_final\\events.jsonl",
-  "sha256": "8ba2f2cc07274cd4c759cbd1a0a5d265293ff7f4585deac0f842c29134f84276"
+  "sha256": "41b29d5d72a8cfc6d443e94ab35a20f0651fad979668b304a7dfd26fa3ce4daa"
  }
 }

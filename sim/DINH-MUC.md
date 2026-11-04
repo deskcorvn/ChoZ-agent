@@ -33,7 +33,7 @@ Các mục dưới đây (1–6) là bản trước (soạn từng đơn, mọi 
 | Nhóm | Ai | Cách tính |
 |---|---|---|
 | Người trực mỗi trạm | Chủ tiệm hoặc bạn trẻ đã có ở tiệm | Phút mỗi ngày làm việc của Chợ Z; không tính lương ở bên nào vì trạm được trả bằng 5 % phí. Cùng một người ở cả hai cách vận hành |
-| Bộ máy trung tâm: việc tay chân | Soạn hàng và đóng túi, kiểm hàng nhập kho, tài xế, giám sát trạm | Người nguyên; **giống hệt nhau** ở hai bên (agent không thay việc tay chân) |
+| Bộ máy trung tâm: việc tại trạm, tại kho | Soạn hàng và đóng túi, kiểm hàng nhập kho, tài xế, giám sát trạm | Người nguyên; **giống hệt nhau** ở hai bên (agent không thay việc tại trạm, tại kho) |
 | Bộ máy trung tâm: việc giấy tờ, tính toán | Chăm sóc khách hàng, thu mua và đặt hàng, điều phối xe, đăng bán, kế toán và đối soát | Làm tay: người nguyên theo từng vai. Có agent: agent làm, người duyệt việc có tiền hoặc có khách; giữ ít nhất 1 người chịu trách nhiệm |
 
 Số người = phút việc mỗi ngày ÷ (480 phút × 85 % làm hiệu quả) × 1,2, làm tròn lên theo từng vai. Hệ số 1,2: mở 7
@@ -99,7 +99,7 @@ hàng, bộ điều phối phát hiện và báo lỗi; ở vận hành thật, 
 |---|---|---|
 | Người trực mỗi trạm | 119 phút/ngày | 43 phút/ngày |
 | Bộ máy 50 trạm: việc giấy tờ | 19 người | 2 người |
-| Bộ máy 50 trạm: việc tay chân | 20 người | 20 người |
+| Bộ máy 50 trạm: việc tại trạm, tại kho | 20 người | 20 người |
 | Bộ máy 50 trạm: quản lý | 4 người | 3 người |
 | Tổng | 43 người, 634 triệu đ/tháng | 25 người + 6 agent, 388 triệu đ/tháng (agent 8,5 triệu) |
 

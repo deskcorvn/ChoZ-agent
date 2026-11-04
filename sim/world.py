@@ -38,9 +38,7 @@ class Lot:
     supplier: str
     sku: str
     label: str
-    expiry: str          # YYYY-MM-DD
-    temp_c: float | None  # None for goods kept at room temperature
-    max_temp_c: float | None
+    expiry: str          # YYYY-MM-DD, the use-by date printed on the label
     qty: int
 
 
@@ -168,12 +166,12 @@ def generate(seed: int = 7, scale: int = 1) -> World:
         referrer = rng.choice(["hu_tram", "hu_tram", rng.choice([h for h in households if h != household])])
         orders.append(Order(f"DH{n:03d}", household, basket, lines, house_of(household, len(households)), referrer))
     lots = [
-        Lot("ncc2", "rau", "HTX rau 2, thu hoạch 03/11", "2026-11-06", None, None, 120),
-        Lot("ncc3", "thit", "Vựa thịt 3, giết mổ 04/11, có tem kiểm dịch", "2026-11-06", 3.0, 4.0, 22),
-        Lot("ncc4", "tom", "Vựa cá 4, tôm 200 g", "2026-11-05", 6.5, 4.0, 8),
-        Lot("ncc4", "ca", "Vựa cá 4, cá rô phi", "2026-11-05", 2.5, 4.0, 8),
-        Lot("ncc5", "trung", "HTX trứng 5, đóng hộp 02/11", "2026-11-25", None, None, 34),
-        Lot("ncc1", "chao_hau", "Cháo hàu ăn liền, hộp 120 g", "2027-05-01", None, None, 6),
+        Lot("ncc2", "rau", "HTX rau 2, thu hoạch 03/11", "2026-11-06", 120),
+        Lot("ncc3", "thit", "Vựa thịt 3, giết mổ 04/11, có tem kiểm dịch", "2026-11-06", 22),
+        Lot("ncc4", "tom", "Vựa cá 4, tôm 200 g, hạn dùng 03/11", "2026-11-03", 8),
+        Lot("ncc4", "ca", "Vựa cá 4, cá rô phi", "2026-11-05", 8),
+        Lot("ncc5", "trung", "HTX trứng 5, đóng hộp 02/11", "2026-11-25", 34),
+        Lot("ncc1", "chao_hau", "Cháo hàu ăn liền, hộp 120 g", "2027-05-01", 6),
     ]
     for lot in lots:
         lot.qty *= scale
@@ -185,7 +183,7 @@ def generate(seed: int = 7, scale: int = 1) -> World:
                  notes={"baskets": "30 of 50 households (60 %) book a basket: 10 × 70k, 12 × 100k, 8 × 150k",
                         "prices": "made up for the simulation, whole thousands of đồng",
                         "shortage": "cải ngọt: 10 bunches in stock for 12 baskets of 100k",
-                        "cold_chain": "tôm lot arrives at 6.5 °C, above the 4 °C limit; the supplier swaps it",
+                        "lot_check": "the tôm lot's label is past its use-by date (03/11); the supplier swaps it for an in-date lot",
                         "fee": f"{FEE_PCT} % of each completed line, split {SHARE}"})
 
 

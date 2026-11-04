@@ -200,7 +200,7 @@ async def gom_kho(d: Day) -> None:
     k = await d.ask(
         "ag_kiem_chung",
         f"06:00. Sáu lô vừa về kho: {lots}. Gọi check_lot cho từng lô. `text`: tóm tắt số lô đạt và số lô loại. "
-        "`messages`: với mỗi lô loại, một câu gửi nhà cung cấp của lô đó (to = mã ncc) yêu cầu đổi lô, nêu lý do có số.",
+        "`messages`: với mỗi lô loại, một câu gửi nhà cung cấp của lô đó (to = mã ncc) yêu cầu đổi lô, nêu lý do theo nhãn.",
         tools=["check_lot"], mock_calls=[("check_lot", {"supplier": s, "item": i}) for s, i in LOTS],
         mock_text=lambda o: (lambda bad: f"{len(LOTS) - len(bad)}/{len(LOTS)} lô đạt; loại {len(bad)} lô "
                                          + ", ".join(f"{LOT_NAMES[b['item']]} của {d.world.supplier(b['supplier']).name.lower()}"
@@ -214,9 +214,9 @@ async def gom_kho(d: Day) -> None:
         d.emit("say", from_="ag_kiem_chung", to=m["to"], text=m["text"])
     failed = [x for x in k.outputs.get("check_lot", []) if x["result"] == "loại"]
     for x in {(f["supplier"], f["item"]) for f in failed}:
-        d.tools.replace_lot(x[0], x[1], 2.0)
-        d.emit("say", step=10 * 60, from_=x[0], to="ag_kiem_chung", text=f"Đã đổi lô {LOT_NAMES[x[1]]} mới, đo 2 °C",
-               detail={"lot": x[1], "temp_c": 2.0})
+        d.tools.replace_lot(x[0], x[1], "2026-11-06")
+        d.emit("say", step=10 * 60, from_=x[0], to="ag_kiem_chung",
+               text=f"Đã đổi lô {LOT_NAMES[x[1]]} mới, nhãn hạn dùng 06/11", detail={"lot": x[1], "expiry": "2026-11-06"})
     if failed:
         again = sorted({(f["supplier"], f["item"]) for f in failed})
         r = await d.ask(

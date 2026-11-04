@@ -464,7 +464,7 @@
      },
      {
       "key": "tay_chan",
-      "label": "Chia hàng, kiểm hàng, giám sát (tay chân)",
+      "label": "Chia hàng, kiểm hàng, giám sát (tại trạm, tại kho)",
       "manual": 5,
       "with_agents": 5,
       "same_both_sides": true,
@@ -482,7 +482,7 @@
     "fee_pool_vnd_month": 180000000,
     "within_fee_pool": true,
     "hours_per_person_month": 208,
-    "headline": "Cùng khối lượng việc, từ khoảng 28 người còn khoảng 9 người, cộng 6 agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+    "headline": "Cùng khối lượng việc, từ khoảng 28 người còn khoảng 9 người, cộng 6 agent. Người ở lại lo hàng và khách tại trạm, tại kho.",
     "cost_line": "Chi phí cả bộ máy: khoảng 445 triệu → khoảng 170 triệu mỗi tháng, vừa trong phần phí 4 % (180 triệu)",
     "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá"
    },
@@ -604,7 +604,7 @@
   "physical": {
    "minutes": 80.0,
    "people": 0.2,
-   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+   "note": "việc tại trạm, tại kho: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
   "agent_cost_vnd_day": 0,
@@ -713,7 +713,7 @@
   "physical": {
    "minutes": 3510.0,
    "people": 8.78,
-   "note": "tay chân: cùng số phút ở hai bên, agent không thay"
+   "note": "việc tại trạm, tại kho: cùng số phút ở hai bên, agent không thay"
   },
   "agents": 6,
   "agent_cost_vnd_day": 0,
@@ -962,12 +962,12 @@
  ],
  "note": "định mức thủ công là giả định, số có agent đo từ ngày mô phỏng",
  "rules": [
-  "việc tay chân (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
+  "việc tại trạm, tại kho (chia hàng, nhận hàng, giao khách) tính cùng số phút ở cả hai bên",
   "chở hàng, đứng trạm không nằm trong bảng ở cả hai bên",
   "phút có agent là phút người duyệt và giao nhận, đọc từ sự kiện approve và thanh toán"
  ],
  "computed_from": {
   "events": "runs\\mock\\events.jsonl",
-  "sha256": "44fba033dbd83a00feda0d7cb527920ffa88ac0462ca385e4933491bc17b0a34"
+  "sha256": "078c44c3d85d67afcbfc6fe7e1aeaedb9e624105c5995ee14ed3efb0cda21d22"
  }
 }

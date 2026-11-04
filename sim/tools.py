@@ -10,9 +10,13 @@ from collections import Counter, defaultdict
 
 from sim.world import BASKETS, World, fee_split
 
-MAX_TEMP_NOTE = "hàng lạnh (thịt, cá, tôm) phải dưới 4 °C khi nhận"
 RETURN_POLICY = ("Hàng hỏng, vỡ khi giao: đổi hàng mới cùng loại trong ngày hoặc hoàn tiền dòng đó; khách gửi ảnh "
                  "hoặc trạm xác nhận. Không đổi hàng đã dùng. Mọi đổi trả, hoàn tiền phải có người trực trạm duyệt.")
+
+
+def _dm(iso: str) -> str:
+    """2026-11-03 → 03/11"""
+    return f"{iso[8:10]}/{iso[5:7]}"
 
 
 class Tools:
@@ -108,19 +112,19 @@ class Tools:
 
     # ── ag_kiem_chung (warehouse) ────────────────────────────────────────────────────────────────────
     def check_lot(self, supplier: str, item: str) -> dict:
-        """Kiểm lô hàng tại kho: nhãn, hạn dùng, nhiệt độ (hàng lạnh dưới 4 °C). Trả đạt hoặc loại kèm lý do."""
+        """Kiểm lô hàng tại kho theo nhãn và phiếu đặt: đúng mặt hàng, hạn dùng in trên nhãn. Trả đạt hoặc loại kèm lý do."""
         lot = next(x for x in self.w.lots if x.supplier == supplier and x.sku == item)
         reasons = []
         if lot.expiry < self.w.day:
-            reasons.append(f"hết hạn {lot.expiry}")
-        if lot.temp_c is not None and lot.max_temp_c is not None and lot.temp_c > lot.max_temp_c:
-            reasons.append(f"{lot.temp_c:g} °C, quá {lot.max_temp_c:g} °C")
-        return {"supplier": supplier, "item": item, "label": lot.label, "expiry": lot.expiry, "temp_c": lot.temp_c,
+            reasons.append(f"nhãn quá hạn dùng ({_dm(lot.expiry)})")
+        return {"supplier": supplier, "item": item, "label": lot.label, "expiry": lot.expiry,
                 "qty": lot.qty, "result": "loại" if reasons else "đạt", "reasons": reasons}
 
-    def replace_lot(self, supplier: str, item: str, temp_c: float) -> dict:
+    def replace_lot(self, supplier: str, item: str, expiry: str) -> dict:
+        """The supplier brings an in-date lot instead (expiry YYYY-MM-DD on the new label)."""
         lot = next(x for x in self.w.lots if x.supplier == supplier and x.sku == item)
-        lot.temp_c = temp_c
+        lot.label = lot.label.replace(f"hạn dùng {_dm(lot.expiry)}", f"hạn dùng {_dm(expiry)}")
+        lot.expiry = expiry
         return self.check_lot(supplier, item)
 
     # ── ag_cham_khach ────────────────────────────────────────────────────────────────────────────────

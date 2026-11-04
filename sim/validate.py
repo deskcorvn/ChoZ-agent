@@ -197,7 +197,7 @@ def check(path: Path) -> tuple[list[str], dict]:
                     errors.append(f"headcount: {k}={ps[k]} triệu lệch quá 2,5 triệu so với {ps[vnd]:,} đ")
             for g in ps["groups"]:
                 if g["same_both_sides"] and g["manual"] != g["with_agents"]:
-                    errors.append(f"headcount: nhóm tay chân phải giống nhau ở hai bên ({g['manual']} ≠ {g['with_agents']})")
+                    errors.append(f"headcount: nhóm việc tại trạm, tại kho phải giống nhau ở hai bên ({g['manual']} ≠ {g['with_agents']})")
             if ps["manual_cost_vnd_month"] != c50.get("manual_cost_vnd_month") or \
                     ps["with_agents_cost_vnd_month"] != c50.get("with_agents_cost_vnd_month"):
                 errors.append("headcount: chi phí trên màn so sánh khác bảng chi tiết")

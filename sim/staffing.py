@@ -45,7 +45,7 @@ WAGES = {                    # full-time, VND a month, Hải Phòng 2026 (middle
 
 # ── volumes of a network of S stations (30 orders each) ───────────────────────────────────────────────
 SPLIT_MIN_PER_LINE = 2.25    # ASSUMED: 20–25 h for 600 station × item lines (grader's estimate), Chợ Z to confirm
-RECEIVE_HOURS = 2            # ASSUMED: hourly receiving check a day at 50 stations (weigh, temperature, dates)
+RECEIVE_HOURS = 2            # ASSUMED: hourly receiving check a day at 50 stations (weigh, labels, dates)
 VISIT_HOURS = 2 * 4          # ASSUMED: two hourly station visitors, 4 h a day each
 TRANSPORT_VND_MONTH = 65_000_000   # ASSUMED: hired van per trip, 60–70 tr/tháng, waiting for the partner's quote
 TRANSPORT_RANGE = (60_000_000, 70_000_000)
@@ -194,7 +194,7 @@ def people_summary(t: dict) -> dict:
 
     groups = []
     for key, label in (("van_phong", "Giấy tờ, điều phối, đối soát"), ("quan_ly", "Quản lý"),
-                       ("tay_chan", "Chia hàng, kiểm hàng, giám sát (tay chân)")):
+                       ("tay_chan", "Chia hàng, kiểm hàng, giám sát (tại trạm, tại kho)")):
         if key == "tay_chan":
             m, a = hourly_people(t["manual"]), hourly_people(t["with_agents"])
             exact = round(m, 2)
@@ -216,7 +216,7 @@ def people_summary(t: dict) -> dict:
         "fee_pool_vnd_month": t["fee_pool"]["vnd_month"], "within_fee_pool": t["within_fee_pool"],
         "hours_per_person_month": HOURS_PER_PERSON_MONTH,
         "headline": f"Cùng khối lượng việc, từ khoảng {manual} người còn khoảng {agent} người, cộng {t['agents']} "
-                    "agent. Người ở lại làm việc cần tay chân và trách nhiệm.",
+                    "agent. Người ở lại lo hàng và khách tại trạm, tại kho.",
         "cost_line": f"Chi phí cả bộ máy: khoảng {m_tr} triệu → khoảng {a_tr} triệu mỗi tháng, vừa trong phần phí "
                      f"4 % ({pool_tr} triệu)",
         "transport_note": "xe tải thuê ngoài là số tạm, chờ báo giá",

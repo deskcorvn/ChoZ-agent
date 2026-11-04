@@ -28,7 +28,7 @@ AGENTS = {
         "tools": ["make_picklist", "plan_route", "laundry_pickups"],
     },
     "ag_kiem_chung": {
-        "role": "Agent kiểm chứng: kiểm từng lô hàng tại kho (nhãn, hạn dùng, nhiệt độ hàng lạnh dưới 4 °C). "
+        "role": "Agent kiểm chứng: kiểm từng lô hàng tại kho theo nhãn và phiếu đặt (đúng mặt hàng, hạn dùng in trên nhãn). "
                 "Lô không đạt thì báo nhà cung cấp đổi lô, không nhận.",
         "tools": ["check_lot"],
     },

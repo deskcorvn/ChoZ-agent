@@ -1340,8 +1340,6 @@
    "sku": "rau",
    "label": "HTX rau 2, thu hoạch 03/11",
    "expiry": "2026-11-06",
-   "temp_c": null,
-   "max_temp_c": null,
    "qty": 120
   },
   {
@@ -1349,17 +1347,13 @@
    "sku": "thit",
    "label": "Vựa thịt 3, giết mổ 04/11, có tem kiểm dịch",
    "expiry": "2026-11-06",
-   "temp_c": 3.0,
-   "max_temp_c": 4.0,
    "qty": 22
   },
   {
    "supplier": "ncc4",
    "sku": "tom",
-   "label": "Vựa cá 4, tôm 200 g",
-   "expiry": "2026-11-05",
-   "temp_c": 6.5,
-   "max_temp_c": 4.0,
+   "label": "Vựa cá 4, tôm 200 g, hạn dùng 03/11",
+   "expiry": "2026-11-03",
    "qty": 8
   },
   {
@@ -1367,8 +1361,6 @@
    "sku": "ca",
    "label": "Vựa cá 4, cá rô phi",
    "expiry": "2026-11-05",
-   "temp_c": 2.5,
-   "max_temp_c": 4.0,
    "qty": 8
   },
   {
@@ -1376,8 +1368,6 @@
    "sku": "trung",
    "label": "HTX trứng 5, đóng hộp 02/11",
    "expiry": "2026-11-25",
-   "temp_c": null,
-   "max_temp_c": null,
    "qty": 34
   },
   {
@@ -1385,8 +1375,6 @@
    "sku": "chao_hau",
    "label": "Cháo hàu ăn liền, hộp 120 g",
    "expiry": "2027-05-01",
-   "temp_c": null,
-   "max_temp_c": null,
    "qty": 6
   }
  ],
@@ -1405,7 +1393,7 @@
   "baskets": "30 of 50 households (60 %) book a basket: 10 × 70k, 12 × 100k, 8 × 150k",
   "prices": "made up for the simulation, whole thousands of đồng",
   "shortage": "cải ngọt: 10 bunches in stock for 12 baskets of 100k",
-  "cold_chain": "tôm lot arrives at 6.5 °C, above the 4 °C limit; the supplier swaps it",
+  "lot_check": "the tôm lot's label is past its use-by date (03/11); the supplier swaps it for an in-date lot",
   "fee": "10 % of each completed line, split {'tram': 5, 'kho_giao': 2, 'gioi_thieu': 1, 'cho_z': 2}"
  }
 }
