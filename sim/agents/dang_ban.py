@@ -71,12 +71,21 @@ class Lister:
             if usage is not None:
                 self.day.calls.append({**usage.model_dump(), "agent": agent})
             self.day.emit("tool", step=max(1, step.ms / 1000), from_=agent, usage=usage,
-                          tool={"name": TOOL_NAMES[step.key], "input_summary": step.input or step.title,
+                          tool={"name": TOOL_NAMES[step.key], "input_summary": step_input(step, photos),
                                 "output_summary": summarize_step(step, run), "ok": step.status == "done"},
                           detail={"step": step.key, "title": step.title, "model": step.model or "local",
                                   "listing_run": run.id, "error": step.error or None,
                                   **({"listing": listing_detail(run)} if step.key == "listing" else {}),
                                   **({"verification": run.verification} if step.key == "verify" else {})})
+
+
+STEP_INPUT = {"transcribe": "lời người bán nói", "listing": "{n} ảnh + lời người bán", "verify": "tin đăng + {n} ảnh",
+              "match": "danh mục mẫu", "segment": "ảnh sản phẩm", "background": "phòng chụp trống",
+              "compose": "ảnh đã tách nền + phòng chụp"}
+
+
+def step_input(step: Any, photos: int) -> str:
+    return STEP_INPUT.get(step.key, step.input or step.title).format(n=photos)
 
 
 def meta_usage(step: Any, photos: int) -> Usage | None:
@@ -109,7 +118,9 @@ def summarize_step(step: Any, run: Run) -> str:
             " (mặt hàng không được bán)" if v.get("prohibited") else "")
     if step.key == "match":
         return str(((run.listing or {}).get("catalog") or {}).get("name") or "không có trong danh mục")
-    return step.title[:160]
+    return {"segment": "đã tách sản phẩm khỏi nền", "background": "phòng chụp có sẵn (Muse Image vẽ từ trước)"
+            if step.model.startswith("cache") else "Muse Image vẽ phòng chụp trống",
+            "compose": "ghép ảnh sản phẩm vào phòng chụp"}.get(step.key, step.title[:160])
 
 
 def short(text: str) -> str:

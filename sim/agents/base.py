@@ -64,8 +64,12 @@ def _money(v: int) -> str:
 
 
 # One line of input and output for the tool bubble on stage and the log panel.
+ARG_WORDS = {"supplier": "nhà cung cấp", "household": "hộ", "item": "lô", "stops": "điểm dừng", "sku": "hàng thiếu",
+             "alt": "hàng thay", "count": "số phần", "amount_vnd": "tiền hàng"}
+
+
 def summarize(name: str, args: dict, out: dict) -> tuple[str, str]:
-    arg = ", ".join(f"{k}={v}" for k, v in args.items()) or "ngày mai"
+    arg = ", ".join(f"{ARG_WORDS.get(k, k)} {v}" for k, v in args.items()) or "cả ngày"
     s = {
         "list_baskets": lambda: f"{out['baskets']} Giỏ, {_money(out['total_vnd'])}",
         "stock": lambda: f"{out['name']}: " + ", ".join(f"{g['name']} {g['stock']}" for g in out["goods"]),
@@ -82,7 +86,8 @@ def summarize(name: str, args: dict, out: dict) -> tuple[str, str]:
         "fee_split": lambda: f"phí {_money(out['fee_vnd'])}: trạm {_money(out['tram'])}, kho {_money(out['kho_giao'])}, "
                              f"giới thiệu {_money(out['gioi_thieu'])}, Chợ Z {_money(out['cho_z'])}",
         "settlement": lambda: f"{len(out['rows'])} dòng, phí {_money(out['totals']['fee_vnd'])}",
-        "apply_substitution": lambda: f"đổi {out['sku']} → {out['alt']} ở {len(out['orders'])} đơn",
+        "apply_substitution": lambda: f"thay {out.get('name', out['sku'])} bằng {out.get('alt_name', out['alt'])} ở "
+                                      f"{len(out['orders'])} đơn",
     }.get(name, lambda: json.dumps(out, ensure_ascii=False)[:80])
     return arg[:120], s()[:160]
 

@@ -72,7 +72,8 @@ class Tools:
                     li.sku, li.price_vnd, li.supplier = alt, g.price_vnd, g.supplier
                     changed.append({"order": o.id, "household": o.household, "total_vnd": o.total_vnd})
                     break
-        record = {"sku": sku, "alt": alt, "orders": changed}
+        record = {"sku": sku, "alt": alt, "name": self.w.good(sku).name.lower(), "alt_name": self.w.good(alt).name.lower(),
+                  "orders": changed}
         self.substitutions.append(record)
         return record
 

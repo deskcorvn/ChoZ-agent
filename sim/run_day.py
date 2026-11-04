@@ -144,7 +144,7 @@ def _after_listing(d: Day, o: dict, supplier: str, label: str) -> None:
     if o["status"] == "blocked":
         rules = ", ".join(o.get("rules") or []) or "hàng cấm"
         d.emit("say", from_="ag_kiem_chung", to=supplier,
-               text=short(f"Không đăng {title}: Chợ Z không bán mặt hàng này (luật {rules})."),
+               text=short(f"Không đăng {title}: Chợ Z không bán mặt hàng này theo quy định bán hàng."),
                detail={"blocked": True, "listing_run": o["run"], "reason": o.get("reason"), "rules": o.get("rules")})
         d.add(blocked=1)
         return
