@@ -68,8 +68,19 @@ ARG_WORDS = {"supplier": "nhà cung cấp", "household": "hộ", "item": "lô", 
              "alt": "hàng thay", "count": "số phần", "amount_vnd": "tiền hàng"}
 
 
+CODE_WORDS = {"loc_kho": "kho", "loc_duong": "đường", "loc_tram": "Trạm Z", "loc_ncc": "nhà cung cấp",
+              "rau": "rau", "thit": "thịt", "tom": "tôm", "ca": "cá", "trung": "trứng", "chao_hau": "cháo hàu",
+              "cai_ngot": "cải ngọt", "rau_muong": "rau muống"}
+
+
+def _word(v: Any) -> str:
+    if isinstance(v, list):
+        return " → ".join(_word(x) for x in v)
+    return CODE_WORDS.get(str(v), str(v))
+
+
 def summarize(name: str, args: dict, out: dict) -> tuple[str, str]:
-    arg = ", ".join(f"{ARG_WORDS.get(k, k)} {v}" for k, v in args.items()) or "cả ngày"
+    arg = ", ".join(f"{ARG_WORDS.get(k, k)} {_word(v)}" for k, v in args.items()) or "cả ngày"
     s = {
         "list_baskets": lambda: f"{out['baskets']} Giỏ, {_money(out['total_vnd'])}",
         "stock": lambda: f"{out['name']}: " + ", ".join(f"{g['name']} {g['stock']}" for g in out["goods"]),
