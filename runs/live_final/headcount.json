@@ -207,6 +207,127 @@
    }
   ]
  },
+ "view": {
+  "station": {
+   "who": "người trực Trạm Z (chủ tiệm hoặc bạn trẻ đã có ở tiệm); cùng một người ở cả hai cách vận hành",
+   "rows": [
+    {
+     "task": "Nhận đặt Giỏ qua tin nhắn, ghi sổ",
+     "manual_min": 60,
+     "with_agent_min": 0,
+     "kind": "van_phong"
+    },
+    {
+     "task": "Duyệt thay hàng thiếu (agent đề xuất)",
+     "manual_min": 0.0,
+     "with_agent_min": 1.0,
+     "kind": "van_phong"
+    },
+    {
+     "task": "Duyệt tin đăng có cảnh báo",
+     "manual_min": 0.0,
+     "with_agent_min": 0.5,
+     "kind": "van_phong"
+    },
+    {
+     "task": "Trả lời khách hỏi, đổi trả",
+     "manual_min": 4,
+     "with_agent_min": 1.0,
+     "kind": "van_phong"
+    },
+    {
+     "task": "Báo cáo ngày cho quản lý",
+     "manual_min": 15,
+     "with_agent_min": 0,
+     "kind": "van_phong"
+    },
+    {
+     "task": "Nhận hàng tại trạm",
+     "manual_min": 10,
+     "with_agent_min": 10,
+     "kind": "tay_chan"
+    },
+    {
+     "task": "Giao túi cho khách tại trạm",
+     "manual_min": 30,
+     "with_agent_min": 30,
+     "kind": "tay_chan"
+    }
+   ],
+   "manual_minutes_day": 119.0,
+   "with_agents_minutes_day": 42.5,
+   "share_pct": 5,
+   "share_vnd_day": 161400,
+   "share_vnd_month": 4196400,
+   "note": "không tính lương ở cả hai bên: trạm được trả bằng 5 % phí trên đơn đã giao"
+  },
+  "central_1": {
+   "office_minutes_day_manual": 213.0,
+   "office_minutes_day_with_agents": 0.0,
+   "kho_minutes_day": 40.0,
+   "approval_minutes_day_with_agents": 15.0,
+   "note": "1 trạm chưa đủ việc cho một bộ máy riêng; tính bằng phút mỗi ngày"
+  },
+  "central_50": {
+   "manual": [
+    {
+     "role": "Văn phòng (điều phối, đăng bán, kế toán)",
+     "people": 10,
+     "detail": {
+      "điều phối": 3.8,
+      "nhân viên nội dung": 0.17,
+      "kế toán": 5.75
+     },
+     "cost_vnd_month": 99825000.0
+    },
+    {
+     "role": "Chủ kho",
+     "people": 1,
+     "cost_vnd_month": 10000000
+    },
+    {
+     "role": "Nhân viên kho (chia hàng)",
+     "people": 4,
+     "cost_vnd_month": 28000000
+    }
+   ],
+   "with_agents": [
+    {
+     "role": "Điều phối, chịu trách nhiệm số liệu",
+     "people": 1,
+     "cost_vnd_month": 10000000
+    },
+    {
+     "role": "Chủ kho (duyệt nhận hàng, duyệt đối soát)",
+     "people": 1,
+     "minutes_day": 15.0,
+     "cost_vnd_month": 10000000
+    },
+    {
+     "role": "Nhân viên kho (chia hàng)",
+     "people": 4,
+     "cost_vnd_month": 28000000
+    }
+   ],
+   "manual_people": 15,
+   "with_agents_people": 6,
+   "manual_cost_vnd_month": 137825000.0,
+   "with_agents_staff_cost_vnd_month": 48000000,
+   "office_minutes_day_manual": 3888.0,
+   "agents": 6,
+   "agents_cost_vnd_month": 15629900,
+   "with_agents_cost_vnd_month": 63629900,
+   "saving_vnd_month": 74195100.0,
+   "rounding": "người nguyên, làm tròn lên; văn phòng làm tròn chung một nhóm (một người làm nhiều việc)",
+   "min_office_with_agents": 1
+  },
+  "agent_cost_vnd_per_order": 401,
+  "excluded": [
+   "người trực 50 trạm (ở cả hai bên, trả bằng 5 % phí)",
+   "tài xế, xe",
+   "nhận và giao hàng ở trạm"
+  ]
+ },
  "tram_1": {
   "stations": 1,
   "orders_per_day": 30,

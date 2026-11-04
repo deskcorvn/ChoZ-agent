@@ -48,6 +48,25 @@ AGENT_SIDE_WHO = {"approvals:thay_hang": "nhân viên trạm", "approvals:duyet_
                   "handover": "nhân viên trạm", "approvals:nhan_hang_kho": "chủ kho", "approvals:doi_soat": "chủ kho",
                   "same": None, "none": None}
 
+# Where the work happens. Station work is done by the person already at each Trạm Z (the shop owner or the young
+# operator, paid by the 5 % station share), so it is measured in minutes of THAT person's day and never pooled into
+# central headcount. Central work (office + warehouse) is shared by all stations, so at 50 stations it is counted in
+# WHOLE people, rounded up.
+PLACE = {"nhan_dat_gio": "tram", "tra_loi_khach": "tram", "bao_cao_ngay": "tram", "nhan_hang_tram": "tram",
+         "giao_khach": "tram", "gom_nhu_cau": "van_phong", "dang_ban": "van_phong", "kiem_thong_tin": "van_phong",
+         "lich_xe": "van_phong", "doi_soat": "van_phong", "bao_cao_ncc": "van_phong", "chia_hang": "kho",
+         "nhan_hang_kho": "kho"}
+# With agents a person still approves. Who, where, and how that minute scales to 50 stations:
+# hu_tram (station) approves substitutions, listing warnings, returns, receiving bags; hu_kho (warehouse owner, also
+# the coordinator) approves receiving goods and the settlement, once per warehouse per day.
+APPROVER = {"thay_hang": ("tram", "stations"), "duyet_listing": ("tram", "listings"), "doi_tra": ("tram", "requests"),
+            "nhan_hang_tram": ("tram", "stations"), "nhan_hang_kho": ("kho", "warehouses"),
+            "doi_soat": ("kho", "warehouses")}
+APPROVAL_TASK = {"thay_hang": "Duyệt thay hàng thiếu (agent đề xuất)", "duyet_listing": "Duyệt tin đăng có cảnh báo"}
+# With agents the office keeps at least this many people: someone owns the exceptions and answers for the numbers.
+MIN_OFFICE_WITH_AGENTS = 1
+STATION_SHARE_PCT = 5
+
 # unit volume key → how it scales from 1 station to 50 (factor applied to the day's volume)
 SCALE = {"orders": ORDERS_50 / ORDERS_1, "stations": STATIONS_50, "warehouses": 1, "suppliers": 1, "listings": 1,
          "requests": ORDERS_50 / ORDERS_1}
@@ -228,6 +247,7 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
             "wage_source": WAGE_SOURCE,
         }
 
+    view = honest_view(rows, vol, day_cost_vnd, orders, events)
     digest = hashlib.sha256(source.read_bytes()).hexdigest() if source and source.is_file() else None
     return {
         "mode": events[0]["mode"] if events else None,
@@ -235,6 +255,7 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
                          "rows": [{k: r[k] for k in ("key", "task", "unit", "qty", "minutes", "manual_who", "kind",
                                                      "manual_min", "with_agent_min", "agent", "scale", "scale_note")}
                                   for r in rows]},
+        "view": view,
         "tram_1": block("1", 1, ORDERS_1 if vol["orders_completed"] == ORDERS_1 else vol["orders_completed"]),
         "tram_50": block("50", STATIONS_50, ORDERS_50),
         "assumptions": [{k: n[k] for k in ("key", "task", "unit", "minutes", "source")} for n in norms]
@@ -251,6 +272,117 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
                   "chở hàng, đứng trạm không nằm trong bảng ở cả hai bên",
                   "phút có agent là phút người duyệt và giao nhận, đọc từ sự kiện approve và thanh toán"],
         "computed_from": {"events": str(source) if source else None, "sha256": digest},
+    }
+
+
+def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, events: list[dict]) -> dict:
+    """The final screen's numbers, in units a jury can picture.
+
+    - At each station: minutes per day of the person already there (no wage on either side: the same person works in
+      both cases, paid by the station's 5 % share). Agents shorten that person's Chợ Z paperwork.
+    - Central team (office + warehouse) for 50 stations: whole people, rounded up; the office is rounded as one pool
+      (one person can do several office jobs), which is the conservative choice for the manual side.
+    - Money compares the central team only, plus the agents' bill; station people are outside both columns.
+    """
+    def split_agent(r: dict) -> list[tuple[str, str, float]]:
+        """(place, scale, minutes) of the person who still works on this row when agents are used."""
+        how = r["with_agent"]
+        if not r["with_agent_min"]:
+            return []
+        if how == "same":
+            return [(PLACE[r["key"]], r["scale"], r["with_agent_min"])]
+        if how == "handover":
+            return [("tram", "orders", r["with_agent_min"])]
+        kind = how.split(":", 1)[1]
+        place, scale = APPROVER[kind]
+        return [(place, scale, r["with_agent_min"])]
+
+    station_rows = []
+    for r in rows:
+        if PLACE[r["key"]] == "tram" or any(p == "tram" for p, _, _ in split_agent(r)):
+            agent_min = sum(m for p, _, m in split_agent(r) if p == "tram")
+            kind = r["with_agent"].split(":", 1)[-1]
+            task = r["task"] if PLACE[r["key"]] == "tram" else APPROVAL_TASK.get(kind, r["task"])
+            station_rows.append({"task": task, "manual_min": r["manual_min"] if PLACE[r["key"]] == "tram" else 0.0,
+                                 "with_agent_min": round(agent_min, 2), "kind": r["kind"]})
+    st_manual = sum(x["manual_min"] for x in station_rows)
+    st_agent = sum(x["with_agent_min"] for x in station_rows)
+    share_day = 0
+    settle = next((e["detail"]["output"] for e in reversed(events) if e["type"] == "tool"
+                   and e["tool"]["name"] == "settlement"), None)
+    if settle:
+        share_day = int(settle["totals"]["tram"])
+
+    def central(scale_to_50: bool) -> dict:
+        factor = (lambda sc: SCALE[sc]) if scale_to_50 else (lambda sc: 1)
+        man: dict[str, float] = {}
+        agt: dict[str, float] = {}
+        for r in rows:
+            place = PLACE[r["key"]]
+            if place != "tram":
+                man[r["manual_who"]] = man.get(r["manual_who"], 0.0) + r["manual_min"] * factor(r["scale"])
+            for p, sc, m in split_agent(r):
+                if p == "kho":
+                    who = r["manual_who"] if r["with_agent"] == "same" else "chủ kho"
+                    agt[who] = agt.get(who, 0.0) + m * factor(sc)
+        return {"manual": man, "agent": agt}
+
+    def whole(minutes: float) -> int:
+        return math.ceil(round(minutes / DAY_MINUTES * RESERVE, 4)) if minutes > 0 else 0
+
+    def team(c: dict) -> dict:
+        office_roles = ("điều phối", "nhân viên nội dung", "kế toán")
+        office_fte = {k: round(v / DAY_MINUTES * RESERVE, 2) for k, v in c["manual"].items() if k in office_roles}
+        office_min = sum(v for k, v in c["manual"].items() if k in office_roles)
+        office_people = whole(office_min)
+        office_wage = (sum(office_fte[k] * WAGES[k] for k in office_fte) / sum(office_fte.values())) if office_fte else 0
+        kho_staff_m = whole(c["manual"].get("nhân viên kho", 0.0))
+        kho_staff_a = whole(c["agent"].get("nhân viên kho", 0.0))
+        manual_rows = [{"role": "Văn phòng (điều phối, đăng bán, kế toán)", "people": office_people,
+                        "detail": office_fte, "cost_vnd_month": round(office_people * office_wage, -3)},
+                       {"role": "Chủ kho", "people": 1, "cost_vnd_month": WAGES["chủ kho"]},
+                       {"role": "Nhân viên kho (chia hàng)", "people": kho_staff_m,
+                        "cost_vnd_month": kho_staff_m * WAGES["nhân viên kho"]}]
+        agent_rows = [{"role": "Điều phối, chịu trách nhiệm số liệu", "people": MIN_OFFICE_WITH_AGENTS,
+                       "cost_vnd_month": MIN_OFFICE_WITH_AGENTS * WAGES["điều phối"]},
+                      {"role": "Chủ kho (duyệt nhận hàng, duyệt đối soát)", "people": 1,
+                       "minutes_day": round(c["agent"].get("chủ kho", 0.0), 1), "cost_vnd_month": WAGES["chủ kho"]},
+                      {"role": "Nhân viên kho (chia hàng)", "people": kho_staff_a,
+                       "cost_vnd_month": kho_staff_a * WAGES["nhân viên kho"]}]
+        return {"manual": manual_rows, "with_agents": agent_rows,
+                "manual_people": sum(x["people"] for x in manual_rows),
+                "with_agents_people": sum(x["people"] for x in agent_rows),
+                "manual_cost_vnd_month": sum(x["cost_vnd_month"] for x in manual_rows),
+                "with_agents_staff_cost_vnd_month": sum(x["cost_vnd_month"] for x in agent_rows),
+                "office_minutes_day_manual": round(office_min, 1)}
+
+    c1, c50 = central(False), central(True)
+    t50 = team(c50)
+    agents_month_50 = round(day_cost_vnd * ORDERS_50 / orders * DAYS_PER_MONTH)
+    office_1 = sum(v for k, v in c1["manual"].items() if k in ("điều phối", "nhân viên nội dung", "kế toán"))
+    return {
+        "station": {
+            "who": "người trực Trạm Z (chủ tiệm hoặc bạn trẻ đã có ở tiệm); cùng một người ở cả hai cách vận hành",
+            "rows": station_rows,
+            "manual_minutes_day": round(st_manual, 1), "with_agents_minutes_day": round(st_agent, 1),
+            "share_pct": STATION_SHARE_PCT, "share_vnd_day": share_day,
+            "share_vnd_month": share_day * DAYS_PER_MONTH,
+            "note": "không tính lương ở cả hai bên: trạm được trả bằng 5 % phí trên đơn đã giao",
+        },
+        "central_1": {
+            "office_minutes_day_manual": round(office_1, 1), "office_minutes_day_with_agents": 0.0,
+            "kho_minutes_day": round(c1["manual"].get("nhân viên kho", 0) + c1["manual"].get("chủ kho", 0), 1),
+            "approval_minutes_day_with_agents": round(c1["agent"].get("chủ kho", 0.0), 1),
+            "note": "1 trạm chưa đủ việc cho một bộ máy riêng; tính bằng phút mỗi ngày",
+        },
+        "central_50": {**t50, "agents": 6, "agents_cost_vnd_month": agents_month_50,
+                       "with_agents_cost_vnd_month": t50["with_agents_staff_cost_vnd_month"] + agents_month_50,
+                       "saving_vnd_month": t50["manual_cost_vnd_month"] - t50["with_agents_staff_cost_vnd_month"]
+                       - agents_month_50,
+                       "rounding": "người nguyên, làm tròn lên; văn phòng làm tròn chung một nhóm (một người làm nhiều việc)",
+                       "min_office_with_agents": MIN_OFFICE_WITH_AGENTS},
+        "agent_cost_vnd_per_order": round(day_cost_vnd / orders),
+        "excluded": ["người trực 50 trạm (ở cả hai bên, trả bằng 5 % phí)", "tài xế, xe", "nhận và giao hàng ở trạm"],
     }
 
 
@@ -272,6 +404,13 @@ def main() -> None:
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
     data = write(args.events, args.out or args.events.with_name("headcount.json"), args.norms)
+    v = data["view"]
+    st, c50 = v["station"], v["central_50"]
+    print(f"mỗi trạm: {st['manual_minutes_day']} → {st['with_agents_minutes_day']} phút/ngày của người trực trạm; "
+          f"trạm nhận {st['share_vnd_day']:,} đ/ngày")
+    print(f"bộ máy 50 trạm: {c50['manual_people']} người ({c50['manual_cost_vnd_month']:,} đ/tháng) → "
+          f"{c50['with_agents_people']} người + 6 agent ({c50['with_agents_cost_vnd_month']:,} đ/tháng); "
+          f"tiết kiệm {c50['saving_vnd_month']:,} đ/tháng")
     for k in ("tram_1", "tram_50"):
         b = data[k]
         print(f"{k}: làm tay {b['manual_people']} người ({b['people_cost_vnd_month_manual']:,} đ/tháng) · với agent "

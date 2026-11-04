@@ -136,3 +136,15 @@ def test_replay_over_websocket(mock_day):
             return len(got)
 
     assert asyncio.run(scenario()) == len(events(mock_day))
+
+
+def test_final_view_is_whole_people_and_station_minutes(mock_day):
+    v = workload.compute(events(mock_day))["view"]
+    st, c = v["station"], v["central_50"]
+    assert st["with_agents_minutes_day"] < st["manual_minutes_day"]          # same person, less paperwork
+    assert all(isinstance(r["people"], int) for r in c["manual"] + c["with_agents"])
+    kho = [r for r in c["manual"] if r["role"].startswith("Nhân viên kho")][0]["people"]
+    assert [r for r in c["with_agents"] if r["role"].startswith("Nhân viên kho")][0]["people"] == kho
+    assert c["with_agents_people"] <= c["manual_people"]
+    assert c["saving_vnd_month"] == (c["manual_cost_vnd_month"] - c["with_agents_staff_cost_vnd_month"]
+                                     - c["agents_cost_vnd_month"])
