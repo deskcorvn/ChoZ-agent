@@ -143,8 +143,24 @@ def test_final_view_is_whole_people_and_station_minutes(mock_day):
     st, c = v["station"], v["central_50"]
     assert st["with_agents_minutes_day"] < st["manual_minutes_day"]          # same person, less paperwork
     assert all(isinstance(r["people"], int) for r in c["manual"] + c["with_agents"])
-    kho = [r for r in c["manual"] if r["role"].startswith("Nhân viên kho")][0]["people"]
-    assert [r for r in c["with_agents"] if r["role"].startswith("Nhân viên kho")][0]["people"] == kho
+    physical_m = {r["role"]: r["people"] for r in c["manual"] if r["kind"] == "tay_chan"}
+    physical_a = {r["role"]: r["people"] for r in c["with_agents"] if r["kind"] == "tay_chan"}
+    assert physical_m == physical_a                                          # agents never replace physical work
+    assert c["office_people_with_agents"] < c["office_people_manual"]
     assert c["with_agents_people"] <= c["manual_people"]
     assert c["saving_vnd_month"] == (c["manual_cost_vnd_month"] - c["with_agents_staff_cost_vnd_month"]
                                      - c["agents_cost_vnd_month"])
+    assert all(a["source"] for a in v["assumptions"])
+
+
+def test_staffing_follows_its_rates():
+    from sim import staffing
+    base = staffing.team(50, 4.7, 0)
+    old = staffing.CONTACTS_PER_100
+    try:
+        staffing.CONTACTS_PER_100 = 20
+        more = staffing.team(50, 4.7, 0)
+    finally:
+        staffing.CONTACTS_PER_100 = old
+    cs = lambda t: next(r["people"] for r in t["manual"] if r["role"] == "chăm sóc khách hàng")  # noqa: E731
+    assert cs(more) > cs(base)

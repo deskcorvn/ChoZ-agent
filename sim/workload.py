@@ -21,6 +21,8 @@ import math
 from collections import Counter
 from pathlib import Path
 
+from sim import staffing
+
 DAY_MINUTES = 480
 RESERVE = 1.2
 DAYS_PER_MONTH = 26
@@ -247,7 +249,7 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
             "wage_source": WAGE_SOURCE,
         }
 
-    view = honest_view(rows, vol, day_cost_vnd, orders, events)
+    view = honest_view(rows, vol, day_cost_vnd, orders, events, source.parent.parent if source else None)
     digest = hashlib.sha256(source.read_bytes()).hexdigest() if source and source.is_file() else None
     return {
         "mode": events[0]["mode"] if events else None,
@@ -275,7 +277,90 @@ def compute(events: list[dict], norms: list[dict] | None = None, source: Path | 
     }
 
 
-def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, events: list[dict]) -> dict:
+def last_cost_usd(events: list[dict]) -> float:
+    return next(e["metrics"]["agent_cost_usd"] for e in reversed(events) if e["type"] == "metric")
+
+
+def items_per_order(events: list[dict]) -> float:
+    pick = next((e["detail"]["picklist"] for e in reversed(events) if e["type"] == "handoff"
+                 and (e.get("detail") or {}).get("picklist")), None)
+    if not pick:
+        return 4.7
+    items = sum(i["qty"] for v in pick["by_supplier"].values() for i in v)
+    return items / max(pick["orders"], 1)
+
+
+def scene_costs(events: list[dict], usd_vnd: float) -> dict[str, float]:
+    """Agents' cost of each scene of a run, in đồng, from the usage on its event lines."""
+    out: dict[str, float] = {}
+    scene = ""
+    for e in events:
+        if e["type"] == "scene":
+            scene = e["scene"]
+        u = e.get("usage")
+        if u and u.get("model") != "mock":
+            out[scene] = out.get(scene, 0.0) + float(u.get("cost_usd") or 0) * usd_vnd
+    return out
+
+
+AGENT_DAYS_PER_MONTH = 30      # the agents work every day the network is open
+
+
+def agent_cost_model(events: list[dict], usd_vnd: float, runs_dir: Path | None) -> dict:
+    """Agents' cost per day for 50 stations (1,500 orders), from measured runs, scene by scene.
+
+    - Baskets and settlement read every order, so their cost grows with orders: fitted as fixed + per order over this
+      run and the live runs with 5× and 10× the orders (runs/scale_x5, runs/scale_x10).
+    - Listing, lot checks and van routes grow with listings, suppliers and routes (staffing.py drivers).
+    - Customer care grows with customer contacts: measured cost of one case × contacts a day (benchmark rate).
+    """
+    from sim import staffing as st
+    base = scene_costs(events, usd_vnd)
+    orders = sum(len((e.get("detail") or {}).get("orders", [])) for e in events
+                 if e["type"] == "say" and (e.get("detail") or {}).get("payment")) or 30
+    pts = [(orders, base.get("dat_gio", 0) + base.get("doi_soat", 0), "live_final")]
+    if runs_dir is not None:
+        for d in sorted(runs_dir.glob("scale_x*")):
+            f = d / "events.jsonl"
+            sm = d / "summary.json"
+            if f.is_file() and sm.is_file() and json.loads(sm.read_text(encoding="utf-8")).get("mode") == "live":
+                ev = read_events(f)
+                sc = scene_costs(ev, usd_vnd)
+                n = sum(len((e.get("detail") or {}).get("orders", [])) for e in ev
+                        if e["type"] == "say" and (e.get("detail") or {}).get("payment"))
+                pts.append((n, sc.get("dat_gio", 0) + sc.get("doi_soat", 0), d.name))
+    xs = [x for x, _, _ in pts]
+    if len(set(xs)) >= 2:
+        k = len(pts)
+        mx, my = sum(xs) / k, sum(y for _, y, _ in pts) / k
+        slope = sum((x - mx) * (y - my) for x, y, _ in pts) / sum((x - mx) ** 2 for x in xs)
+        fixed = my - slope * mx
+    else:
+        fixed, slope = 0.0, pts[0][1] / max(orders, 1)
+    contacts_1 = sum(1 for e in events if e["type"] == "say" and str(e.get("from", "")).startswith("ho")
+                     and e.get("to") == "ag_cham_khach") or 1
+    stations = 50
+    routes = -(-stations // st.STATIONS_PER_ROUTE)
+    parts = {
+        "gom đơn, đối soát (theo số đơn)": max(fixed + slope * ORDERS_50, 0.0),
+        "đăng bán, kiểm chứng (theo số tin)": base.get("dang_ban", 0) * st.listings_at(stations) / st.listings_at(1),
+        "kiểm lô ở kho (theo số nhà cung cấp)": base.get("gom_kho", 0) * st.suppliers_at(stations) / st.suppliers_at(1),
+        "lộ trình xe (theo số tuyến)": base.get("ra_tram", 0) * routes,
+        "chăm sóc khách (theo lượt hỏi)": base.get("nhan_hang", 0) / contacts_1
+                                         * ORDERS_50 * st.CONTACTS_PER_100 / 100,
+    }
+    day = sum(parts.values())
+    return {"fit_points": [{"orders": x, "cost_vnd_day": round(y), "run": r} for x, y, r in pts],
+            "fixed_vnd_day": round(fixed), "per_order_vnd": round(slope, 1),
+            "parts_vnd_day": {k: round(v) for k, v in parts.items()},
+            "cost_vnd_day_1500": round(day), "days_per_month": AGENT_DAYS_PER_MONTH,
+            "cost_vnd_month_1500": round(day * AGENT_DAYS_PER_MONTH),
+            "cost_vnd_per_order_1500": round(day / ORDERS_50),
+            "method": "đo từ các lượt chạy thật (30, 150, 300 đơn), cộng theo từng khâu"}
+
+
+def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, events: list[dict],
+                runs_dir: Path | None = None) -> dict:
     """The final screen's numbers, in units a jury can picture.
 
     - At each station: minutes per day of the person already there (no wage on either side: the same person works in
@@ -356,9 +441,8 @@ def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, e
                 "with_agents_staff_cost_vnd_month": sum(x["cost_vnd_month"] for x in agent_rows),
                 "office_minutes_day_manual": round(office_min, 1)}
 
-    c1, c50 = central(False), central(True)
-    t50 = team(c50)
-    agents_month_50 = round(day_cost_vnd * ORDERS_50 / orders * DAYS_PER_MONTH)
+    c1 = central(False)
+    model = agent_cost_model(events, day_cost_vnd / max(float(last_cost_usd(events)), 1e-9), runs_dir)
     office_1 = sum(v for k, v in c1["manual"].items() if k in ("điều phối", "nhân viên nội dung", "kế toán"))
     return {
         "station": {
@@ -375,16 +459,15 @@ def honest_view(rows: list[dict], vol: dict, day_cost_vnd: float, orders: int, e
             "approval_minutes_day_with_agents": round(c1["agent"].get("chủ kho", 0.0), 1),
             "note": "1 trạm chưa đủ việc cho một bộ máy riêng; tính bằng phút mỗi ngày",
         },
-        "central_50": {**t50, "agents": 6, "agents_cost_vnd_month": agents_month_50,
-                       "with_agents_cost_vnd_month": t50["with_agents_staff_cost_vnd_month"] + agents_month_50,
-                       "saving_vnd_month": t50["manual_cost_vnd_month"] - t50["with_agents_staff_cost_vnd_month"]
-                       - agents_month_50,
-                       "rounding": "người nguyên, làm tròn lên; văn phòng làm tròn chung một nhóm (một người làm nhiều việc)",
-                       "min_office_with_agents": MIN_OFFICE_WITH_AGENTS},
+        "central_50": {**staffing.team(50, items_per_order(events), model["cost_vnd_month_1500"]),
+                       "rounding": "người nguyên, làm tròn lên theo từng vai; ca 480 phút làm hiệu quả 85 %, hệ số phủ "
+                                   "ca 1,2 (mở 7 ngày/tuần, nghỉ phép)",
+                       "agent_cost_model": model},
+        "assumptions": staffing.assumptions(),
         "agent_cost_vnd_per_order": round(day_cost_vnd / orders),
-        "excluded": ["người trực 50 trạm (ở cả hai bên, trả bằng 5 % phí)", "tài xế, xe", "nhận và giao hàng ở trạm"],
+        "excluded": ["người trực 50 trạm (ở cả hai bên, trả bằng 5 % phí)", "xe, xăng dầu", "mặt bằng kho",
+                     "nhận và giao hàng ở trạm"],
     }
-
 
 def write(events_path: Path, out: Path, norms_path: Path | None = None) -> dict:
     norms = None
@@ -410,7 +493,12 @@ def main() -> None:
           f"trạm nhận {st['share_vnd_day']:,} đ/ngày")
     print(f"bộ máy 50 trạm: {c50['manual_people']} người ({c50['manual_cost_vnd_month']:,} đ/tháng) → "
           f"{c50['with_agents_people']} người + 6 agent ({c50['with_agents_cost_vnd_month']:,} đ/tháng); "
-          f"tiết kiệm {c50['saving_vnd_month']:,} đ/tháng")
+          f"ít hơn {c50['saving_vnd_month']:,} đ/tháng")
+    for side in ("manual", "with_agents"):
+        print("   " + side + ": " + "; ".join(f"{x['role']} {x['people']}" for x in c50[side]))
+    mo = c50["agent_cost_model"]
+    print(f"   agent: {mo['fit_points']} → cố định {mo['fixed_vnd_day']:,} + {mo['per_order_vnd']} đ/đơn; "
+          f"{mo['parts_vnd_day']} → {mo['cost_vnd_month_1500']:,} đ/tháng ({mo['cost_vnd_per_order_1500']} đ/đơn)")
     for k in ("tram_1", "tram_50"):
         b = data[k]
         print(f"{k}: làm tay {b['manual_people']} người ({b['people_cost_vnd_month_manual']:,} đ/tháng) · với agent "
