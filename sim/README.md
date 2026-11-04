@@ -29,6 +29,18 @@ $env:PYTHONIOENCODING = "utf-8"
 .venv-sim\Scripts\python.exe -m pytest -q tests/test_sim.py
 ```
 
+The same in bash (Git Bash, WSL, macOS, Linux; `python3.12` or `py -3.12` as your system names it):
+
+```bash
+python3.12 -m venv .venv-sim
+.venv-sim/bin/pip install -r requirements.txt -r requirements-dev.txt -r sim/requirements.txt   # Windows: .venv-sim/Scripts/pip
+export PYTHONIOENCODING=utf-8
+.venv-sim/bin/python -m sim.run_day --mode mock --seed 7 --out runs/mock
+.venv-sim/bin/python -m sim.validate runs/mock/events.jsonl
+.venv-sim/bin/python -m sim.workload runs/mock/events.jsonl
+.venv-sim/bin/python -m pytest -q tests/test_sim.py        # output of the last run: sim/pytest-output.txt
+```
+
 Live (real Claude and Meta calls, about 0.5 USD a day):
 
 ```powershell
@@ -60,6 +72,10 @@ the lines, and the fee of every completed order from `world.json`.
 ## Honesty rules in code
 
 - Mock events say `mode: "mock"` and carry zero usage; `Emitter` refuses a mock event with a cost.
+- The closing line ("Hôm nay 30 đơn …") is read out by code from the final metric line and marked `detail.auto`, so it
+  is not counted as agent work and always equals the metric it reads.
+- The supplier's voice is synthetic (VieNeu-TTS) and the cigarette pack is drawn by code; both carry a label in the
+  event (`detail.label`) that the stage shows. The fish-sauce photo is the producer's own (owner's Drive, with permission).
 - Claude usage is read from each Messages API response (input, output, cache read, cache write) and priced with
   `prices.py` (source and date inside); Meta usage and cost are the pipeline's own step log (`app/prices.py`).
 - Each model call's usage is attached to the event it produced, so `cost_total_usd` is the sum of the event lines;

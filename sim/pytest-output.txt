@@ -1,0 +1,14 @@
+........................................................................ [ 54%]
+.........................................s...........s.......            [100%]
+131 passed, 2 skipped in 25.95s
+---
+============================= test session starts =============================
+platform win32 -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: F:\Gifty\choz-listing-agent
+configfile: pytest.ini
+plugins: anyio-4.16.0
+collected 11 items
+
+tests\test_sim.py ...........                                            [100%]
+
+============================= 11 passed in 3.03s ==============================
