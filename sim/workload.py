@@ -354,7 +354,7 @@ def agent_cost_model(events: list[dict], usd_vnd: float, runs_dir: Path | None) 
             "fixed_vnd_day": round(fixed), "per_order_vnd": round(slope, 1),
             "parts_vnd_day": {k: round(v) for k, v in parts.items()},
             "cost_vnd_day_1500": round(day), "days_per_month": AGENT_DAYS_PER_MONTH,
-            "cost_vnd_month_1500": round(day * AGENT_DAYS_PER_MONTH),
+            "cost_vnd_month_1500": int(round(day * AGENT_DAYS_PER_MONTH, -3)),
             "cost_vnd_per_order_1500": round(day / ORDERS_50),
             "method": "đo từ các lượt chạy thật (30, 150, 300 đơn), cộng theo từng khâu"}
 

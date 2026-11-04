@@ -409,9 +409,9 @@
    "manual_cost_vnd_month": 634117000,
    "with_agents_staff_cost_vnd_month": 379680000,
    "agents": 6,
-   "agents_cost_vnd_month": 8487403,
-   "with_agents_cost_vnd_month": 388167403,
-   "saving_vnd_month": 245949597,
+   "agents_cost_vnd_month": 8487000,
+   "with_agents_cost_vnd_month": 388167000,
+   "saving_vnd_month": 245950000,
    "office_people_manual": 19,
    "office_people_with_agents": 2,
    "physical_people": 20,
@@ -445,7 +445,7 @@
     },
     "cost_vnd_day_1500": 282913,
     "days_per_month": 30,
-    "cost_vnd_month_1500": 8487403,
+    "cost_vnd_month_1500": 8487000,
     "cost_vnd_per_order_1500": 189,
     "method": "đo từ các lượt chạy thật (30, 150, 300 đơn), cộng theo từng khâu"
    }
